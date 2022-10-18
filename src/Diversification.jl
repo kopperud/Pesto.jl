@@ -6,6 +6,7 @@ import StatsPlots
 import Turing
 import RCall
 import CSV
+import ProgressMeter
 
 include("datatypes.jl")
 include("utils.jl")

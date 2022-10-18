@@ -1,6 +1,6 @@
 function preorder(model, data, E, D_ends; verbose = false)
     ## Preorder pass, compute `F(t)`
-    alg = DifferentialEquations.RK4()
+    alg = DifferentialEquations.Tsit5()
     k = length(model.λ)
     ntips = length(data.tiplab)
     i_not_js = [setdiff(1:k, i) for i in 1:k]
@@ -17,7 +17,7 @@ function preorder(model, data, E, D_ends; verbose = false)
     pF = [model.λ, model.μ, model.η, i_not_js, k, E]
 
     if verbose
-        prog = Progress(length(data.po), "Preorder pass")
+        prog = ProgressMeter.Progress(length(data.po), "Preorder pass")
     end
 
     for i in reverse(data.po)

@@ -1,16 +1,18 @@
+export postorder
+
 function postorder(model::SSEconstant, data::SSEdata; verbose = false)
     ## Compute the extinction probability through time
     n = length(model.λ)
     i_not_js = [setdiff(1:n, i) for i in 1:n]
     pE = [model.λ, model.μ, model.η, i_not_js, n]
-    alg = DifferentialEquations.RK4()
+    alg = DifferentialEquations.Tsit5()
 
     tree_height = maximum(data.node_depth)
     tspan = (0.0, tree_height)
 #    E0 = [1.0 - data.ρ, 1.0 - data.ρ]
     E0 = repeat([1.0 - data.ρ], n)
-    pr = DifferentialEquations.ODEProblem(extinction_prob, E0, tspan, pE)
-    E = DifferentialEquations.solve(pr, alg)
+    pr = DifferentialEquations.ODEProblem(extinction_prob, E0, tspan, pE);
+    E = DifferentialEquations.solve(pr, alg);
 
     ## Postorder traversal: computing the branch probabilities through time
     nrows = size(data.edges, 1)
@@ -56,7 +58,7 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false)
             #prob = remake(pr, u0 = u0, tspan = tspan)
             prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
             #sol = DifferentialEquations.solve(prob, alg, save_everystep = false)[end]
-            sol = DifferentialEquations.solve(prob, alg)
+            sol = DifferentialEquations.solve(prob, alg);
             Ds[i] = sol
             sol = sol[end]
 
@@ -81,9 +83,9 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false)
             tspan = (node_age, parent_node_age)
 
             #prob = remake(pr, u0 = u0, tspan = tspan)
-            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
 #            sol = solve(prob, alg, save_everystep = false)[end]
-            sol = DifferentialEquations.solve(prob, alg)
+            sol = DifferentialEquations.solve(prob, alg);
             Ds[i] = sol
             sol = sol[end]
             k = sum(sol)
@@ -96,6 +98,7 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false)
             end
             sf[i] += logk
         end
+
         if verbose
             ProgressMeter.next!(prog)
         end

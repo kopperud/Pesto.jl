@@ -1,3 +1,5 @@
+export anc_state_prob_bisse
+
 function anc_state_prob_bisse(treefile, datafile, model::SSEconstant)
     RCall.@rput treefile
     RCall.@rput datafile

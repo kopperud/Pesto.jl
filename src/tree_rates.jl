@@ -1,6 +1,6 @@
 export calculate_tree_rates
 
-function calculate_tree_rates(data, model, Ds, Fs; verbose = false)
+function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
     if verbose
         println("Calculating state probabilities")
     end
@@ -19,7 +19,7 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false)
         d = Dict()
         for (key, P) in Ps
             times = Fs[key].t
-            times1 = range(minimum(times), maximum(times), length = 100)
+            times1 = range(minimum(times), maximum(times), length = nt)
             d[key] = mean([sum(rate .* P) for P in Ps[key].(times1)])
         end
         average_branch_rates[rate_name] = d
