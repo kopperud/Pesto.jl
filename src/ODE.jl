@@ -1,0 +1,34 @@
+## Probability that a lineage at time `t` is not represented in the reconstructed tree
+## * This equation does not depend on the topology, so we solve for it first
+function extinction_prob(dE, E, p, t)
+    λ, μ, η, i_not_js, K = p
+
+    for i in 1:K
+        i_not_j = i_not_js[i]
+        dE[i] = μ[i] - (λ[i] + μ[i] + η) * E[i] + λ[i] * E[i]^2 + (η/(K-1)) * sum(E[j] for j in i_not_j) 
+    end
+end
+
+## Probability of of observing the branch at time `t`
+## * We solve this equation in the postorder traversal
+function backward_prob(dD, D, p, t)
+    λ, μ, η, i_not_js, K, E = p
+
+    Et = E(t)
+    for i in 1:K
+        i_not_j = i_not_js[i]
+        dD[i] = - (λ[i] + μ[i] + η) * D[i] + 2*λ[i]*D[i]*Et[i] + (η/(K-1)) * sum(D[j] for j in i_not_j)
+    end
+end
+
+## This ODE is the previous one times minus one
+## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
+function forward_prob(dF, F, p, t)
+    λ, μ, η, i_not_js, K, E = p
+
+    Et = E(t)
+    for i in 1:K
+        i_not_j = i_not_js[i]
+        dF[i] = (-1) * ( - (λ[i] + μ[i] + η) * F[i] + 2*λ[i]*F[i]*Et[i] + (η/(K-1)) * sum(F[j] for j in i_not_j))
+    end
+end
