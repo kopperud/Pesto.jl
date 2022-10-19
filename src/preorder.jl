@@ -1,6 +1,5 @@
-function preorder(model, data, E, D_ends; verbose = false)
+function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEquations.Tsit5())
     ## Preorder pass, compute `F(t)`
-    alg = DifferentialEquations.Tsit5()
     k = length(model.λ)
     ntips = length(data.tiplab)
     i_not_js = [setdiff(1:k, i) for i in 1:k]
