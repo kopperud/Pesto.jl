@@ -9,15 +9,15 @@ end
 function Distributions.loglikelihood(model::BDconstant, data::SSEdata)
     E0 = 1.0 - data.ρ
     M0 = float(length(data.tiplab))
-    alg = Tsit5()
+    alg = DifferentialEquations.Tsit5()
 
     root_age = maximum(data.branching_times)
     tspan = (0.0, root_age)
 
     u0 = [E0, M0]
     p = [model.λ, model.μ]
-    prob = ODEProblem(dEdM, u0, tspan, p)
-    EM = solve(prob, alg, saveat = data.branching_times)
+    prob = DifferentialEquations.ODEProblem(dEdM, u0, tspan, p)
+    EM = DifferentialEquations.solve(prob, alg, saveat = data.branching_times)
     E(t) = EM(t)[1]
     M(t) = EM(t)[2]
 
@@ -39,12 +39,9 @@ function Distributions.loglikelihood(model::BDconstant, data::SSEdata)
     return(logL)
 end
 
-using ForwardDiff
-using Turing
-
 @model function birthdeath_constant(data)
-    μ ~ Exponential(0.1)
-    d ~ Exponential(0.1) # "net-diversification"
+    μ ~ Distributions.Exponential(0.1)
+    d ~ Distributions.Exponential(0.1) # "net-diversification"
 
     λ = μ + d
 
@@ -52,7 +49,7 @@ using Turing
 end
 
 function estimate_constant_bdp(data::SSEdata; iterations = 500)
-    chain = sample(birthdeath_constant(data), NUTS(), iterations; progress=true)
+    chain = Turing.sample(birthdeath_constant(data), Turing.NUTS(), iterations; progress=true)
 
     median_λ = median(chain[:d] + chain[:μ])
     median_μ = median(chain[:μ])
