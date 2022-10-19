@@ -10,11 +10,8 @@ function backwards_forwards_pass(model, data; verbose = false, alg = Differentia
     #logL = logL_root(model, data)
     #println("logL: \t", logL)
 
-    ASP, Fs = preorder(model, data, E, D_ends; verbose = verbose, alg = alg)
-    if verbose
-        display(ASP)
-        println()
-    end
-    return (Ds, Fs)
+    Fs, F_ends = preorder(model, data, E, D_ends; verbose = verbose, alg = alg)
+
+    return(Ds, Fs)
 end
 

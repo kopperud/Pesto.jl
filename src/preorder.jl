@@ -1,3 +1,5 @@
+export preorder
+
 function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEquations.Tsit5())
     ## Preorder pass, compute `F(t)`
     k = length(model.λ)
@@ -57,7 +59,16 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
         end
     end
 
-    ASP = zeros(length(data.tiplab)-1, k)
+    return(Fs, F_ends)
+end
+
+export ancestral_state_probs
+function ancestral_state_probs(data, model, D_ends, F_ends)
+    k = length(model.λ)
+    root_node = length(data.tiplab)+1
+    ntips = length(data.tiplab)
+
+    ASP = zeros(ntips-1, k)
 
     for node in root_node : maximum(data.edges)
         children = findall(data.edges[:,1] .== node)
@@ -71,6 +82,7 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
         ## Assign and normalize
         ASP[node - ntips,:] = asp ./ sum(asp)
     end
-
-    return(ASP, Fs)
+    return(ASP)
 end
+
+
