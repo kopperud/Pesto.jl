@@ -40,7 +40,6 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             trait_value = data.trait_data[species]
 
             if trait_value == "?" ## If we don't know or or didn't observe the trait
-#                D = [1.0, 1.0] .* data.ρ
                 D = repeat([1.0], n) .* data.ρ                
             else ## If we observed the trait and measured it 
                 trait_idx = convert.(Float64, trait_value .== data.state_space)
@@ -53,12 +52,12 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             parent_node = parental_node(dec, data)
             parent_node_age = data.node_depth[parent_node]
             tspan = (node_age, parent_node_age)
-            times = range(node_age, parent_node_age, length = 100)
+#            times = range(node_age, parent_node_age, length = 100)
 
 
             #prob = remake(pr, u0 = u0, tspan = tspan)
             prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
-            sol = DifferentialEquations.solve(prob, alg, tstops = times);
+            sol = DifferentialEquations.solve(prob, alg);
             Ds[i] = sol
             sol = sol[end]
 
