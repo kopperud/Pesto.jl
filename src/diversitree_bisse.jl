@@ -38,7 +38,8 @@ function anc_state_prob_bisse(treefile, datafile, model::SSEconstant)
     prob <- sum(freqs * D / (nonextinct * lambda)) 
 
     logL <- log(mean(D / (lambda * (1 - E)^2))) + sum(lq)
-    cat("logL =", logL, "\n")
+#    cat("logL =", logL, "\n")
+    print(paste0("logL =", logL))
 
     # now infer marginal ancestral state reconstructions
     anc_states = asr.marginal(lik, pars)

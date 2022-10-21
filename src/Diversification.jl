@@ -7,6 +7,7 @@ import Turing
 import RCall
 import CSV
 import ProgressMeter
+import StatsBase
 
 include("datatypes.jl")
 include("utils.jl")

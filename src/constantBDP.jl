@@ -39,7 +39,7 @@ function Distributions.loglikelihood(model::BDconstant, data::SSEdata)
     return(logL)
 end
 
-@model function birthdeath_constant(data)
+Turing.@model function birthdeath_constant(data)
     μ ~ Distributions.Exponential(0.1)
     d ~ Distributions.Exponential(0.1) # "net-diversification"
 

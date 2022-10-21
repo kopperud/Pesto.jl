@@ -20,7 +20,7 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
         for (key, P) in Ps
             times = Fs[key].t
             times1 = range(minimum(times), maximum(times), length = nt)
-            d[key] = mean([sum(rate .* P) for P in Ps[key].(times1)])
+            d[key] = StatsBase.mean([sum(rate .* P) for P in Ps[key].(times1)])
         end
         average_branch_rates[rate_name] = d
     end
