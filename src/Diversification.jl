@@ -8,11 +8,13 @@ import RCall
 import CSV
 import ProgressMeter
 import StatsBase
+import DataStructures
 
 include("datatypes.jl")
 include("utils.jl")
 include("diversitree_bisse.jl")
 include("postorder.jl")
+include("postorder_chunk.jl")
 include("preorder.jl")
 include("ODE.jl")
 include("logLroot.jl")

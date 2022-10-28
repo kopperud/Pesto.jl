@@ -25,7 +25,11 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
     sf = zeros(typeof(model.λ[1]), nrows)
 
     pD = [model.λ, model.μ, model.η, i_not_js, n, E]
-
+    D0 = repeat([1.0], n)
+    u0 = typeof(model.λ[1]).(D0)
+    tspan = (0.0, 1.0)
+    prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+ 
     #for i in 1:nrows
     if verbose
         prog = ProgressMeter.Progress(length(data.po), "Postorder pass")
@@ -56,7 +60,8 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
 
 
             #prob = remake(pr, u0 = u0, tspan = tspan)
-            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+#            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+            prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
             sol = DifferentialEquations.solve(prob, alg);
             Ds[i] = sol
             sol = sol[end]
@@ -81,7 +86,8 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
-            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
+            #prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
+            prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
             sol = DifferentialEquations.solve(prob, alg);
             Ds[i] = sol
             sol = sol[end]
