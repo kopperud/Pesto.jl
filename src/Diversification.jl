@@ -9,6 +9,8 @@ import CSV
 import ProgressMeter
 import StatsBase
 import DataStructures
+import Distributed
+import SharedArrays
 
 include("datatypes.jl")
 include("utils.jl")

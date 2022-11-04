@@ -51,7 +51,7 @@ end
 function estimate_constant_bdp(data::SSEdata; iterations = 500)
     chain = Turing.sample(birthdeath_constant(data), Turing.NUTS(), iterations; progress=true)
 
-    median_λ = median(chain[:d] + chain[:μ])
-    median_μ = median(chain[:μ])
+    median_λ = StatsBase.median(chain[:d] + chain[:μ])
+    median_μ = StatsBase.median(chain[:μ])
     return(chain, median_λ, median_μ)
 end

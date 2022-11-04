@@ -1,6 +1,10 @@
 export postorder
 
 function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = DifferentialEquations.Tsit5())
+
+    ## Pre-compute descendants in hashtable
+    descendants = make_descendants(data)
+
     ## Compute the extinction probability through time
     n = length(model.λ)
     i_not_js = [setdiff(1:n, i) for i in 1:n]
@@ -35,11 +39,12 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
         prog = ProgressMeter.Progress(length(data.po), "Postorder pass")
     end
 
+    #Threads.@threads for i in data.po
     for i in data.po
         anc, dec = data.edges[i,:]
 
-        #if is tip
-        if dec <= Ntip
+        if dec < Ntip+1
+
             species = data.tiplab[dec]
             trait_value = data.trait_data[species]
 
@@ -53,15 +58,12 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             u0 = typeof(model.λ[1]).(D)
 
             node_age = data.node_depth[dec]
-            parent_node = parental_node(dec, data)
-            parent_node_age = data.node_depth[parent_node]
+            parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
-#            times = range(node_age, parent_node_age, length = 100)
 
-
-            #prob = remake(pr, u0 = u0, tspan = tspan)
-#            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+    #            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
             prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
+            #sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
             sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
@@ -71,10 +73,19 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             D_ends[i,:] = sol
             logk = log(k)
             sf[i] = logk
-        else
-            left_node, right_node = descendant_nodes(dec, data)
-            left_edge = findall(data.edges[:,2] .== left_node)[1]
-            right_edge = findall(data.edges[:,2] .== right_node)[1]
+
+            if verbose
+                ProgressMeter.next!(prog)
+            end
+        end
+    end
+
+    for i in data.po
+
+        anc, dec = data.edges[i,:]
+        if dec > Ntip
+
+            left_edge, right_edge = descendants[dec]            
             node_age = data.node_depth[dec]
 
             D_left = D_ends[left_edge,:]
@@ -88,18 +99,16 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
 
             #prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
             prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
+            #sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
             sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
             k = sum(sol)
             sol = sol ./ k
             D_ends[i,:] = sol
-            if k < 0.0
-                logk = 0.0
-            else
-                logk = log(k)
+            if k > 0.0
+                sf[i] += log(k)
             end
-            sf[i] += logk
         end
 
         if verbose

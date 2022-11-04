@@ -1,13 +1,17 @@
 export preorder
 
 function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEquations.Tsit5())
+    ## Precompute ancestor edges
+    ancestors = make_ancestors(data)
+    descendants = make_descendants(data)
+
     ## Preorder pass, compute `F(t)`
     k = length(model.λ)
     ntips = length(data.tiplab)
     i_not_js = [setdiff(1:k, i) for i in 1:k]
     
     root_node = length(data.tiplab)+1
-    left_root_edge = findall(data.edges[:,1] .== root_node)[1]
+    left_root_edge = descendants[root_node][1]    
 
     nrows = size(data.edges, 1)
     ## Store the numerical solution of F at the end of the branch
@@ -22,26 +26,26 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
     end
 
     for i in reverse(data.po)
-        parent = data.edges[i,1]
-        child = data.edges[i,2]
+        anc = data.edges[i,1]
+        dec = data.edges[i,2]
         
         ## if root
-        if parent == root_node
-            root_children = findall(data.edges[:,1] .== root_node)
+        if anc == root_node
+            root_children = descendants[root_node]           
             other_child = setdiff(root_children, i)[1]
 
             F_start = D_ends[other_child,:] .* model.λ
         else
-            parent_edge = findall(data.edges[:,2] .== parent)[1]
-            children = findall(data.edges[:,1] .== parent)
+            parent_edge = ancestors[anc]
+            children = descendants[anc]            
             other_child = setdiff(children, i)[1]
 
             F_start = F_ends[parent_edge,:] .* model.λ .* D_ends[other_child,:]
             F_start = F_start ./ sum(F_start) ## Normalize, because these numbers can get very tiny (1E-10)
         end
 
-        node_age = data.node_depth[child]
-        parent_node = parental_node(child, data)
+        node_age = data.node_depth[dec]
+        parent_node = parental_node(dec, data)
         parent_node_age = data.node_depth[parent_node]
         tspan = (parent_node_age, node_age)
 

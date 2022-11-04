@@ -6,6 +6,37 @@ function descendant_nodes(node, data)
     res = desc[:,2]
 end
 
+function make_ancestors(data)
+    ntip = length(data.tiplab)
+    rootnode = ntip + 1
+    maxnode = maximum(data.edges)
+
+    ancestors = Dict(node => 0 for node in 1:maxnode if node != rootnode)
+
+    for (i, row) in enumerate(eachrow(data.edges))
+        anc, dec = row
+
+        ancestors[dec] = i
+    end
+    return(ancestors)
+end
+
+function make_descendants(data)
+    ntip = length(data.tiplab)
+    rootnode = ntip + 1
+    maxnode = maximum(data.edges)
+
+    descendants = Dict(node => [] for node in rootnode:maxnode)
+
+    for (i, row) in enumerate(eachrow(data.edges))
+        anc, dec = row
+        if anc > ntip
+            append!(descendants[anc], i)
+        end
+    end
+    return(descendants)
+end
+
 function parental_node(node, data)
     parental_edge_idx = findall(data.edges[:,2] .== node)
     parent_node = data.edges[parental_edge_idx,1][1]
