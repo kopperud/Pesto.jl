@@ -62,7 +62,7 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             #prob = remake(pr, u0 = u0, tspan = tspan)
 #            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
             prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
-            sol = DifferentialEquations.solve(prob, alg);
+            sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
 
@@ -88,7 +88,7 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
 
             #prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
             prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
-            sol = DifferentialEquations.solve(prob, alg);
+            sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
             k = sum(sol)

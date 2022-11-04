@@ -48,7 +48,7 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
         u0 = F_start
         prob = DifferentialEquations.ODEProblem(forward_prob, u0, tspan, pF)
         #sol = DifferentialEquations.solve(prob, alg, save_everystep = false)[end]
-        sol = DifferentialEquations.solve(prob, alg)
+        sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
         Fs[i] = sol
         sol = sol[end]
 
