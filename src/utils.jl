@@ -1,5 +1,4 @@
-export readtree, make_SSEdata, make_quantiles
-
+export readtree, make_SSEdata, make_quantiles, make_SSEdata
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
     desc = data.edges[desc_edge_idxs,:]
@@ -87,6 +86,36 @@ function make_SSEdata(phy, datafile, ρ; include_traits = true)
     else
         trait_data = Dict(taxon => "?" for taxon in phy[:tip_label])
     end
+    node_depth = phy[:node_depths]
+    tiplab = phy[:tip_label]
+    branching_times = phy[:branching_times]
+
+    state_space = sort(unique(values(trait_data)))
+    edges = convert.(Int64, phy[:edge])
+    el = phy[:edge_length]
+    po = phy[:po]
+
+    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po)
+    return(data)
+end
+
+function make_SSEdata2(Rphy, ρ)
+    trait_data = Dict(taxon => "?" for taxon in phy[:tip.label])
+
+    ##node_depth = 
+    RCall.R"""
+    library(ape)
+
+    nde <- node.depth.edgelength(phy)
+    node_depths <- max(nde) - nde
+    phy$node_depths <- node_depths
+    phy$branching_times <- branching.times(phy)
+
+    po <- postorder(phy)
+    phy$po <- po
+    """
+    RCall.@rget phy
+
     node_depth = phy[:node_depths]
     tiplab = phy[:tip_label]
     branching_times = phy[:branching_times]
