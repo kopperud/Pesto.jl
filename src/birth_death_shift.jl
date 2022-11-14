@@ -5,7 +5,10 @@ function birth_death_shift(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     res = calculate_tree_rates(data, model, Ds, Fs; verbose = verbose)
 
-    average_node_rates = res["average_node_rates"]
+    out = Dict()
 
-    return(average_node_rates)
+    out["lambda"] = res["average_node_rates"]["λ"]
+    out["mu"] = res["average_node_rates"]["μ"]
+
+    return(out)
 end
