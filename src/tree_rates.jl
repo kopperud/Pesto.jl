@@ -1,18 +1,19 @@
 export calculate_tree_rates
+export ancestral_state_probabilities
 
 function average_branch_rate(P, t, rate, nt)
     times = range(minimum(t), maximum(t), length = nt)
 
-#    v = []
-#    for time in times
-#        append!(v, sum(rate .* P(time)))
+#    v = zeros(nt)
+#    for (i, time) in enumerate(times)
+#        v[i] = sum(rate .* P(time))
 #    end
-    v = [sum(rate .* x) for x in P.(times)]
+    v = [sum(rate .* Pt) for Pt in P.(times)]
     res = StatsBase.mean(v)
     return(res)
 end
 
-function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
+function ancestral_state_probabilities(data, model, Ds, Fs; verbose = false)
     if verbose
         println("Calculating state probabilities")
     end
@@ -22,6 +23,10 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
        Ps[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
+    return (Ps)
+end
+
+function calculate_tree_rates(data, model, Ds, Fs, Ps; verbose = false, nt = 100)
     if verbose
         println("Calculating average branch rates")
     end
@@ -49,7 +54,6 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
             if i == length(data.tiplab)+1
                 m[i] = NaN
             else
-    #            edge_idx = findall(data.edges[:,2] .== i)[1]
                 edge_idx = ancestors[i]
                 node_val = average_branch_rates[rate_name][edge_idx]
                 m[i] = node_val
@@ -58,10 +62,7 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
         average_node_rates[rate_name] = m
     end
 
-    res = Dict("Ds" => Ds,
-               "Fs" => Fs,
-               "Ps" => Ps,
-               "average_branch_rates" => average_branch_rates,
+    res = Dict("average_branch_rates" => average_branch_rates,
                "average_node_rates" => average_node_rates)
 
     if verbose
@@ -69,7 +70,3 @@ function calculate_tree_rates(data, model, Ds, Fs; verbose = false, nt = 100)
     end
     return(res)
 end
-
-#function average_node_rate(data, i, 
-
-

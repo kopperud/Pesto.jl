@@ -1,21 +1,12 @@
 export postorder
 
-function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = DifferentialEquations.Tsit5())
+function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = DifferentialEquations.Tsit5())
 
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 
-    ## Compute the extinction probability through time
     n = length(model.λ)
     i_not_js = [setdiff(1:n, i) for i in 1:n]
-    pE = [model.λ, model.μ, model.η, i_not_js, n]
-
-    tree_height = maximum(data.node_depth)
-    tspan = (0.0, tree_height)
-
-    E0 = repeat([1.0 - data.ρ], n)
-    pr = DifferentialEquations.ODEProblem(extinction_prob, E0, tspan, pE);
-    E = DifferentialEquations.solve(pr, alg);
 
     ## Postorder traversal: computing the branch probabilities through time
     nrows = size(data.edges, 1)
@@ -115,5 +106,5 @@ function postorder(model::SSEconstant, data::SSEdata; verbose = false, alg = Dif
             ProgressMeter.next!(prog)
         end
     end
-    return(D_ends, Ds, sf, E)
+    return(D_ends, Ds, sf)
 end

@@ -22,7 +22,7 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
     pF = [model.λ, model.μ, model.η, i_not_js, k, E]
 
     if verbose
-        prog = ProgressMeter.Progress(length(data.po), "Preorder pass")
+        prog = ProgressMeter.Progress(length(data.po), "Preorder pass ")
     end
 
     for i in reverse(data.po)

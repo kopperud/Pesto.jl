@@ -21,6 +21,7 @@ include("constantBDP.jl")
 include("tree_rates.jl")
 include("backwards_forwards.jl")
 include("birth_death_shift.jl")
+include("extinction.jl")
 
 # Write your package code here.
 end

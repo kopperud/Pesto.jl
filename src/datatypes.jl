@@ -22,3 +22,9 @@ struct BDconstant <: Distributions.ContinuousUnivariateDistribution
     λ
     μ
 end
+
+struct SSEresult
+    phy
+    lambda
+    mu
+end
