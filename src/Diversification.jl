@@ -7,6 +7,7 @@ import CSV
 import ProgressMeter
 import StatsBase
 import DataStructures
+import Distributions
 
 include("datatypes.jl")
 include("utils.jl")
