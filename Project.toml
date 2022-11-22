@@ -19,6 +19,7 @@ Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 
 [compat]
 CSV = "0.10"
+DiffEqBase = "6"
 DifferentialEquations = "7"
 ForwardDiff = "0.10"
 ProgressMeter = "1"
