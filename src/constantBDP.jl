@@ -11,15 +11,15 @@ end
 function Distributions.loglikelihood(model::BDconstant, data::SSEdata)
     E0 = 1.0 - data.ρ
     M0 = float(length(data.tiplab))
-    alg = DifferentialEquations.Tsit5()
+    alg = OrdinaryDiffEq.Tsit5()
 
     root_age = maximum(data.branching_times)
     tspan = (0.0, root_age)
 
     u0 = [E0, M0]
     p = [model.λ, model.μ]
-    prob = DifferentialEquations.ODEProblem(dEdM, u0, tspan, p)
-    EM = DifferentialEquations.solve(prob, alg, saveat = data.branching_times)
+    prob = OrdinaryDiffEq.ODEProblem(dEdM, u0, tspan, p)
+    EM = OrdinaryDiffEq.solve(prob, alg, saveat = data.branching_times)
     E(t) = EM(t)[1]
     M(t) = EM(t)[2]
 

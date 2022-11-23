@@ -1,6 +1,6 @@
 export postorder
 
-function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = DifferentialEquations.Tsit5())
+function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = OrdinaryDiffEq.Tsit5())
 
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
@@ -23,7 +23,7 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
     D0 = repeat([1.0], n)
     u0 = typeof(model.λ[1]).(D0)
     tspan = (0.0, 1.0)
-    prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
+    prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
  
     #for i in 1:nrows
     if verbose
@@ -52,10 +52,10 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
-    #            prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD)
-            prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
-            #sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
-            sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+    #            prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
+            prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
+            #sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
 
@@ -88,10 +88,10 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
-            #prob = DifferentialEquations.ODEProblem(backward_prob, u0, tspan, pD);
-            prob = DifferentialEquations.remake(prob, u0 = u0, tspan = tspan)
-            #sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
-            sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+            #prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD);
+            prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
+            #sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
             k = sum(sol)

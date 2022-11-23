@@ -1,6 +1,6 @@
 module Diversification
 
-import DifferentialEquations
+import OrdinaryDiffEq
 import Turing
 import RCall
 import CSV

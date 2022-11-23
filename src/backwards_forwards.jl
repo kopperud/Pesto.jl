@@ -1,6 +1,6 @@
 export backwards_forwards_pass
 
-function backwards_forwards_pass(model, data; verbose = false, alg = DifferentialEquations.Tsit5())
+function backwards_forwards_pass(model, data; verbose = false, alg = OrdinaryDiffEq.Tsit5())
     if verbose
         println("\t\t")
         println("Backwards-forwards method:")

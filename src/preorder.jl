@@ -1,6 +1,6 @@
 export preorder
 
-function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEquations.Tsit5())
+function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.Tsit5())
     ## Precompute ancestor edges
     ancestors = make_ancestors(data)
     descendants = make_descendants(data)
@@ -50,9 +50,9 @@ function preorder(model, data, E, D_ends; verbose = false, alg = DifferentialEqu
         tspan = (parent_node_age, node_age)
 
         u0 = F_start
-        prob = DifferentialEquations.ODEProblem(forward_prob, u0, tspan, pF)
-        #sol = DifferentialEquations.solve(prob, alg, save_everystep = false)[end]
-        sol = DifferentialEquations.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+        prob = OrdinaryDiffEq.ODEProblem(forward_prob, u0, tspan, pF)
+        #sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false)[end]
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
         Fs[i] = sol
         sol = sol[end]
 
