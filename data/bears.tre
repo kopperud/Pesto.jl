@@ -1,0 +1,5 @@
+#NEXUS
+
+Begin trees;
+tree TREE1 = [&R]((((((Ursus_americanus[&index=8]:2.465537,Ursus_thibetanus[&index=7]:2.465537)[&index=9]:0.631906,Helarctos_malayanus[&index=6]:3.097443)[&index=10]:0.873589,(Ursus_arctos[&index=5]:1.309369,Ursus_maritimus[&index=4]:1.309369)[&index=11]:2.661663)[&index=12]:2.773504,Melursus_ursinus[&index=3]:6.744536)[&index=13]:4.427479,Tremarctos_ornatus[&index=2]:11.172015)[&index=14]:10.803337,Ailuropoda_melanoleuca[&index=1]:21.975352)[&index=15]:0.000000;
+End;
