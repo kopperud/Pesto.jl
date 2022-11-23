@@ -9,7 +9,7 @@ function average_branch_rate(P, t, rate, nt)
 #        v[i] = sum(rate .* P(time))
 #    end
     v = [sum(rate .* Pt) for Pt in P.(times)]
-    res = StatsBase.mean(v)
+    res = Statistics.mean(v)
     return(res)
 end
 

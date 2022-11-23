@@ -4,7 +4,7 @@ import OrdinaryDiffEq
 import RCall
 import CSV
 import ProgressMeter
-import StatsBase
+import Statistics
 import DataStructures
 import Distributions
 

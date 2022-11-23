@@ -80,6 +80,8 @@ function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0
 
     inner_optimizer = Optim.GradientDescent()
     optres = Optim.optimize(f, lower, upper, xinit, Fminbox(inner_optimizer))
+    #optprob = NLSolvers.OptmizationProblem(f)
+    #optres = solve(optprob, xinit, inner_optimizer, OptimizationOptions())
 
     λml, μml = optres.minimizer
     return(λml, μml)
