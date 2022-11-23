@@ -23,5 +23,10 @@ include("backwards_forwards.jl")
 include("birth_death_shift.jl")
 include("extinction.jl")
 
+# Path into package
+export path
+path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
+#path(x::String) = joinpath(@__DIR__, x)
+
 # Write your package code here.
 end

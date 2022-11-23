@@ -12,11 +12,7 @@ end
 ## Vectorized ODE function
 function extinction_prob(dE, E, p, t)
     λ, μ, η, K = p
-
     dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E.^2 .+ (η/(K-1)) .* (sum(E) .- E) 
-#    for i in 1:K
-#        dE[i] = res[i]
-#    end
 end
 
 
@@ -55,6 +51,5 @@ function forward_prob(dF, F, p, t)
     λ, μ, η, i_not_js, K, E = p
 
     Et = E(t)
-
     dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
 end
