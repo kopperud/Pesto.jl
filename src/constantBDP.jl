@@ -1,46 +1,5 @@
 export lp, ψ, Econstant
 
-function dEdM(du, u, p, t)
-    λ, μ = p
-    # dE/dt -- the extinction probability
-    du[1] = μ - u[1] * (λ + μ) + λ * u[1]^2
-    # dM/dt -- the number of expected lineages in the reconstructed tree
-    du[2] = u[2] * λ * (u[1] - 1.0)
-end
-
-function Distributions.loglikelihood(model::BDconstant, data::SSEdata)
-    E0 = 1.0 - data.ρ
-    M0 = float(length(data.tiplab))
-    alg = OrdinaryDiffEq.Tsit5()
-
-    root_age = maximum(data.branching_times)
-    tspan = (0.0, root_age)
-
-    u0 = [E0, M0]
-    p = [model.λ, model.μ]
-    prob = OrdinaryDiffEq.ODEProblem(dEdM, u0, tspan, p)
-    EM = OrdinaryDiffEq.solve(prob, alg, saveat = data.branching_times)
-    E(t) = EM(t)[1]
-    M(t) = EM(t)[2]
-
-    dM(t) = EM(t, Val{1})[2] # The first derivative of M(t)
-    n = length(data.branching_times)
-    
-    Mroot = M(root_age)
-    if Mroot < 0
-        return -Inf
-    end
-    logL = 2* log(M(root_age)) - (n+1) * log(M0)
-    for i in 2:n
-        x = -dM(data.branching_times[i])
-        if x < 0
-            return -Inf
-        end
-        logL += log(x)
-    end
-    return(logL)
-end
-
 @doc raw"""
     loglikelihood(model, data)
 
@@ -113,19 +72,15 @@ function Econstant(t, λ, μ, ρ)
     return res
 end
 
-Turing.@model function birthdeath_constant(data)
-    μ ~ Distributions.Exponential(0.1)
-    d ~ Distributions.Exponential(0.1) # "net-diversification"
+function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0001, 0.0001], upper = [20.0, 20.0])
+    ρ = data.ρ
 
-    λ = μ + d
+    ## ML estimates of parameters
+    f(x) = -lp(x[1], x[2], data) ## function to minimize
 
-    data ~ BDconstant(λ, μ)
-end
+    inner_optimizer = Optim.GradientDescent()
+    optres = Optim.optimize(f, lower, upper, xinit, Fminbox(inner_optimizer))
 
-function estimate_constant_bdp(data::SSEdata; iterations = 500)
-    chain = Turing.sample(birthdeath_constant(data), Turing.NUTS(), iterations; progress=true)
-
-    median_λ = StatsBase.median(chain[:d] + chain[:μ])
-    median_μ = StatsBase.median(chain[:μ])
-    return(chain, median_λ, median_μ)
+    λml, μml = optres.minimizer
+    return(λml, μml)
 end
