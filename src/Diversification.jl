@@ -1,7 +1,6 @@
 module Diversification
 
 import OrdinaryDiffEq
-import Turing
 import RCall
 import CSV
 import ProgressMeter
