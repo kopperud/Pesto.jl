@@ -3,7 +3,7 @@ export birth_death_shift
 export plottree
 export bds
 
-"""
+@doc raw"""
     birth_death_shift(model, data[; verbose = false])
 
 Calculates average branch rates under the birth-death-shift model with a finite state space.
@@ -25,6 +25,8 @@ model = SSEconstant(λ, μ, η)
 res = birth_death_shift(model, data)
 ```
 """
+birth_death_shift(model, data) = birth_death_shift(model, data; verbose = false)
+
 function birth_death_shift(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ps = ancestral_state_probabilities(data, model, Ds, Fs)

@@ -1,7 +1,7 @@
-export lp, ψ, Econstant
+export lp, ψ, Econstant, estimate_constant_bdp
 
 @doc raw"""
-    loglikelihood(model, data)
+    lp(λ, μ, data)
 
 From Louca and Pennell 2020 (Nature), eq. S28
 
@@ -16,7 +16,18 @@ Logged:
 \log(L) = (n+1) \log(\rho) + \log(\psi(t_1)) - \log(\lambda) - 2 \log(1 - E(t_1)) + \sum_{i=1}^n \log(\lambda) + \log(\psi(t_i))
 ```
 
-asd
+Example:
+
+```julia
+λ = 1.0
+μ = 0.5
+
+phy = readtrees(Diversification.path("bears.tre"))
+ρ = 1.0
+data = make_SSEdata2(phy, ρ)
+
+lp(λ, μ, ρ)
+```
 """
 function lp(λ, μ, data::SSEdata)
 #    λ = model.λ
@@ -48,6 +59,17 @@ We use this one, simplified where `s = 0`
 ```math
 \psi(t) = \frac{e^{t(\lambda - \mu)}}{ [ 1 + \frac{\rho \lambda}{\lambda - \mu}(e^{t(\lambda - \mu)} - 1)]^{2}}
 ```
+
+Example:
+
+```julia
+ρ = 1.0
+λ = 1.0
+μ = 0.5
+t = 0.1
+
+ψ(t, λ, μ, ρ)
+```
 """
 function ψ(t, λ, μ, ρ)
     nom = exp(t * (λ - μ))
@@ -72,6 +94,21 @@ function Econstant(t, λ, μ, ρ)
     return res
 end
 
+@doc raw"""
+    estimate_constant_bdp(data::SSEdata[; xinit = [0.11, 0.09], lower = [0.0001, 0.0001], upper = [20.0, 20.0]])
+
+Estimates the speciation and extinction rate under the reconstructed birth-death process with time-homogeneous rates.
+
+Example:
+
+```julia
+phy = readtrees(Diversification.path("bears.tre"))
+ρ = 1.0
+data = make_SSEdata2(phy, ρ)
+
+λml, μml = estimate_constant_bdp(data)
+```
+"""
 function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0001, 0.0001], upper = [20.0, 20.0])
     ρ = data.ρ
 
@@ -80,8 +117,6 @@ function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0
 
     inner_optimizer = Optim.GradientDescent()
     optres = Optim.optimize(f, lower, upper, xinit, Fminbox(inner_optimizer))
-    #optprob = NLSolvers.OptmizationProblem(f)
-    #optres = solve(optprob, xinit, inner_optimizer, OptimizationOptions())
 
     λml, μml = optres.minimizer
     return(λml, μml)
