@@ -26,7 +26,7 @@ phy = readtrees(Diversification.path("bears.tre"))
 ρ = 1.0
 data = make_SSEdata2(phy, ρ)
 
-lp(λ, μ, ρ)
+lp(λ, μ, data)
 ```
 """
 function lp(λ, μ, data::SSEdata)

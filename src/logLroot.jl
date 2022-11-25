@@ -1,7 +1,8 @@
 export logL_root
 
 function logL_root(model::SSEconstant, data::SSEdata)
-    D_ends, Ds, sf, E = postorder(model, data)
+    E = extinction_probability(model, data)
+    D_ends, Ds, sf = postorder(model, data, E)
     root_index = length(data.tiplab)+1
     root_age = data.node_depth[root_index]
 

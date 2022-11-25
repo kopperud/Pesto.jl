@@ -19,10 +19,10 @@ Econstant(t, λ, µ, ρ)
 ```
 
 ```@docs
-lp(λ, μ, data)
+lp(λ, μ, data::SSEdata)
 ```
 
 
 ```@docs
-estimate_constant_bdp(data)
+estimate_constant_bdp(data::SSEdata)
 ```
