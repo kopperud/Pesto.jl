@@ -7,6 +7,7 @@ import ProgressMeter
 import Statistics
 import DataStructures
 import Distributions
+import Optim
 
 include("datatypes.jl")
 include("utils.jl")
