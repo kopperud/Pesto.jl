@@ -45,10 +45,17 @@ end
 
 function make_quantiles(d, k)
     quantiles = zeros(k)
+    step = 0.5
     for i in 1:k
-        p = (i-0.5)/k
+        p = (i-step)/k
         quantiles[i] = Distributions.quantile(d, p)
     end
+    return(quantiles)
+end
+
+function make_quantiles2(d, k)
+    ps = [(i-0.5)/k for i in 1:k]
+    quantiles = Distributions.quantile.(d, ps)
     return(quantiles)
 end
 
@@ -114,4 +121,38 @@ function make_SSEdata2(phy, ρ)
 
     data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po)
     return(data)
+end
+
+function partition_postorder_indices(data)
+    ancestor_node = Dict(val => key for (key, val) in eachrow(data.edges))
+
+    d = Dict(node => 0 for node in data.edges[:,2])
+    parents = collect(1:length(data.tiplab))
+    res = [parents]
+
+    root_node = length(data.tiplab)+1
+    for i in 1:maximum(data.edges)
+        for node in parents
+            parent = ancestor_node[node]
+            if parent != root_node
+                d[parent] += 1
+            end 
+        end
+
+        # find the twos
+        parents = Int64[]
+        for (key, val) in d
+            if val == 2
+                append!(parents, key)
+                delete!(d, key)
+            end
+        end
+
+        if isempty(parents)
+            break
+        end
+        append!(res, [parents])
+    end
+
+    return(res)
 end

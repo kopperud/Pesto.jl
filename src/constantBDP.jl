@@ -30,8 +30,6 @@ lp(λ, μ, data)
 ```
 """
 function lp(λ, μ, data::SSEdata)
-#    λ = model.λ
-#    μ = model.μ
     ρ = data.ρ
 
     ts = data.branching_times
