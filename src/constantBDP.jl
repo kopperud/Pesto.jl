@@ -100,8 +100,8 @@ Estimates the speciation and extinction rate under the reconstructed birth-death
 Example:
 
 ```julia
-phy = readtrees(Diversification.path("bears.tre"))
-ρ = 1.0
+phy = readtree(Diversification.path("primates.tre"))
+ρ = 0.67
 data = make_SSEdata2(phy, ρ)
 
 λml, μml = estimate_constant_bdp(data)
@@ -114,7 +114,7 @@ function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0
     f(x) = -lp(x[1], x[2], data) ## function to minimize
 
     inner_optimizer = Optim.GradientDescent()
-    optres = Optim.optimize(f, lower, upper, xinit, Fminbox(inner_optimizer))
+    optres = Optim.optimize(f, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
 
     λml, μml = optres.minimizer
     return(λml, μml)

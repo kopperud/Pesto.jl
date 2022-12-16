@@ -1,4 +1,4 @@
-export readtree, make_SSEdata, make_quantiles, make_SSEdata2
+export readtree, make_SSEdata, make_quantiles, make_SSEdata2, allpairwise
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -6,6 +6,11 @@ function descendant_nodes(node, data)
     res = desc[:,2]
 end
 
+"""
+    make_ancestors(data)
+
+takes node indices as input, and returns edge indices
+"""
 function make_ancestors(data)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
@@ -21,6 +26,11 @@ function make_ancestors(data)
     return(ancestors)
 end
 
+"""
+    make_descendants(data)
+
+takes node indices as input, and returns edge indices
+"""
 function make_descendants(data)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
@@ -32,6 +42,27 @@ function make_descendants(data)
         anc, dec = row
         if anc > ntip
             append!(descendants[anc], i)
+        end
+    end
+    return(descendants)
+end
+
+"""
+    make_descendants(data)
+
+takes node indices as input, and returns node indices
+"""
+function make_descendants_nodes(data)
+    ntip = length(data.tiplab)
+    rootnode = ntip + 1
+    maxnode = maximum(data.edges)
+
+    descendants = Dict(node => [] for node in rootnode:maxnode)
+
+    for (i, row) in enumerate(eachrow(data.edges))
+        anc, dec = row
+        if anc > ntip
+            append!(descendants[anc], dec)
         end
     end
     return(descendants)
@@ -107,6 +138,17 @@ function make_SSEdata(phy, datafile, ρ; include_traits = true)
     return(data)
 end
 
+@doc raw"""
+    make_SSEdata2(phy, ρ)
+
+Example:
+```julia
+using Diversification
+phy = readtree(Diversification.path("primates.tre")) 
+ρ = 0.67  
+data = make_SSEdata2(phy, ρ) 
+```
+"""
 function make_SSEdata2(phy, ρ)
     trait_data = Dict(taxon => "?" for taxon in phy[:tip_label])
 
@@ -155,4 +197,23 @@ function partition_postorder_indices(data)
     end
 
     return(res)
+end
+
+
+
+function allpairwise(xs, ys)
+    ny = length(xs)
+    nx = length(ys)
+
+    k = ny * nx
+
+    λ = zeros(k)
+    μ = zeros(k)
+    
+    for (i, (x, y)) in enumerate(Iterators.product(xs, ys))
+        λ[i] = x
+        μ[i] = y
+    end
+
+    return(λ, μ)
 end

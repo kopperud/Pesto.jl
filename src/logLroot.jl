@@ -26,3 +26,9 @@ function logL_root(model::SSEconstant, data::SSEdata)
     prob = sum(freqs .* D)
     logL = log(prob) + sum(sf)
 end
+
+function sselp(η, λ, μ, data)
+    model = SSEconstant(λ, μ, η)
+
+    logL_root(model, data)
+end

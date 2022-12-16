@@ -7,7 +7,7 @@ TBW
 """
 function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
     ## Pre-compute descendants in hashtable
-    descendants = make_descendants(data)
+    descendants = Diversification.make_descendants(data)
     ancestors = make_ancestors(data)
 
     n = length(model.λ)
@@ -18,13 +18,13 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
     Ntip = length(data.tiplab)
     
     ## Storing the solution at the end of the branch
-    D_ends = zeros(typeof(model.λ[1]), nrows, n)
+    D_ends = zeros(typeof(model.η), nrows, n)
     ## Storing the scaling factors
-    sf = zeros(typeof(model.λ[1]), nrows)
+    sf = zeros(typeof(model.η), nrows)
 
     pD = [model.λ, model.μ, model.η, i_not_js, n, E]
     D0 = repeat([1.0], n)
-    u0 = typeof(model.λ[1]).(D0)
+    u0 = typeof(model.η).(D0)
     tspan = (0.0, 1.0)
     prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
  
@@ -68,7 +68,7 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
             i = ancestors[node_idx]
             anc, dec = data.edges[i,:]
             if dec > Ntip
-
+                
                 left_edge, right_edge = descendants[dec]            
                 node_age = data.node_depth[dec]
 

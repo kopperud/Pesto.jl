@@ -8,8 +8,10 @@ import Statistics
 import DataStructures
 import Distributions
 import Optim
+import ForwardDiff
 
 include("datatypes.jl")
+include("optimize.jl")
 include("utils.jl")
 include("diversitree_bisse.jl")
 include("postorder.jl")
@@ -23,6 +25,9 @@ include("tree_rates.jl")
 include("backwards_forwards.jl")
 include("birth_death_shift.jl")
 include("extinction.jl")
+include("writenewick.jl")
+
+
 
 # Path into package
 export path
