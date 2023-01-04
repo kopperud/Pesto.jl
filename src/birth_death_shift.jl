@@ -103,6 +103,7 @@ function plottree(x)
     RCall.R"""
     class(phy) <- "phylo"
     th <- max(ape::node.depth.edgelength(phy))
+    lambda_average <- mean(lambda)
 
     df1 <- tibble::tibble("node" = 1:max(phy$edge),
             "Speciation rate" = lambda_average)
@@ -111,7 +112,7 @@ function plottree(x)
     phydf <- merge(x, df1, by = "node")
     td_phy <- tidytree::as.treedata(phydf)
 
-    p1a <- ggtree::ggtree(td_phy, aes(color = `Speciation rate`)) +
+    p1a <- ggtree::ggtree(td_phy, ggplot2::aes(color = `Speciation rate`)) +
         ggtree::geom_tiplab(size = 8) +
         ggplot2::theme(legend.position = c(0.2, 0.8)) +
         ggplot2::xlim(c(0.0, th + 10)) 
@@ -121,44 +122,5 @@ function plottree(x)
 end
 
 
-export optimize_eta
 
-@doc raw"""
-    optimize_eta(λ, μ, data)
 
-Finds the maximum-likelihood parameter value for η (the transition rate) under the birth-death-shift model with a finite state space, conditional on λ and μ.
-
-Example:
-
-```julia
-using Diversification
-
-phy = readtree(Diversification.path("primates.tre")) 
-ρ = 0.67
-data = make_SSEdata2(phy, ρ)
-
-λ = [0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.1, 0.2, 0.3] 
-μ = [0.09, 0.09, 0.09, 0.19, 0.19, 0.19, 0.29, 0.29, 0.29] 
-
-ηml = optimize_eta(λ, μ, data)
-
-#model = SSEconstant(λ, μ, ηml)
-```
-11
-"""
-function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0)
-    ## find the maximum-likelihood estimate of eta, the transition rate
-    #optres = Optim.optimize(f, lower, upper, Optim.Brent())
-    f(η) = -sselp(η, λ, μ, data)
-    optres = Optim.optimize(f, lower, upper, Optim.Brent())
-    #optres = Optim.optimize(η -> f(η, λ, μ, data), 0.1, Optim.SimulatedAnnealing())
-
-    ηml = optres.minimizer
-    return(ηml)
-end
-
-function sselp(η, λ, μ, data)
-    model = SSEconstant(λ, μ, η)
-
-    logL_root(model, data)
-end
