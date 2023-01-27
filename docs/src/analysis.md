@@ -103,3 +103,4 @@ plot(p)
 """
 ```
 
+![primatestree](assets/figures/primates_analysis.svg)
