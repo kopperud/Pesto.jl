@@ -9,6 +9,7 @@ import DataStructures
 import Distributions
 import Optim
 import ForwardDiff
+import LinearAlgebra
 
 include("datatypes.jl")
 include("optimize.jl")
@@ -26,6 +27,7 @@ include("backwards_forwards.jl")
 include("birth_death_shift.jl")
 include("extinction.jl")
 include("writenewick.jl")
+include("nshifts.jl")
 
 
 
