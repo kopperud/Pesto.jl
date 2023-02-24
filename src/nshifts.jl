@@ -11,20 +11,21 @@ function Pmatrix(model, D, E, t, Δt)
     K = length(model.λ)
     A = Amatrix(model, E, K, t)
 
-    P_unnorm = (LinearAlgebra.I(2) .- Δt .* A) .* (ones(K) * D(t)')
+    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (D(t) * ones(K)')
     #rsum = sum(I(K) .- Δt .* Amatrix(t), dims = 2)
-    rsum = sum(P_unnorm, dims = 2) ## row sum
-    P = P_unnorm ./ rsum
+    rsum = sum(P_unnorm, dims = 1)' * ones(K)' ## row sum
+    #rsum = sum(P_unnorm, dims = 1)
+    P = P_unnorm' ./ rsum
     return(P)
 end
 
-function compute_nshifts(model, data, Ds, Ss; ntimes = 200)
+function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
     E = extinction_probability(model, data)
     nbranches = size(data.edges)[1]
     K = length(model.λ)
     nshifts = zeros(nbranches)
 
-    ProgressMeter.@showprogress for edge_idx in 1:nbranches
+    for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
 
@@ -32,40 +33,51 @@ function compute_nshifts(model, data, Ds, Ss; ntimes = 200)
         Δt = times[2] - times[1]
 
         nshift = 0.0
-        Ps = zeros(ntimes, K, K)
         for i in 1:(ntimes-1)
-            #P = trans_prob8(model, Ds[edge_idx], times[i], Δt)
             P = Pmatrix(model, Ds[edge_idx], E, times[i], Δt)
             state_prob = Ss[edge_idx](times[i])
 
-            ## this one is good
-            #nshift += abs((P' * state_prob)[1] - (P' * state_prob)[2])
-
             P0 = (1 .- LinearAlgebra.I(K)) .* P
-            L = LinearAlgebra.LowerTriangular(P0)
-            U = LinearAlgebra.UpperTriangular(P0)
+            ## this one is good
+            #nshift += abs((P0' * state_prob)[1] - (P0' * state_prob)[2])
 
-            L1 = L .* (state_prob * ones(K)')
-            U1 = U .* (state_prob * ones(K)')
+            W = state_prob * ones(K)'
+            #W = ones(K) * state_prob'
 
-            nshift += sum(abs.(L1 .- U1'))
+            P1 = P0 .* W
+
+            L = LinearAlgebra.LowerTriangular(P1)
+            U = LinearAlgebra.UpperTriangular(P1)
+            
+            #W = ones(K) * state_prob'
+            #W = ones(K) * ones(K)'
+            
+            #L1 = L .* W
+            #U1 = U .* W
+
+            nshift += sum(abs.(L .+ U'))
+            #nshift += sum(abs.(U1))
         end
         nshifts[edge_idx] = nshift
     end
+    println("asd")
 
-    ## reorder to ape node indices
-    ancestors = Diversification.make_ancestors(data)
+    if ape_order
+        ## reorder to ape node indices
+        ancestors = Diversification.make_ancestors(data)
 
-    node_nshifts = zeros(maximum(data.edges))
-    for i in 1:maximum(data.edges)
-        if i == length(data.tiplab)+1
-            node_nshifts[i] = 0.0
-        else
-            edge_idx = ancestors[i]
-            node_val = nshifts[edge_idx]
-            node_nshifts[i] = node_val
+        node_nshifts = zeros(maximum(data.edges))
+        for i in 1:maximum(data.edges)
+            if i == length(data.tiplab)+1
+                node_nshifts[i] = 0.0
+            else
+                edge_idx = ancestors[i]
+                node_val = nshifts[edge_idx]
+                node_nshifts[i] = node_val
+            end
         end
+        return(node_nshifts)
+    else
+        return(nshifts)
     end
-
-    return(node_nshifts)
 end
