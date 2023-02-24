@@ -13,9 +13,9 @@ function Pmatrix(model, D, E, t, Δt)
 
     P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (D(t) * ones(K)')
     #rsum = sum(I(K) .- Δt .* Amatrix(t), dims = 2)
-    rsum = sum(P_unnorm, dims = 1)' * ones(K)' ## row sum
+    csum = sum(P_unnorm, dims = 1)' * ones(K)' ## column sum
     #rsum = sum(P_unnorm, dims = 1)
-    P = P_unnorm' ./ rsum
+    P = P_unnorm' ./ csum
     return(P)
 end
 
@@ -45,6 +45,7 @@ function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
             #W = ones(K) * state_prob'
 
             P1 = P0 .* W
+            nshift += sum(P1)
 
             L = LinearAlgebra.LowerTriangular(P1)
             U = LinearAlgebra.UpperTriangular(P1)
@@ -55,7 +56,7 @@ function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
             #L1 = L .* W
             #U1 = U .* W
 
-            nshift += sum(abs.(L .+ U'))
+            #nshift += sum(abs.(L .+ U'))
             #nshift += sum(abs.(U1))
         end
         nshifts[edge_idx] = nshift
