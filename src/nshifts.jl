@@ -11,15 +11,14 @@ function Pmatrix(model, D, E, t, Δt)
     K = length(model.λ)
     A = Amatrix(model, E, K, t)
 
-    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (D(t) * ones(K)')
-    #rsum = sum(I(K) .- Δt .* Amatrix(t), dims = 2)
-    csum = sum(P_unnorm, dims = 1)' * ones(K)' ## column sum
-    #rsum = sum(P_unnorm, dims = 1)
-    P = P_unnorm' ./ csum
+    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (ones(K) * D(t)')
+    #P_unnorm = (LinearAlgebra.I(K) .- Δt .* A)
+    rsum = sum(P_unnorm, dims = 2) * ones(K)' ## row sum
+    P = P_unnorm ./ rsum
     return(P)
 end
 
-function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
+function compute_nshifts(model, data, Ds, Fs, Ss; ntimes = 100, ape_order = true)
     E = extinction_probability(model, data)
     nbranches = size(data.edges)[1]
     K = length(model.λ)
@@ -35,33 +34,17 @@ function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
         nshift = 0.0
         for i in 1:(ntimes-1)
             P = Pmatrix(model, Ds[edge_idx], E, times[i], Δt)
-            state_prob = Ss[edge_idx](times[i])
-
-            P0 = (1 .- LinearAlgebra.I(K)) .* P
-            ## this one is good
-            #nshift += abs((P0' * state_prob)[1] - (P0' * state_prob)[2])
-
+            state_prob = Ss[edge_idx](times[i]+Δt)
+            #state_prob = Fs[edge_idx](times[i]+Δt)
             W = state_prob * ones(K)'
-            #W = ones(K) * state_prob'
 
+            P0 = (1.0 .- LinearAlgebra.I(K)) .* P 
             P1 = P0 .* W
+
             nshift += sum(P1)
-
-            L = LinearAlgebra.LowerTriangular(P1)
-            U = LinearAlgebra.UpperTriangular(P1)
-            
-            #W = ones(K) * state_prob'
-            #W = ones(K) * ones(K)'
-            
-            #L1 = L .* W
-            #U1 = U .* W
-
-            #nshift += sum(abs.(L .+ U'))
-            #nshift += sum(abs.(U1))
         end
         nshifts[edge_idx] = nshift
     end
-    println("asd")
 
     if ape_order
         ## reorder to ape node indices
