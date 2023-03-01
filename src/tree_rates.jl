@@ -18,12 +18,12 @@ function ancestral_state_probabilities(data, model, Ds, Fs; verbose = false)
         println("Calculating state probabilities")
     end
 
-    Ps = Dict()
+    Ss = Dict()
     for edge_idx in 1:(maximum(data.edges)-1)
-       Ps[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+       Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
-    return (Ps)
+    return (Ss)
 end
 
 function calculate_tree_rates(data, model, Ds, Fs, Ps; verbose = false, nt = 100)

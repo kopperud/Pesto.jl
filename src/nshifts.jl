@@ -3,7 +3,7 @@ export compute_nshifts
 
 function Amatrix(model, E, K, t)
     Q = -LinearAlgebra.I(K) .* model.η .+ (1 .- LinearAlgebra.I(K)) .* (model.η/(K-1))
-    A = LinearAlgebra.diagm(- (model.λ .+ model.μ .- 2 .* model.λ .* E(t))) .+ Q
+    A = LinearAlgebra.diagm(- (model.λ .+ model.μ) .+ 2 .* model.λ .* E(t)) .+ Q
     return(A)
 end
 
@@ -18,7 +18,7 @@ function Pmatrix(model, D, E, t, Δt)
     return(P)
 end
 
-function compute_nshifts(model, data, Ds, Fs, Ss; ntimes = 100, ape_order = true)
+function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
     E = extinction_probability(model, data)
     nbranches = size(data.edges)[1]
     K = length(model.λ)
@@ -38,7 +38,7 @@ function compute_nshifts(model, data, Ds, Fs, Ss; ntimes = 100, ape_order = true
             #state_prob = Fs[edge_idx](times[i]+Δt)
             W = state_prob * ones(K)'
 
-            P0 = (1.0 .- LinearAlgebra.I(K)) .* P 
+            P0 = (1.0 .- LinearAlgebra.I(K)) .* P
             P1 = P0 .* W
 
             nshift += sum(P1)
