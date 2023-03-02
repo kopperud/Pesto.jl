@@ -23,7 +23,7 @@ data = make_SSEdata2(phy, ρ)
 ```
 11
 """
-function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0)
+function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0, xinit = 0.001)
     ## find the maximum-likelihood estimate of eta, the transition rate
     f(η) = -sselp(η[1], λ, μ, data)
 
@@ -32,7 +32,7 @@ function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0)
         G[1] = ForwardDiff.derivative(f, η[1])
     end
 
-    xinit = 1.0 / sum(data.branch_lengths)
+    #xinit = 1.0 / sum(data.branch_lengths)
     inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
 
     opts = Optim.Options(x_tol = 0.1, f_tol = 0.1, g_tol = 0.1, show_trace = false)

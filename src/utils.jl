@@ -90,6 +90,13 @@ function make_quantiles2(d, k)
     return(quantiles)
 end
 
+function make_quantiles3(d, k)
+    ps = collect(range(0.0, 1.0; length = k+2))
+    ps = ps[2:(length(ps)-1)]
+    quantiles = Distributions.quantile.(d, ps)
+    return(quantiles)
+end
+
 function readtree(treefile)
     s = readuntil(treefile, "(")
     isnexus = contains(s, "#NEXUS")
@@ -216,4 +223,13 @@ function allpairwise(xs, ys)
     end
 
     return(λ, μ)
+end
+
+#function (from = 1, to = 1e+05, length.out = 6) 
+#    {
+#        exp(seq(log(from), log(to), length.out = length.out))
+#    }
+
+function lrange(from, to; length = 6)
+    exp.(collect(range(log(from), log(to); length = length)))
 end
