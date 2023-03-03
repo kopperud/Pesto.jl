@@ -12,23 +12,26 @@ function Pmatrix(model, D, E, t, Δt)
     A = Amatrix(model, E, K, t)
 
     P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (ones(K) * D(t)')
-    #P_unnorm = (LinearAlgebra.I(K) .- Δt .* A)
     rsum = sum(P_unnorm, dims = 2) * ones(K)' ## row sum
     P = P_unnorm ./ rsum
     return(P)
 end
 
-function compute_nshifts(model, data, Ds, Ss; ntimes = 100, ape_order = true)
+function compute_nshifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = true)
     E = extinction_probability(model, data)
     nbranches = size(data.edges)[1]
     K = length(model.λ)
     nshifts = zeros(nbranches)
+    th = maximum(data.branching_times)
 
     for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
 
-        times = collect(range(a, b, length = ntimes))
+        branch_ntimeslices = Int64(round(ntimeslices * data.branch_lengths[edge_idx] / th, RoundUp))
+
+        times = collect(range(a, b, length = branch_ntimeslices+1))
+        ntimes = length(times)
         Δt = times[2] - times[1]
 
         nshift = 0.0
