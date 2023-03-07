@@ -22,7 +22,7 @@ Example:
 λ = 1.0
 μ = 0.5
 
-phy = readtrees(Diversification.path("bears.tre"))
+phy = readtrees(Pesto.path("bears.tre"))
 ρ = 1.0
 data = make_SSEdata2(phy, ρ)
 
@@ -100,7 +100,7 @@ Estimates the speciation and extinction rate under the reconstructed birth-death
 Example:
 
 ```julia
-phy = readtree(Diversification.path("primates.tre"))
+phy = readtree(Pesto.path("primates.tre"))
 ρ = 0.67
 data = make_SSEdata2(phy, ρ)
 

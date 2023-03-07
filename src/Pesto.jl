@@ -1,4 +1,4 @@
-module Diversification
+module Pesto
 
 import OrdinaryDiffEq
 import RCall

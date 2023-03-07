@@ -11,9 +11,9 @@ Calculates average branch rates under the birth-death-shift model with a finite 
 Example:
 
 ```julia
-using Diversification
+using Pesto
 
-phy = readtree(Diversification.path("bears.tre")) 
+phy = readtree(Pesto.path("bears.tre")) 
 ρ = 1.0  
 data = make_SSEdata(phy, "", ρ; include_traits = false) 
 λ = [0.1, 0.2] 
@@ -47,9 +47,9 @@ Calculates average branch rates under the birth-death-shift model with a finite 
 Example:
 
 ```julia
-using Diversification
+using Pesto
 
-phy = readtree(Diversification.path("bears.tre")) 
+phy = readtree(Pesto.path("bears.tre")) 
 ρ = 1.0  
 data = make_SSEdata(phy, "", ρ; include_traits = false) 
 λ = [0.1, 0.2] 

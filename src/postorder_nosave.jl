@@ -7,7 +7,7 @@ TBW
 """
 function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
     ## Pre-compute descendants in hashtable
-    descendants = Diversification.make_descendants(data)
+    descendants = make_descendants(data)
     ancestors = make_ancestors(data)
 
     n = length(model.λ)

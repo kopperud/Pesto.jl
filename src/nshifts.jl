@@ -51,7 +51,7 @@ function compute_nshifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = tru
 
     if ape_order
         ## reorder to ape node indices
-        ancestors = Diversification.make_ancestors(data)
+        ancestors = make_ancestors(data)
 
         node_nshifts = zeros(maximum(data.edges))
         for i in 1:maximum(data.edges)

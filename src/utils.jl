@@ -150,8 +150,8 @@ end
 
 Example:
 ```julia
-using Diversification
-phy = readtree(Diversification.path("primates.tre")) 
+using Pesto
+phy = readtree(Pesto.path("primates.tre")) 
 ρ = 0.67  
 data = make_SSEdata2(phy, ρ) 
 ```

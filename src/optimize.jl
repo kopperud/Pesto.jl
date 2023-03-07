@@ -8,9 +8,9 @@ Finds the maximum-likelihood parameter value for η (the transition rate) under 
 Example:
 
 ```julia
-using Diversification
+using Pesto
 
-phy = readtree(Diversification.path("primates.tre")) 
+phy = readtree(Pesto.path("primates.tre")) 
 ρ = 0.67
 data = make_SSEdata2(phy, ρ)
 

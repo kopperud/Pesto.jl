@@ -1,4 +1,4 @@
-# Diversification.jl Documentation
+# Pesto.jl Documentation
 
 lorem ipsum
 

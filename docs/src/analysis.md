@@ -8,9 +8,9 @@ First, we load the necessary modules and read in the tree file.
 
 ```julia
 using Distributions
-using Diversification
+using Pesto
 
-phy = readtree(Diversification.path("primates.tre"))
+phy = readtree(Pesto.path("primates.tre"))
 ρ = 0.67
 data = make_SSEdata2(phy, ρ)
 ```
