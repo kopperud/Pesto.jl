@@ -1,7 +1,7 @@
-using Documenter, Diversification
+using Documenter, Pesto
 
 makedocs(
-     sitename="Diversification",
+     sitename="Pesto.jl",
      pages = [
           "Installation" => "install.md",
           "Rate analysis" => "analysis.md", 
@@ -10,7 +10,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/kopperud/Diversification.jl.git",
+    repo = "github.com/kopperud/Pesto.jl.git",
 )
 
 
