@@ -1,14 +1,14 @@
 export calculate_tree_rates
 export ancestral_state_probabilities
 
-function average_branch_rate(P, t, rate, nt)
+function average_branch_rate(S, t, rate, nt)
     times = range(minimum(t), maximum(t), length = nt)
 
 #    v = zeros(nt)
 #    for (i, time) in enumerate(times)
 #        v[i] = sum(rate .* P(time))
 #    end
-    v = [sum(rate .* Pt) for Pt in P.(times)]
+    v = [sum(rate .* St) for St in S.(times)]
     res = Statistics.mean(v)
     return(res)
 end
@@ -26,23 +26,15 @@ function ancestral_state_probabilities(data, model, Ds, Fs; verbose = false)
     return (Ss)
 end
 
-function calculate_tree_rates(data, model, Ds, Fs, Ps; verbose = false, nt = 100)
-    if verbose
-        println("Calculating average branch rates")
-    end
-
+function calculate_tree_rates(data, model, Ds, Fs, Ss, nt = 100)
     average_branch_rates = Dict()
     for (rate, rate_name) in zip([model.λ, model.μ], ("λ", "μ"))
         d = zeros(size(data.edges)[1])
 
         Threads.@threads for i = 1:size(data.edges)[1]
-            d[i] = average_branch_rate(Ps[i], Fs[i].t, rate, nt)
+            d[i] = average_branch_rate(Ss[i], Fs[i].t, rate, nt)
         end
         average_branch_rates[rate_name] = d
-    end
-
-    if verbose
-        println("Reordering for ape node indices")
     end
 
     ancestors = make_ancestors(data)

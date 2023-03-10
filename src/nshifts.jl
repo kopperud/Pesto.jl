@@ -38,7 +38,6 @@ function compute_nshifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = tru
         for i in 1:(ntimes-1)
             P = Pmatrix(model, Ds[edge_idx], E, times[i], Δt)
             state_prob = Ss[edge_idx](times[i]+Δt)
-            #state_prob = Fs[edge_idx](times[i]+Δt)
             W = state_prob * ones(K)'
 
             P0 = (1.0 .- LinearAlgebra.I(K)) .* P
