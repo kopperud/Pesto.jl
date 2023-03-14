@@ -30,7 +30,7 @@ function compute_nshifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = tru
 
         branch_ntimeslices = Int64(round(ntimeslices * data.branch_lengths[edge_idx] / th, RoundUp))
 
-        times = collect(range(a, b, length = branch_ntimeslices+1))
+        times = collect(range(a, b, length = branch_ntimeslices+2))
         ntimes = length(times)
         Δt = times[2] - times[1]
 

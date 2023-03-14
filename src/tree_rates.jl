@@ -57,8 +57,5 @@ function calculate_tree_rates(data, model, Ds, Fs, Ss, nt = 100)
     res = Dict("average_branch_rates" => average_branch_rates,
                "average_node_rates" => average_node_rates)
 
-    if verbose
-        println("done ape reordering")
-    end
     return(res)
 end

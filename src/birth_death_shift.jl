@@ -29,7 +29,7 @@ function birth_death_shift(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ps = ancestral_state_probabilities(data, model, Ds, Fs)
 
-    res = calculate_tree_rates(data, model, Ds, Fs, Ps; verbose = verbose)
+    res = calculate_tree_rates(data, model, Ds, Fs, Ps)
 
     out = Dict()
 
@@ -65,7 +65,7 @@ function bds(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ps = ancestral_state_probabilities(data, model, Ds, Fs)
 
-    res = calculate_tree_rates(data, model, Ds, Fs, Ps; verbose = verbose)
+    res = calculate_tree_rates(data, model, Ds, Fs, Ps)
 
 
     lambda = res["average_node_rates"]["λ"]
