@@ -19,9 +19,18 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 CSV = "0.10"
-ProgressMeter = "1"
 RCall = "0.13"
-julia = "1"
+julia = "1.7"
+ProgressMeter = "1.7"
+Optim = "1.7"
+Statistics = "1.8"
+StatsBase = "0.33"
+OrdinaryDiffEq = "6.49"
+DataFrames = "1.5"
+DataStructures = "0.18"
+Distributions = "0.25"
+ForwardDiff = "0.10"
+
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
