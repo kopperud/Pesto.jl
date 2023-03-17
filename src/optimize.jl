@@ -23,7 +23,19 @@ data = make_SSEdata2(phy, ρ)
 ```
 11
 """
-function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0, xinit = 0.001)
+function optimize_eta(λ, μ, data; lower = -Inf, upper = Inf, xinit = -Inf)
+    if !isfinite(xinit)
+        xinit = 0.1 / sum(data.branch_lengths)
+    end
+
+    if !isfinite(lower)
+        lower = 0.0001 * xinit
+    end
+
+    if !isfinite(upper)
+        upper = 100.0 * xinit
+    end
+
     ## find the maximum-likelihood estimate of eta, the transition rate
     f(η) = -sselp(η[1], λ, μ, data)
 
@@ -38,6 +50,6 @@ function optimize_eta(λ, μ, data; lower = 0.00001, upper = 10.0, xinit = 0.001
     opts = Optim.Options(x_tol = 0.1, f_tol = 0.1, g_tol = 0.1, show_trace = false)
     result = Optim.optimize(f, g!, [lower], [upper], [xinit], Optim.Fminbox(inner_optimizer), opts)
     
-    ηml = result.minimizer
+    ηml = result.minimizer[1]
     return(ηml)
 end
