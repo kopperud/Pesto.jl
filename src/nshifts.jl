@@ -13,8 +13,10 @@ function Pmatrix(model, D, E, t, Δt)
     A = Amatrix(model, E, K, t)
 
     P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (ones(K) * D(t)')
-    rsum = sum(P_unnorm, dims = 2) * ones(K)' ## row sum
-    P = P_unnorm ./ rsum
+    #rsum = sum(P_unnorm, dims = 2) * ones(K)' ## row sum
+    #P = P_unnorm ./ rsum
+    csum = sum(P_unnorm, dims = 1) * ones(K)' ## column sum
+    P = P_unnorm ./ csum
     return(P)
 end
 
