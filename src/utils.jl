@@ -167,6 +167,9 @@ function make_SSEdata2(phy, ρ)
     edges = convert.(Int64, phy[:edge])
     el = phy[:edge_length]
     po = phy[:po]
+    if any(el .< 0)
+        throw(error("Tree includes negative branch lengths."))
+    end
 
     data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po)
     return(data)
