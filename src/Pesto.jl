@@ -10,6 +10,7 @@ import Distributions
 import Optim
 import ForwardDiff
 import LinearAlgebra
+import DataFrames
 
 include("datatypes.jl")
 include("optimize.jl")
