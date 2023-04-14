@@ -28,7 +28,9 @@ include("backwards_forwards.jl")
 include("birth_death_shift.jl")
 include("extinction.jl")
 include("writenewick.jl")
+include("readnewick.jl")
 include("nshifts.jl")
+include("analysis.jl")
 
 
 
