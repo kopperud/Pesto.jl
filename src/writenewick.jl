@@ -1,17 +1,18 @@
 ## write a newick file
-function write_tree(data, filename)
-    newick_string = newick(data)
+function write_tree(filename, data, rates)
+    newick_string = newick(data, rates)
 
     touch(filename)
     io = open(filename, "w")
 
     write(io, newick_string)
+    write(io, "\n")
     close(io)
 end
 
 function node_data(rates)
-    DataFrames.sort!(rates, :node)
-    rates_plain = DataFrames.select(rates, DataFrames.Not(:node))
+    DataFrames.sort!(rates, :node_index)
+    rates_plain = DataFrames.select(rates, DataFrames.Not(:node_index))
     
     res = []
     for row in eachrow(rates_plain)
@@ -67,7 +68,7 @@ function newick(data, rates)
             append!(s, ",")
         end
     end
-    append!(s, ");")
+    append!(s, "):0.0;")
     
     newick = *(s...)
     return(newick)
@@ -91,17 +92,17 @@ function addinternal!(s, kids, nd, data, ind, i)
     end
 
     append!(s, ")")
-    append!(s, nd[ind[i]])
+    append!(s, nd[i])
     append!(s, ":")
     append!(s, string(data.branch_lengths[ind[i]]))
 end
 
 function addterminal!(s, data, nd, i)
     ii = data.edges[i,2]
-
     tl = data.tiplab[ii]
 
     append!(s, tl)
+    append!(s, nd[ii])
     append!(s, ":")
     append!(s, string(data.branch_lengths[i]))
 end
