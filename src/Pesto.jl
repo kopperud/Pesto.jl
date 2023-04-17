@@ -11,6 +11,7 @@ import Optim
 import ForwardDiff
 import LinearAlgebra
 import DataFrames
+import FastGaussQuadrature
 
 include("datatypes.jl")
 include("optimize.jl")
