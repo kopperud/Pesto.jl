@@ -13,7 +13,7 @@ function pesto(data; n = 6, sd = 0.587)
     model = SSEconstant(λ, μ, η)
 
     Ds, Fs = backwards_forwards_pass(model, data);
-    Ss = ancestral_state_probabilities(data, model, Ds, Fs);
+    Ss = ancestral_state_probabilities(data, Ds, Fs);
     rates = calculate_tree_rates(data, model, Ds, Fs, Ss);
     nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
 

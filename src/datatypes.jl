@@ -25,6 +25,5 @@ end
 
 struct SSEresult
     phy
-    lambda
-    mu
+    rates
 end

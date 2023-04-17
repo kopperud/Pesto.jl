@@ -22,7 +22,7 @@ end
 
 function state_shifts(model, data; ntimeslices = 500, ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
-    Ss = ancestral_state_probabilities(data, model, Ds, Fs);
+    Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     state_shifts(model, data, Ds, Ss; ntimeslices = ntimeslices, ape_order = ape_order)
 end
@@ -81,7 +81,7 @@ end
 
 function compute_nshifts(model, data; ntimeslices = 500, ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
-    Ss = ancestral_state_probabilities(data, model, Ds, Fs);
+    Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     compute_nshifts(model, data, Ds, Ss; ntimeslices = ntimeslices, ape_order = ape_order)
 end

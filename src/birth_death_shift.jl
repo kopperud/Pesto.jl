@@ -27,16 +27,16 @@ res = birth_death_shift(model, data)
 """
 function birth_death_shift(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
-    Ps = ancestral_state_probabilities(data, model, Ds, Fs)
+    Ss = ancestral_state_probabilities(data, Ds, Fs)
 
-    res = calculate_tree_rates(data, model, Ds, Fs, Ps)
+    #res = calculate_tree_rates(data, model, Ds, Fs, Ps)
+    rates = tree_rates(data, model, Fs, Ss)
+    #out = Dict()
 
-    out = Dict()
+    #out["lambda"] = res["average_node_rates"]["λ"]
+    #out["mu"] = res["average_node_rates"]["μ"]
 
-    out["lambda"] = res["average_node_rates"]["λ"]
-    out["mu"] = res["average_node_rates"]["μ"]
-
-    return(out)
+    return(rates)
 end
 
 """
@@ -63,20 +63,23 @@ res = bds(model, data)
 """
 function bds(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
-    Ps = ancestral_state_probabilities(data, model, Ds, Fs)
+    Ss = ancestral_state_probabilities(data, Ds, Fs)
 
-    res = calculate_tree_rates(data, model, Ds, Fs, Ps)
+    #res = calculate_tree_rates(data, model, Ds, Fs, Ps)
+    rates = tree_rates(data, model, Fs, Ss)
 
-
-    lambda = res["average_node_rates"]["λ"]
-    mu = res["average_node_rates"]["μ"]
+    #lambda = res["average_node_rates"]["λ"]
+    #mu = res["average_node_rates"]["μ"]
+    DataFrames.sort!(rates, :node_index)
+    #lambda = rates[!, "mean_lambda"]
+    #mu = rates[!, "mean_mu"]
 
     phy = Dict("edge" => data.edges,
       "tip.label" => data.tiplab,
       "Nnode" => length(data.tiplab)-1,
      "edge.length" => data.branch_lengths)
 
-    out = SSEresult(phy, lambda, mu)
+    out = SSEresult(phy, rates)
 
     return(out)
 end
@@ -93,8 +96,10 @@ plottree(res)
 """
 function plottree(x)
     phy = x.phy
-    lambda = x.lambda
-    mu = x.mu
+    #lambda = x.lambda
+    #mu = x.mu
+    lambda = x.rates[!,"mean_lambda"]
+    mu = x.rates[!,"mean_mu"]
 
     RCall.@rput lambda
     RCall.@rput mu
