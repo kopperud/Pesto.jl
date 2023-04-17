@@ -1,6 +1,6 @@
 ## read newick
 
-function readtree(filename)
+function readnewick(filename)
     io = open(filename, "r")
 
     x = read(io, String)
