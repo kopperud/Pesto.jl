@@ -107,8 +107,8 @@ data = make_SSEdata2(phy, ρ)
 λml, μml = estimate_constant_bdp(data)
 ```
 """
-function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0001, 0.0001], upper = [20.0, 20.0])
-    ρ = data.ρ
+function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.00000001, 0.00000001], upper = [20.0, 20.0])
+    #ρ = data.ρ
 
     ## ML estimates of parameters
     f(x) = -lp(x[1], x[2], data) ## function to minimize
