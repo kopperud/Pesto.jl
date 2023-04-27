@@ -34,6 +34,13 @@ function backward_prob(dD, D, p, t)
     dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
 end
 
+function backward_prob_outofplace(D, p, t)
+    λ, μ, η, i_not_js, K, E = p
+
+    Et = E(t)
+    - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
+end
+
 
 ## This ODE is the previous one times minus one
 ## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
