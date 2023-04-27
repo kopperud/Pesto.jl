@@ -217,8 +217,8 @@ function allpairwise(xs, ys)
 
     k = ny * nx
 
-    λ = zeros(k)
-    μ = zeros(k)
+    λ = zeros(eltype(xs), k)
+    μ = zeros(eltype(ys), k)
     
     for (i, (x, y)) in enumerate(Iterators.product(xs, ys))
         λ[i] = x
