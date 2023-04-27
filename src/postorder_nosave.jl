@@ -1,5 +1,7 @@
 export postorder_nosave
 
+notneg(u,p,t) = any(x->x<0,u)
+
 """
     postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
 
@@ -49,7 +51,7 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
             tspan = (node_age, parent_node_age)
 
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, save_everystep = false)
             sol = sol[end]
 
             k = sum(sol)
