@@ -29,11 +29,13 @@ function optimize_eta(λ, μ, data; lower = -Inf, upper = Inf, xinit = -Inf)
     end
 
     if !isfinite(lower)
-        lower = 0.0001 * xinit
+        #lower = 0.0001 * xinit
+        lower = 0.0
     end
 
     if !isfinite(upper)
-        upper = 100.0 * xinit
+        #upper = 100.0 * xinit
+        upper = 10.0 * maximum(λ)
     end
 
     ## find the maximum-likelihood estimate of eta, the transition rate
@@ -44,7 +46,6 @@ function optimize_eta(λ, μ, data; lower = -Inf, upper = Inf, xinit = -Inf)
         G[1] = ForwardDiff.derivative(f, η[1])
     end
 
-    #xinit = 1.0 / sum(data.branch_lengths)
     inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
 
     opts = Optim.Options(x_tol = 0.1, f_tol = 0.1, g_tol = 0.1, show_trace = false)
