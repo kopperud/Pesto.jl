@@ -30,7 +30,7 @@ OrdinaryDiffEq = "6.49"
 ProgressMeter = "1.7"
 RCall = "0.13"
 Statistics = "1.8"
-StatsBase = "0.33"
+StatsBase = "0.33, 0.34"
 julia = "1.7"
 
 [extras]
