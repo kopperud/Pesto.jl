@@ -125,6 +125,9 @@ function readtree(treefile)
 end
 
 function make_SSEdata(phy, datafile, ρ; include_traits = true)
+    if contains_polytomies(phy)
+        throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
+    end
    
     if include_traits
         df = CSV.File(datafile)
