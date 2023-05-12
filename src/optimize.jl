@@ -35,7 +35,7 @@ function optimize_eta(λ, μ, data; lower = -Inf, upper = Inf, xinit = -Inf)
 
     if !isfinite(upper)
         #upper = 100.0 * xinit
-        upper = 10.0 * maximum(λ)
+        upper = 0.5 * maximum(λ)
     end
 
     ## find the maximum-likelihood estimate of eta, the transition rate
