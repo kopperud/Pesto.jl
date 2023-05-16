@@ -12,8 +12,8 @@ function Pmatrix(model, D, E, t, Δt)
     K = length(model.λ)
     A = Amatrix(model, E, K, t)
 
-    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (ones(K) * D(t)')
-    csum = sum(P_unnorm, dims = 1)' * ones(K)' ## column sum
+    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (D(t) * ones(K)')
+    csum = ones(K) * sum(P_unnorm, dims = 1) ## column sum
     P = P_unnorm ./ csum
     return(P)
 end
@@ -45,11 +45,10 @@ function state_shifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = true)
         nshift = zeros(K, K)
         for i in 1:(ntimes-1)
             P = Pmatrix(model, Ds[edge_idx], E, times[i], Δt)
-            state_prob = Ss[edge_idx](times[i]+Δt)
+            state_prob = Ss[edge_idx](times[i])
             
-            W = state_prob * ones(K)'
-            Ntilde = (1.0 .- LinearAlgebra.I(K)) .* P .* W
-            Nhat = transpose(Ntilde)
+            W = ones(K) * state_prob'
+            Nhat = (1.0 .- LinearAlgebra.I(K)) .* P .* W
             
             nshift[:,:] += Nhat
         end
