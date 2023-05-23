@@ -18,41 +18,31 @@ function Pmatrix(model, D, E, t, Δt)
     return(P)
 end
 
-function state_shifts(model, data; ntimeslices = 500, ape_order = true)
+function state_shifts(model, data; ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
     Ss = ancestral_state_probabilities(data, Ds, Fs);
 
-    state_shifts(model, data, Ds, Ss; ntimeslices = ntimeslices, ape_order = ape_order)
+    state_shifts(model, data, Ds, Ss; ape_order = ape_order)
 end
 
-function state_shifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = true)
-    E = extinction_probability(model, data)
+function state_shifts(model, data, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
     nbranches = size(data.edges)[1]
     K = length(model.λ)
     nshifts = zeros(nbranches, K, K)
-    th = maximum(data.branching_times)
 
-    for edge_idx in 1:nbranches
+    Threads.@threads for edge_idx in 1:nbranches
+    #for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
+        tspan = (a,b)
 
-        branch_ntimeslices = Int64(round(ntimeslices * data.branch_lengths[edge_idx] / th, RoundUp))
+        N0 = zeros(K,K)
+        p = [model.η, K, Ss[edge_idx], Ds[edge_idx]]
 
-        times = collect(range(a, b, length = branch_ntimeslices+2))
-        ntimes = length(times)
-        Δt = times[2] - times[1]
+        prob = OrdinaryDiffEq.ODEProblem(number_of_shifts!, N0, tspan, p)
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
 
-        nshift = zeros(K, K)
-        for i in 1:(ntimes-1)
-            P = Pmatrix(model, Ds[edge_idx], E, times[i], Δt)
-            state_prob = Ss[edge_idx](times[i])
-            
-            W = ones(K) * state_prob'
-            Nhat = (1.0 .- LinearAlgebra.I(K)) .* P .* W
-            
-            nshift[:,:] += Nhat
-        end
-        nshifts[edge_idx,:,:] = nshift
+        nshifts[edge_idx,:,:] = sol[end]
     end
 
     if ape_order
@@ -75,15 +65,15 @@ function state_shifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = true)
     end
 end
 
-function compute_nshifts(model, data; ntimeslices = 500, ape_order = true)
+function compute_nshifts(model, data; ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
     Ss = ancestral_state_probabilities(data, Ds, Fs);
 
-    compute_nshifts(model, data, Ds, Ss; ntimeslices = ntimeslices, ape_order = ape_order)
+    compute_nshifts(model, data, Ds, Ss; ape_order = ape_order)
 end
 
-function compute_nshifts(model, data, Ds, Ss; ntimeslices = 500, ape_order = true)
-    nshifts = state_shifts(model, data, Ds, Ss; ntimeslices = ntimeslices, ape_order = ape_order)
+function compute_nshifts(model, data, Ds, Ss; ape_order = true)
+    nshifts = state_shifts(model, data, Ds, Ss; ape_order = ape_order)
     res = sum(nshifts, dims = 2:3)[:,1,1]
     return(res)
 end

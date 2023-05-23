@@ -60,3 +60,11 @@ function forward_prob(dF, F, p, t)
     Et = E(t)
     dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
 end
+
+
+function number_of_shifts!(dN, N, p, t)
+    η, K, S, D = p
+
+    Dt = D(t)
+    dN[:,:] .= - (ones(K) * ones(K)' .- LinearAlgebra.I(K)) .* (ones(K) * S(t)') .* (Dt * ones(K)') .* (η / (K-1)) ./ (ones(K) * Dt')
+end
