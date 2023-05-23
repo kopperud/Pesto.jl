@@ -33,6 +33,7 @@ include("readnewick.jl")
 include("nshifts.jl")
 include("analysis.jl")
 include("polytomy.jl")
+include("shiftbins.jl")
 
 
 
