@@ -8,7 +8,6 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
     ## Preorder pass, compute `F(t)`
     k = length(model.λ)
     ntips = length(data.tiplab)
-    i_not_js = [setdiff(1:k, i) for i in 1:k]
     
     root_node = length(data.tiplab)+1
     left_root_edge = descendants[root_node][1]    
@@ -19,7 +18,7 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
     ## Store the whole `F(t)` per branch
     Fs = Dict()
 
-    pF = [model.λ, model.μ, model.η, i_not_js, k, E]
+    pF = [model.λ, model.μ, model.η, k, E]
 
     if verbose
         prog = ProgressMeter.Progress(length(data.po), "Preorder pass ")
@@ -51,7 +50,6 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
 
         u0 = F_start
         prob = OrdinaryDiffEq.ODEProblem(forward_prob, u0, tspan, pF)
-        #sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false)[end]
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
         Fs[i] = sol
         sol = sol[end]

@@ -13,7 +13,6 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
     ancestors = make_ancestors(data)
 
     n = length(model.λ)
-    i_not_js = [setdiff(1:n, i) for i in 1:n]
 
     ## Postorder traversal: computing the branch probabilities through time
     nrows = size(data.edges, 1)
@@ -24,7 +23,7 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
     ## Storing the scaling factors
     sf = zeros(typeof(model.η), nrows)
 
-    pD = [model.λ, model.μ, model.η, i_not_js, n, E]
+    pD = [model.λ, model.μ, model.η, n, E]
     D0 = repeat([1.0], n)
     u0 = typeof(model.η).(D0)
     tspan = (0.0, 1.0)

@@ -6,7 +6,6 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
     descendants = make_descendants(data)
 
     n = length(model.λ)
-    i_not_js = [setdiff(1:n, i) for i in 1:n]
 
     ## Postorder traversal: computing the branch probabilities through time
     nrows = size(data.edges, 1)
@@ -19,7 +18,7 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
     ## Storing the scaling factors
     sf = zeros(typeof(model.λ[1]), nrows)
 
-    pD = [model.λ, model.μ, model.η, i_not_js, n, E]
+    pD = [model.λ, model.μ, model.η, n, E]
     D0 = repeat([1.0], n)
     u0 = typeof(model.λ[1]).(D0)
     tspan = (0.0, 1.0)
@@ -52,9 +51,7 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
-    #            prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-            #sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
@@ -88,9 +85,7 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
-            #prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD);
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-            #sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
             Ds[i] = sol
             sol = sol[end]
