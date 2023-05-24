@@ -12,6 +12,7 @@ import ForwardDiff
 import LinearAlgebra
 import DataFrames
 import FastGaussQuadrature
+import LoopVectorization
 
 include("datatypes.jl")
 include("optimize.jl")

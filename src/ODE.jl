@@ -66,5 +66,16 @@ function number_of_shifts!(dN, N, p, t)
     η, K, S, D = p
 
     Dt = D(t)
-    dN[:,:] .= - (ones(K) * ones(K)' .- LinearAlgebra.I(K)) .* (ones(K) * S(t)') .* (Dt * ones(K)') .* (η / (K-1)) ./ (ones(K) * Dt')
+    St = S(t)
+    r = -(η/(K-1.0))
+
+    LoopVectorization.@turbo for i in 1:K, j in 1:K
+        dN[i,j] = r * St[j] * Dt[i] / Dt[j]
+    end
+    ## assign diagonal zero afterwards, since LoopVectorization 
+    ## does not know how to handle if statement
+    LoopVectorization.@turbo for i in 1:K
+        dN[i,i] = 0.0
+    end
 end
+
