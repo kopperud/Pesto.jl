@@ -1,17 +1,20 @@
 ## read newick
 
-function readnewick(filename)
+function readfile(filename)
     io = open(filename, "r")
-
-    x = read(io, String)
+    s = read(io, String)
     close(io)
 
-    y = [item[1] for item in findall(";", x)]
+    return(s)
+end
 
-    x = replace(x, r"^_+|_+$" => "")
-    x = replace(x, r"[ \t]" => "")
+function readnewick(filename)
+    s = readfile(filename)
 
+    y = [item[1] for item in findall(";", s)]
 
+    s = replace(s, r"^_+|_+$" => "")
+    s = replace(s, r"[ \t]" => "")
 
     return(y)
 end
@@ -120,4 +123,58 @@ function foo()
 
     internal!(tokens, edges, el, i)
     el[i] = parse_brlen(tokens[i])    
+end
+
+function findsplit(tokens)
+    global ps = 0
+    for (i, token) in enumerate(tokens)
+        if token == "("
+            ps += 1
+        elseif token == ")"
+            ps -= 1
+        end
+        
+        if (token == ",") & (ps == 0)
+            return(i)
+        end
+    end
+    throw("split not found") 
+end
+
+function partition(tokens)
+    comma = findsplit(tokens)
+
+    left = tokens[1:comma-1]
+    right = tokens[1+comma:end]
+
+    return (left, right)
+end
+
+function internaledge!(edges, tokens, idx, node)
+    tokens = tokens[2:end-2]
+
+    edges[idx[1],1] = node
+    edges[idx[1],2] = maximum(edges)+1
+    node = edges[idx[1],2]
+    idx[1] += 1    
+    left, right = partition(tokens)
+
+    for branch in [left, right]
+        if !isempty(branch)
+            if branch[end][1] != ':'
+                println(idx)
+                terminaledge!(edges, branch[1], idx, node)
+            else
+                internaledge!(edges, branch, idx, node)
+            end
+        end
+    end
+end
+
+function terminaledge!(edges, s, idx, node)
+    edges[idx[1],1] = node
+    edges[idx[1],2] = idx[2]
+
+    idx[1] += 1
+    idx[2] += 1
 end
