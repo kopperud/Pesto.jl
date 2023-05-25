@@ -11,18 +11,41 @@ end
 function readnewick(filename)
     s = readfile(filename)
 
-    y = [item[1] for item in findall(";", s)]
-
+    #y = [item[1] for item in findall(";", s)]
     s = replace(s, r"^_+|_+$" => "")
     s = replace(s, r"[ \t]" => "")
+    s = s[findfirst('(', s):end]
+    s = s[1:findfirst(';', s)]
+    s = stripcomments(s)
+    tokens = tokenize(s)
 
-    return(y)
+    ntip = sum(1 for token in tokens if token == "(") +1
+    nroot = ntip+1
+    idx = [1,1]
+    edges = zeros(Int64, 2*(ntip-1), 2)
+    edges[1,1] = nroot
+    el = zeros(size(edges)[1])
+    tiplabs = String[]
+
+    tokens2 = tokens[2:end-2]
+    left, right = partition(tokens2)
+
+
+    for side in [left, right]
+        if length(side) == 1
+            terminaledge!(edges, el, tiplabs, side, idx, nroot)
+        else
+            internaledge!(edges, el, tiplabs, side, idx, nroot)
+        end
+    end
+
+    return(edges, el, tiplabs)
 end
 
 function stripcomments(s)
     res = replace(s, r"\[.*?\]" => "")
+    return(res)
 end
-
 
 function tokenize(s)
     tokens = String[]
@@ -67,62 +90,9 @@ function parse_brlen(s)
     return(res)
 end
 
-function buildtree(tokens)
-    tr = []
-
-    #ntip = length(findall(")", s))+1
-    ntip = 1
-    for token in tokens
-        if token == "("
-            ntip += 1
-        end
-    end
-    node_idx = ntip + 1
-    
-    nbranches = ntip * 2 - 2
-    edges = zeros(Int64, nbranches, 2)
-    el = zeros(nbranches)
-    edge_idx = 1
-    tip_idx = 1
-    i = 1
-
-    addbranch(tokens, edges, el, i, edge_idx, node_idx, tip_idx)
-    return(edges, el)
-end
-
-function addbranch(tokens, edges, el, i, edge_idx, node_idx, tip_idx)
-
-    #i += 1
-    single_tokens = Set([')', '(', ',', ';'])
-    if tokens[i] == "("
-        edges[edge_idx,:] = [node_idx, node_idx+1]
-        node_idx += 1
-        edge_idx += 1
-        i += 1
-        addbranch(tokens, edges, el, i, edge_idx, node_idx, tip_idx)
-    elseif tokens[i] == ")"
-        el[edge_idx] = parse_brlen(tokens[i+1])
-        i += 1
-#    elseif tokens[i] == ";"      
-    else
-        ## tip
-        edges[edge_idx, :] = [node_idx, tip_idx]
-        tip_idx += 1
-    end
-    #return(edges, el)
-end
-
-function foo()        
-    if tokens[i] ∉ single_tokens
-        if tokens[i][1] == ':' ## internal
-            tip!(tokens, edges, el, i)
-        else ## external
-            addbranch!(tokens, edges, el, i)
-        end
-    end
-
-    internal!(tokens, edges, el, i)
-    el[i] = parse_brlen(tokens[i])    
+function parse_tiplab(s)
+    res = split(s, ':')[1]
+    return(res)
 end
 
 function findsplit(tokens)
@@ -150,30 +120,38 @@ function partition(tokens)
     return (left, right)
 end
 
-function internaledge!(edges, tokens, idx, node)
+function internaledge!(edges, el, tiplabs, tokens, idx, node)
+    l = parse_brlen(tokens[end])
+    el[idx[1]] = l
     tokens = tokens[2:end-2]
 
     edges[idx[1],1] = node
     edges[idx[1],2] = maximum(edges)+1
     node = edges[idx[1],2]
-    idx[1] += 1    
+    idx[1] += 1
     left, right = partition(tokens)
 
     for branch in [left, right]
         if !isempty(branch)
             if branch[end][1] != ':'
-                println(idx)
-                terminaledge!(edges, branch[1], idx, node)
+                #println(idx)
+                terminaledge!(edges, el, tiplabs, branch[1], idx, node)
             else
-                internaledge!(edges, branch, idx, node)
+                internaledge!(edges, el, tiplabs, branch, idx, node)
             end
         end
     end
 end
 
-function terminaledge!(edges, s, idx, node)
+function terminaledge!(edges, el, tiplabs, s, idx, node)
     edges[idx[1],1] = node
     edges[idx[1],2] = idx[2]
+
+    l = parse_brlen(s)
+    el[idx[1]] = l
+
+    tiplab = String(split(s, ':')[1])
+    push!(tiplabs, tiplab)
 
     idx[1] += 1
     idx[2] += 1
