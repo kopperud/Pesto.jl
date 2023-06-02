@@ -5,15 +5,15 @@ function makebins(N0, model, lower, upper; filter = "", nbins = 18)
     N = deepcopy(N0)
 
     ## sp
-    Δλ = (λ * ones(K)' .- ones(K) * λ')
+    Δλ = λ * ones(K)' .- ones(K) * λ'
     ## ex
-    Δμ = (μ * ones(K)' .- ones(K) * μ')
+    Δμ = μ * ones(K)' .- ones(K) * μ'
     ## netdiv
     r = λ .- μ
-    Δr = (r * ones(K)' .- ones(K) * r')
+    Δr = r * ones(K)' .- ones(K) * r'
     ## relext
     ϵ = μ ./ λ
-    Δϵ = (ϵ * ones(K)' .- ones(K) * ϵ')
+    Δϵ = ϵ * ones(K)' .- ones(K) * ϵ'
 
     if filter == "speciation"
         is_zero = Δλ .!= 0
