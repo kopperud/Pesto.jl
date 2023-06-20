@@ -11,17 +11,17 @@ using Distributions
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.67
-data = make_SSEdata2(phy, ρ)
+ρ = 0.635
+primates = SSEdata(phy, ρ)
 ```
 
 ## SSE model 
 
-Next, we set up the SSE model, including its dimensionality and hyperparameters. For this model, we will draw the speciation rate (λ) and extinction rate (µ) from LogNormal distributions. We pick the median of the LogNormal distributions such that they correspond to the maximum-likelihood estimates of the constant-rate birth-death model. We pick the variance as `H = 0.587`, which corresponds to a LogNormal distribution whose 2.5%-97.5% quantile spans one order of magnitude. 
+Next, we set up the SSE model, including its dimensionality and hyperparameters. For this model, we will draw the speciation rate (λ) and extinction rate (µ) from LogNormal distributions. We pick the median of the LogNormal distributions such that they correspond to the maximum-likelihood estimates of the constant-rate birth-death model. We pick the log-sd as `H = 0.587`, which corresponds to a LogNormal distribution whose 2.5%-97.5% quantile spans one order of magnitude. 
 
 
 ```julia
-λml, μml = estimate_constant_bdp(data)
+λml, μml = estimate_constant_bdp(primates)
 
 H = 0.587
 n = 6
@@ -33,74 +33,66 @@ dμ = LogNormal(log(µml), H)
 µquantiles = make_quantiles(dμ, n)
 λ, μ = allpairwise(λquantiles, µquantiles)
 ```
+![primatestree](../assets/quantiles.svg)
 
-Next, we estimate the rate shift parameter η under the SSE model, conditional on the hyperparameters for λ and µ.
+Next, we estimate the rate shift parameter η under the SSE model, conditional on λ and µ.
 ```julia
-η = optimize_eta(λ, µ, data; lower = 0.0001, upper = 0.1)
+η = optimize_eta(λ, µ, primates)
 ```
 
 This allows us to set up the SSE model object:
-
 ```julia
-model = SSEconstant(λ, μ, η[1])
+model = SSEconstant(λ, μ, η)
 ```
 
 ## Likelihood
 With the model and data objects we can for example calculate the loglikelihood
-
 ```julia
-logL_root(model, data)
+logL_root(model, primates)
 ```
 
 ## Branch likelihoods
 Or we can compute both the postorder and preorder pass, and get the expected speciation and extinction rates per branch:
-
 ```julia
-res = bds(model,data)
+#res = bds(model,primates)
+rates = birth_death_shift(model, primates)
 ```
 
 ## Plot using R and ggtree
-If we want to plot the results, we can use the module `RCall`. 
+If we want to plot the results, we can use the module `RCall`. Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.
 
 ```julia
 using RCall
 
-phy = res.phy
-lambda = res.lambda
-mu = res.mu
-```
+@rput primates
+@rput rates
 
-Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). 
-
-```julia
-@rput phy
-@rput lambda
-@rput mu
-```
-
-R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.
-
-```julia
 R"""
-library(ape)
-library(tidytree)
 library(tibble)
-library(ggtree)
-class(phy) <- "phylo"
-th <- max(node.depth.edgelength(phy))
-lambda_average <- lambda
-
-df <- tibble("node" = 1:max(phy$edge),
-            "speciation rate" = lambda_average,
-            "netdiv" = lambda - mu)
-x <- as_tibble(phy)
-phydf <- merge(x, df, by = "node")
-
-td_phy <- as.treedata(phydf)
-
-p <- ggtree(td_phy, ggplot2::aes(color = `speciation rate`))
-plot(p)
+library(tidytree)
+x <- as_tibble(primates)
+td <- as.treedata(merge(x, rates, by = "node"))
 """
 ```
 
-![primatestree](../assets/primates_analysis.svg)
+We can plot the mean speciation rate
+
+```julia
+R"""
+library(ggtree)
+p1 <- ggtree(td, aes(color = mean_lambda)) +  
+    geom_tiplab(size=2)
+"""
+```
+![primatestree](../assets/primates_lambda.svg)
+
+We can also plot the number of accumulated shifts on the branches
+```julia
+R"""
+library(ggplot2)
+p2 <- ggtree(td, aes(color = nshift)) + 
+    geom_tiplab(size=2) +
+    scale_colour_gradient(low = "black", high = "red")
+"""
+```
+![primatestree](../assets/primates_nshift.svg)
