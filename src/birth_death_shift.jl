@@ -29,12 +29,11 @@ function birth_death_shift(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ss = ancestral_state_probabilities(data, Ds, Fs)
 
-    #res = calculate_tree_rates(data, model, Ds, Fs, Ps)
     rates = tree_rates(data, model, Fs, Ss)
-    #out = Dict()
 
-    #out["lambda"] = res["average_node_rates"]["λ"]
-    #out["mu"] = res["average_node_rates"]["μ"]
+    nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
+    append!(nshift, 0.0)
+    rates[!,"nshift"] = nshift
 
     return(rates)
 end
@@ -70,7 +69,7 @@ function bds(model, data; verbose = false)
 
     #lambda = res["average_node_rates"]["λ"]
     #mu = res["average_node_rates"]["μ"]
-    DataFrames.sort!(rates, :node_index)
+    DataFrames.sort!(rates, :node)
     #lambda = rates[!, "mean_lambda"]
     #mu = rates[!, "mean_mu"]
 

@@ -6,6 +6,11 @@ struct SSEconstant <: Distributions.ContinuousUnivariateDistribution
     η
 end
 
+struct BDconstant <: Distributions.ContinuousUnivariateDistribution
+    λ
+    μ
+end
+
 struct SSEdata
     state_space
     trait_data
@@ -16,11 +21,18 @@ struct SSEdata
     branch_lengths
     branching_times
     po
+    Nnode
 end
 
-struct BDconstant <: Distributions.ContinuousUnivariateDistribution
-    λ
-    μ
+struct phylo
+    edge::Matrix{Int64}
+    edge_length::Vector{Float64}
+    Nnode::Int64
+    tip_label::Vector{String}
+    root_edge::Int64
+    node_depths::Vector{Float64}
+    branching_times::Vector{Float64}
+    po::Vector{Int64}
 end
 
 struct SSEresult

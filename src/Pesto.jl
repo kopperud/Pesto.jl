@@ -35,7 +35,7 @@ include("nshifts.jl")
 include("analysis.jl")
 include("polytomy.jl")
 include("shiftbins.jl")
-
+include("rconvert.jl")
 
 
 # Path into package

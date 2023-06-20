@@ -121,7 +121,23 @@ function readtree(treefile)
     phy$po <- po
     """
     RCall.@rget phy
-    return(phy)
+    root_edge = phy[:root_edge]
+
+    r = phylo(
+        phy[:edge],
+        phy[:edge_length],
+        phy[:Nnode],
+        phy[:tip_label],
+        root_edge,
+        phy[:node_depths],
+        phy[:branching_times],
+        phy[:po]
+    )
+    return(r)
+end
+
+function SSEdata(phy, ρ)
+    make_SSEdata(phy, ρ)
 end
 
 function make_SSEdata(phy, datafile, ρ; include_traits = true)
@@ -133,48 +149,50 @@ function make_SSEdata(phy, datafile, ρ; include_traits = true)
         df = CSV.File(datafile)
         trait_data = Dict(taxon => string(state) for (taxon, state) in zip(df[:Taxon], df[:state]))
     else
-        trait_data = Dict(taxon => "?" for taxon in phy[:tip_label])
+        trait_data = Dict(taxon => "?" for taxon in phy.tip_label)
     end
-    node_depth = phy[:node_depths]
-    tiplab = phy[:tip_label]
-    branching_times = phy[:branching_times]
+    node_depth = phy.node_depths
+    tiplab = phy.tip_label
+    branching_times = phy.branching_times
 
     state_space = sort(unique(values(trait_data)))
-    edges = convert.(Int64, phy[:edge])
-    el = phy[:edge_length]
-    po = phy[:po]
+    edges = convert.(Int64, phy.edge)
+    el = phy.edge_length
+    po = phy.po
+    Nnode = phy.Nnode
 
-    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po)
+    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
     return(data)
 end
 
 @doc raw"""
-    make_SSEdata2(phy, ρ)
+    make_SSEdata(phy, ρ)
 
 Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre")) 
 ρ = 0.67  
-data = make_SSEdata2(phy, ρ) 
+data = make_SSEdata(phy, ρ) 
 ```
 """
-function make_SSEdata2(phy, ρ)
-    trait_data = Dict(taxon => "?" for taxon in phy[:tip_label])
+function make_SSEdata(phy, ρ)
+    trait_data = Dict(taxon => "?" for taxon in phy.tip_label)
 
-    node_depth = phy[:node_depths]
-    tiplab = phy[:tip_label]
-    branching_times = phy[:branching_times]
+    node_depth = phy.node_depths
+    tiplab = phy.tip_label
+    branching_times = phy.branching_times
 
     state_space = NaN
-    edges = convert.(Int64, phy[:edge])
-    el = phy[:edge_length]
-    po = phy[:po]
+    edges = convert.(Int64, phy.edge)
+    el = phy.edge_length
+    po = phy.po
     if any(el .< 0)
         throw(error("Tree includes negative branch lengths."))
     end
+    Nnode = phy.Nnode
 
-    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po)
+    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
     return(data)
 end
 
@@ -239,3 +257,4 @@ end
 function lrange(from, to; length = 6)
     exp.(collect(range(log(from), log(to); length = length)))
 end
+
