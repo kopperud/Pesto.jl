@@ -37,7 +37,7 @@ function state_shifts(model, data, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_ord
         tspan = (a,b)
 
         N0 = zeros(K,K)
-        p = [model.η, K, Ss[edge_idx], Ds[edge_idx]]
+        p = (model.η, K, Ss[edge_idx], Ds[edge_idx])
 
         prob = OrdinaryDiffEq.ODEProblem(number_of_shifts!, N0, tspan, p)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))

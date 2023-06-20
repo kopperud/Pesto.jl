@@ -18,7 +18,7 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
     ## Storing the scaling factors
     sf = zeros(typeof(model.λ[1]), nrows)
 
-    pD = [model.λ, model.μ, model.η, n, E]
+    pD = (model.λ, model.μ, model.η, n, E)
     D0 = repeat([1.0], n)
     u0 = typeof(model.λ[1]).(D0)
     tspan = (0.0, 1.0)

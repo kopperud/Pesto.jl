@@ -18,7 +18,7 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
     ## Store the whole `F(t)` per branch
     Fs = Dict()
 
-    pF = [model.λ, model.μ, model.η, k, E]
+    pF = (model.λ, model.μ, model.η, k, E)
 
     if verbose
         prog = ProgressMeter.Progress(length(data.po), "Preorder pass ")

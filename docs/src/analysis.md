@@ -15,7 +15,7 @@ phy = readtree(Pesto.path("primates.tre"))
 primates = SSEdata(phy, ρ)
 ```
 
-## SSE model 
+## SSE model
 
 Next, we set up the SSE model, including its dimensionality and hyperparameters. For this model, we will draw the speciation rate (λ) and extinction rate (µ) from LogNormal distributions. We pick the median of the LogNormal distributions such that they correspond to the maximum-likelihood estimates of the constant-rate birth-death model. We pick the log-sd as `H = 0.587`, which corresponds to a LogNormal distribution whose 2.5%-97.5% quantile spans one order of magnitude. 
 
@@ -54,7 +54,6 @@ logL_root(model, primates)
 ## Branch likelihoods
 Or we can compute both the postorder and preorder pass, and get the expected speciation and extinction rates per branch:
 ```julia
-#res = bds(model,primates)
 rates = birth_death_shift(model, primates)
 ```
 

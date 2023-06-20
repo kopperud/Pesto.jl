@@ -23,7 +23,7 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
     ## Storing the scaling factors
     sf = zeros(typeof(model.η), nrows)
 
-    pD = [model.λ, model.μ, model.η, n, E]
+    pD = (model.λ, model.μ, model.η, n, E)
     D0 = repeat([1.0], n)
     u0 = typeof(model.η).(D0)
     tspan = (0.0, 1.0)

@@ -1,12 +1,12 @@
 export extinction_probability
 
 function extinction_probability(model, data; alg = OrdinaryDiffEq.Tsit5())
-    k = length(model.λ)
-    pE = [model.λ, model.μ, model.η, k]
+    K = length(model.λ)
+    pE = (model.λ, model.μ, model.η, K)
 
     tree_height = maximum(data.node_depth)
     tspan = (0.0, tree_height)
-    E0 = repeat([1.0 - data.ρ], k)
+    E0 = repeat([1.0 - data.ρ], K)
 
     pr = OrdinaryDiffEq.ODEProblem(extinction_prob, E0, tspan, pE);
     
