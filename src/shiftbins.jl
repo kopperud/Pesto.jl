@@ -1,3 +1,5 @@
+export makebins
+
 function makebins(N0, model, lower, upper; filter = "", nbins = 18)
     λ = model.λ
     μ = model.μ

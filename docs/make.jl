@@ -2,9 +2,16 @@ using Documenter, Pesto
 
 makedocs(
      sitename="Pesto.jl",
+     authors = "Bjørn Tore Kopperud and Sebastian Höhna",
+     modules = [Pesto],
      pages = [
+          "Home" => "home.md",
           "Installation" => "install.md",
-          "Rate analysis" => "analysis.md", 
+          "Analyses" => [
+            "Simple analysis" => "analysis/simple.md", 
+            "Extended analysis" => "analysis/extended.md",
+            "Number of shifts" => "analysis/shifts.md",
+          ],
           "index.md",
              ]
 )

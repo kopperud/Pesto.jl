@@ -1,22 +1,38 @@
-## Installation Julia
+# Installation
 
-Go to the Julia website at [https://julialang.org/downloads/](https://julialang.org/downloads/), download the binary for your operating system, and save it somewhere appropriate. If you are using Mac/Linux, you may want to add the directory in which you saved the julia executable to the `PATH` variable. If you use the bash terminal, you can do this by appending the following to your `~/.bashrc` file:
-```bash
-export PATH="/path/to/julia-x.x.x/bin:$PATH"
+## Installing Julia
+
+Julia is a high-level programming language similar to R, Matlab or Python. 
+However, it is also a high-performance language.
+Julia programs can be similarly fast to those written in compiled languages like [C/C++/Fortran](https://julialang.org/benchmarks/).
+To install Julia, follow the instructions on the official [website](https://julialang.org/downloads/).
+
+## Editors
+
+There are several options for how to work with Julia:
+
+* **(Recommended)** [Visual Studio Code](https://code.visualstudio.com) is an integrated developer environment (IDE), which has both a file editor and a console for entering commands. If you have used RStudio before, Visual Studio Code will be very similar.
+* You can also run Julia in a [Jupyter](http://jupyter.org) notebook, as is often done with Python projects.
+* Alternatively, you can edit script files with your editor of choice (for example notepad/vim), and either copy-paste lines of copy into the Julia console or use the `include("script.jl")` command.
+
+## Installing Pesto.jl (stable)
+To install the latest release of `Pesto.jl`, enter this in Julia:
+```julia
+import Pkg
+Pkg.add("Pesto")
 ```
-Make sure to substitute `/path/to` with your directory, and fill in the correct version instead of `x.x.x`. This will allow you to start julia by typing `julia` into the terminal, regardless of which directory you are in.
+The package manager (`Pkg`) will automatically resolve and install any necessary dependencies.
 
-## Installing Pesto.jl
-We have not yet registered the module with the Julia package manager, meaning it has to be installed using a git repository URL. This can be done in the REPL as follows:
+## Installing Pesto.jl (dev)
+If you want to use the developmental version of `Pesto.jl`, you can install it using a git repository URL. This can be done as follows:
 
 ```julia
 import Pkg
-
 Pkg.add(url="https://github.com/kopperud/Pesto.jl")
 ```
 
-Even though the module is not registered, the package manager (`Pkg`) will automatically resolve and install any necessary dependencies. Loading the module is done as follows:
-
+## Loading Pesto.jl
+Pesto can be loaded like so:
 ```julia
 using Pesto
 ```
