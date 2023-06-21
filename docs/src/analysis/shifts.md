@@ -6,6 +6,7 @@ First, we load the necessary modules and read in the tree file.
 
 ```@setup shift
 using Pesto
+using Plots
 
 ρ = 0.635
 
@@ -13,6 +14,7 @@ include("../../src/primates.jl")
 ```
 ```julia shift
 using Pesto
+using Plots
 
 phy = readtree(Pesto.path("primates.tre"))
 ρ = 0.635
