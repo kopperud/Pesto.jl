@@ -2,22 +2,6 @@
 export compute_nshifts
 export state_shifts
 
-function Amatrix(model, E, K, t)
-    Q = -LinearAlgebra.I(K) .* model.η .+ (1 .- LinearAlgebra.I(K)) .* (model.η/(K-1))
-    A = LinearAlgebra.diagm(- (model.λ .+ model.μ) .+ 2 .* model.λ .* E(t)) .+ Q
-    return(A)
-end
-
-function Pmatrix(model, D, E, t, Δt)
-    K = length(model.λ)
-    A = Amatrix(model, E, K, t)
-
-    P_unnorm = (LinearAlgebra.I(K) .- Δt .* A) .* (D(t) * ones(K)')
-    csum = ones(K) * sum(P_unnorm, dims = 1) ## column sum
-    P = P_unnorm ./ csum
-    return(P)
-end
-
 function state_shifts(model, data; ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
     Ss = ancestral_state_probabilities(data, Ds, Fs);
@@ -31,7 +15,6 @@ function state_shifts(model, data, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_ord
     nshifts = zeros(nbranches, K, K)
 
     Threads.@threads for edge_idx in 1:nbranches
-    #for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
