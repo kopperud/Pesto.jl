@@ -6,7 +6,7 @@ function descendant_nodes(node, data)
     res = desc[:,2]
 end
 
-"""
+@doc raw"""
     make_ancestors(data)
 
 takes node indices as input, and returns edge indices
@@ -36,7 +36,7 @@ function make_ancestors(data)
     return(ancestors)
 end
 
-"""
+@doc raw"""
     make_descendants(data)
 
 takes node indices as input, and returns edge indices
@@ -66,10 +66,19 @@ function make_descendants(data)
     return(descendants)
 end
 
-@dow raw"""
-    make_descendants(data)
+@doc raw"""
+    make_descendants_nodes(data)
 
 takes node indices as input, and returns node indices
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre"))
+ρ = 0.635
+data = make_SSEdata(phy, ρ)
+
+make_descendants_nodes(data)
+```
 """
 function make_descendants_nodes(data)
     ntip = length(data.tiplab)
