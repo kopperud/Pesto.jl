@@ -11,7 +11,7 @@ Example:
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre")) 
-ρ = 0.67
+ρ = 0.635
 data = make_SSEdata2(phy, ρ)
 
 λ = [0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.1, 0.2, 0.3] 
