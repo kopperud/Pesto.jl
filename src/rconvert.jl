@@ -1,10 +1,4 @@
-
-#import RCall.rcopy
-
 import RCall: sexp, protect, unprotect, setclass!, RClass, sexpclass
-#import RCall.sexpclass
-
-#export sexpclass
 
 RCall.sexpclass(::SSEdata) = RClass{:phylo}
 
@@ -19,9 +13,6 @@ function sexp(::Type{RClass{:phylo}}, f::SSEdata)
     unprotect(1)
     phy
 end
-
-
-#sexpclass(f::SSEresult2) = RClass{:phylo}
 
 # function sexp(::Type{RClass{:treedata}}, f::SSEresult)
 #     td = protect(sexp(
@@ -46,5 +37,3 @@ end
 #    # """))
 #     td
 # end
-
-#bar = robject(:Bar, foo)
