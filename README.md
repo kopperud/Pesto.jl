@@ -3,9 +3,7 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kopperud.github.io/Pesto.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://kopperud.github.io/Pesto.jl/dev)
 
-This Julia module also has an R-package wrapper with the same name (see [Pesto](https://github.com/kopperud/Pesto)).
-
-The program can fit state-dependent speciation and extinction (SSE) models on reconstructed phylogenetic trees. We use these models to make inferences about when, and on which branches, there were shifts in the tempo of the process of diversification. The method is equivalent to the one presented by Höhna et al (2019), however it is much faster. The runtime of Pesto scales linearly with the number of tips in the phylogeny, and can be run on huge phylogenies (> 30k taxa) without much trouble on a standard laptop computer.
+The program can fit state-dependent speciation and extinction (SSE, Maddison et al 2007) models on reconstructed phylogenetic trees. We use these models to make inferences about when, and on which branches, there were shifts in the tempo of the process of diversification. The method is equivalent to the one presented by Höhna et al (2019), however it is much faster. The runtime of Pesto scales linearly with the number of tips in the phylogeny, and can be run on huge phylogenies (> 30k taxa) without much trouble on a standard laptop computer.
 
 ## Installation
 
@@ -30,6 +28,8 @@ The output if plotted using the `ggtree` R-package will look something like the 
 ![primatestree](docs/src/assets/primates_lambda.svg)
 
 See the website at [https://kopperud.github.io/Pesto.jl/dev](https://kopperud.github.io/Pesto.jl/dev) for the documentation, and for an explanation of how the model is set up.
+
+This Julia module also has an R-package wrapper with the same name (see [Pesto](https://github.com/kopperud/Pesto)).
 
 ## References
 
