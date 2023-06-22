@@ -172,7 +172,7 @@ Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre")) 
-ρ = 0.67  
+ρ = 0.635  
 data = make_SSEdata(phy, ρ) 
 ```
 """
@@ -231,7 +231,19 @@ function partition_postorder_indices(data)
 end
 
 
+@doc raw"""
+    allpairwise(λ, μ)
 
+Example:
+```julia
+using Pesto
+
+lambda = [0.2, 0.3]
+mu = [0.05, 0.10, 0.15, 0.20] 
+
+λ, μ = allpairwise(lambda, mu)
+```
+"""
 function allpairwise(xs, ys)
     ny = length(xs)
     nx = length(ys)
