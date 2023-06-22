@@ -1,4 +1,4 @@
-# Simple analysis
+# [Simple analysis](@id simple)
 
 Here is an example of an analysis of branch-specific rates under the birth-death-shift model.
 
@@ -27,7 +27,7 @@ A simple analysis can be done like so:
 model, rates = pesto(primates)
 nothing # hide
 ```
-To see how this analysis is set up, see the next section (Extended analysis).
+To see how this analysis is set up, see the next section [Extended analysis](@ref extended).
 
 ## Tree plots
 If we want to plot the results, we can use the module `RCall`. Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.

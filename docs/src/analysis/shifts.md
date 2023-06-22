@@ -1,4 +1,4 @@
-# Number of rate shifts
+# [Number of rate shifts](@id shifts)
 
 ### Tree file
 

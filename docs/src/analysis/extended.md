@@ -1,4 +1,4 @@
-# Extended rate analysis
+# [Extended rate analysis](@id extended)
 
 In this vignette, we will do the same as in the simple analysis, but we explain how the model is set up in more detail.
 
