@@ -1,6 +1,7 @@
 export extinction_probability
 
-function extinction_probability(model, data; alg = OrdinaryDiffEq.Tsit5())
+function extinction_probability(model, data)
+    alg = OrdinaryDiffEq.Tsit5()
     K = length(model.λ)
     pE = (model.λ, model.μ, model.η, K)
 
