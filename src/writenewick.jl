@@ -1,18 +1,40 @@
+export write_tree
+
 ## write a newick file
-function write_tree(filename, data, rates)
+@doc raw"""
+    write_tree(filename, data, rates)
+
+writes a newick file with the rate values as comments
+
+Example:
+```julia
+using Pesto
+
+phy = readtree(Pesto.path("primates.tre"))
+ρ = 0.635
+primates = SSEdata(phy, ρ)
+
+λ = [0.1, 0.2, 0.3, 0.4, 0.20]
+μ = [0.05, 0.15, 0.05, 0.15, 0.25]
+η = 1 / tree_length
+
+rates = birth_death_shift(model, primates)
+
+write_tree("/tmp/newick.tre", primates, rates)
+```
+"""
+function write_tree(filename::String, data::SSEdata, rates::DataFrames.DataFrame)
     newick_string = newick(data, rates)
 
-    touch(filename)
-    io = open(filename, "w")
-
-    write(io, newick_string)
-    write(io, "\n")
-    close(io)
+    open(filename, "a") do io
+        write(io, newick_string)
+        write(io, "\n")
+    end
 end
 
-function node_data(rates)
-    DataFrames.sort!(rates, :node_index)
-    rates_plain = DataFrames.select(rates, DataFrames.Not(:node_index))
+function node_data(rates::DataFrames.DataFrame)
+    DataFrames.sort!(rates, :node)
+    rates_plain = DataFrames.select(rates, DataFrames.Not(:node))
     
     res = []
     for row in eachrow(rates_plain)
