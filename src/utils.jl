@@ -1,4 +1,4 @@
-export readtree, make_SSEdata, make_quantiles, make_SSEdata2, allpairwise
+export readtree, make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -10,6 +10,16 @@ end
     make_ancestors(data)
 
 takes node indices as input, and returns edge indices
+
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre"))
+ρ = 0.635
+data = make_SSEdata(phy, ρ)
+
+make_ancestors(data)
+```
 """
 function make_ancestors(data)
     ntip = length(data.tiplab)
@@ -30,6 +40,15 @@ end
     make_descendants(data)
 
 takes node indices as input, and returns edge indices
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre"))
+ρ = 0.635
+data = make_SSEdata(phy, ρ)
+
+make_descendants(data)
+```
 """
 function make_descendants(data)
     ntip = length(data.tiplab)
@@ -47,7 +66,7 @@ function make_descendants(data)
     return(descendants)
 end
 
-"""
+@dow raw"""
     make_descendants(data)
 
 takes node indices as input, and returns node indices
@@ -261,12 +280,19 @@ function allpairwise(xs, ys)
     return(λ, μ)
 end
 
-#function (from = 1, to = 1e+05, length.out = 6) 
-#    {
-#        exp(seq(log(from), log(to), length.out = length.out))
-#    }
+@doc raw"""
+    lrange(from, to, length)
 
-function lrange(from, to; length = 6)
+Similar to `range`, but with proportional spacing.
+
+Example:
+```julia
+using Pesto
+
+lrange(0.001, 100.0, 6)
+```
+"""
+function lrange(from::Float64, to::Float64, length::Int64 = 6)
     exp.(collect(range(log(from), log(to); length = length)))
 end
 
