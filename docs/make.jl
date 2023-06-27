@@ -11,6 +11,7 @@ makedocs(
             "Simple analysis" => "analysis/simple.md", 
             "Extended analysis" => "analysis/extended.md",
             "Number of shifts" => "analysis/shifts.md",
+            "Tip rates" => "analysis/tiprates.md",
           ],
           "index.md",
              ]
