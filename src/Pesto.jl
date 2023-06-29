@@ -36,6 +36,7 @@ include("analysis.jl")
 include("polytomy.jl")
 include("shiftbins.jl")
 include("rconvert.jl")
+include("display.jl")
 
 
 # Path into package

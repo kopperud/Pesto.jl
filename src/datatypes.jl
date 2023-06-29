@@ -29,7 +29,6 @@ struct phylo
     edge_length::Vector{Float64}
     Nnode::Int64
     tip_label::Vector{String}
-    root_edge::Int64
     node_depths::Vector{Float64}
     branching_times::Vector{Float64}
     po::Vector{Int64}

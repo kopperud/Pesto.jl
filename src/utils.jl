@@ -87,7 +87,7 @@ function make_descendants_nodes(data)
 
     descendants = Dict(node => [] for node in rootnode:maxnode)
 
-    for (i, row) in enumerate(eachrow(data.edges))
+    for row in eachrow(data.edges)
         anc, dec = row
         if anc > ntip
             append!(descendants[anc], dec)
@@ -125,6 +125,19 @@ function make_quantiles3(d, k)
     return(quantiles)
 end
 
+@doc raw"""
+    readtree("/path/to/phylo.tre")
+
+reads a NEXUS or Newick file using RCall and the R-package `ape`
+
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre"))
+
+display(phy)
+```
+"""
 function readtree(treefile)
     s = readuntil(treefile, "(")
     isnexus = contains(s, "#NEXUS")
@@ -144,19 +157,19 @@ function readtree(treefile)
     node_depths <- max(nde) - nde
     phy$node_depths <- node_depths
     phy$branching_times <- branching.times(phy)
+    phy$tip_label <- phy$tip.label
 
     po <- postorder(phy)
     phy$po <- po
+    class(phy) <- "list"
     """
     RCall.@rget phy
-    root_edge = phy[:root_edge]
 
     r = phylo(
         phy[:edge],
         phy[:edge_length],
         phy[:Nnode],
         phy[:tip_label],
-        root_edge,
         phy[:node_depths],
         phy[:branching_times],
         phy[:po]

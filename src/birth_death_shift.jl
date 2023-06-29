@@ -64,14 +64,9 @@ function bds(model, data; verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ss = ancestral_state_probabilities(data, Ds, Fs)
 
-    #res = calculate_tree_rates(data, model, Ds, Fs, Ps)
     rates = tree_rates(data, model, Fs, Ss)
 
-    #lambda = res["average_node_rates"]["λ"]
-    #mu = res["average_node_rates"]["μ"]
     DataFrames.sort!(rates, :node)
-    #lambda = rates[!, "mean_lambda"]
-    #mu = rates[!, "mean_mu"]
 
     phy = Dict("edge" => data.edges,
       "tip.label" => data.tiplab,
