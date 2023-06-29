@@ -14,35 +14,41 @@ import DataFrames
 import FastGaussQuadrature
 import LoopVectorization
 
+## constant birth-death process
+include("bd_constant/optimize.jl")
+include("bd_constant/constantBDP.jl")
+
+## birth-death-shift process
+
+include("bd_shift/postorder.jl")
+include("bd_shift/postorder_nosave.jl")
+include("bd_shift/postorder_chunk.jl")
+include("bd_shift/preorder.jl")
+include("bd_shift/ODE.jl")
+include("bd_shift/logLroot.jl")
+include("bd_shift/tree_rates.jl")
+include("bd_shift/backwards_forwards.jl")
+include("bd_shift/birth_death_shift.jl")
+include("bd_shift/extinction.jl")
+include("bd_shift/nshifts.jl")
+include("bd_shift/analysis.jl")
+
+## input-output
+include("io/writenewick.jl")
+include("io/readnewick.jl")
+
+## rcall
+include("rcall/rconvert.jl")
+
+## the rest
 include("datatypes.jl")
-include("optimize.jl")
 include("utils.jl")
-include("diversitree_bisse.jl")
-include("postorder.jl")
-include("postorder_nosave.jl")
-include("postorder_chunk.jl")
-include("preorder.jl")
-include("ODE.jl")
-include("logLroot.jl")
-include("constantBDP.jl")
-include("tree_rates.jl")
-include("backwards_forwards.jl")
-include("birth_death_shift.jl")
-include("extinction.jl")
-include("writenewick.jl")
-include("readnewick.jl")
-include("nshifts.jl")
-include("analysis.jl")
 include("polytomy.jl")
 include("shiftbins.jl")
-include("rconvert.jl")
 include("display.jl")
-
 
 # Path into package
 export path
 path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
-#path(x::String) = joinpath(@__DIR__, x)
 
-# Write your package code here.
 end

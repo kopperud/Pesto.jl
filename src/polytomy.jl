@@ -1,5 +1,5 @@
 
-function contains_polytomies(phy)
+function contains_polytomies(phy::phylo)
     edge = phy[:edge]
 
     id = zeros(Int64, maximum(edge))

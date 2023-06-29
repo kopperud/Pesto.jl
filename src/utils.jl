@@ -1,4 +1,4 @@
-export readtree, make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange
+export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -125,57 +125,6 @@ function make_quantiles3(d, k)
     return(quantiles)
 end
 
-@doc raw"""
-    readtree("/path/to/phylo.tre")
-
-reads a NEXUS or Newick file using RCall and the R-package `ape`
-
-Example:
-```julia
-using Pesto
-phy = readtree(Pesto.path("primates.tre"))
-
-display(phy)
-```
-"""
-function readtree(treefile)
-    s = readuntil(treefile, "(")
-    isnexus = contains(s, "#NEXUS")
-
-    RCall.@rput isnexus
-    RCall.@rput treefile
-    
-    RCall.R"""
-    library(ape)
-
-    if(isnexus){
-        phy <- read.nexus(treefile)
-    }else{
-        phy <- read.tree(treefile)
-    }
-    nde <- node.depth.edgelength(phy)
-    node_depths <- max(nde) - nde
-    phy$node_depths <- node_depths
-    phy$branching_times <- branching.times(phy)
-    phy$tip_label <- phy$tip.label
-
-    po <- postorder(phy)
-    phy$po <- po
-    class(phy) <- "list"
-    """
-    RCall.@rget phy
-
-    r = phylo(
-        phy[:edge],
-        phy[:edge_length],
-        phy[:Nnode],
-        phy[:tip_label],
-        phy[:node_depths],
-        phy[:branching_times],
-        phy[:po]
-    )
-    return(r)
-end
 
 function SSEdata(phy, ρ)
     make_SSEdata(phy, ρ)
