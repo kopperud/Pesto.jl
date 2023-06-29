@@ -11,7 +11,7 @@ function quadrature(f, t0, t1, x, w)
 end
 
 function meanbranch(f, t0, t1, x, w)
-    # I is the integrand
+    # I is the integral
     I = quadrature(f, t0, t1, x, w)
 
     # divide by time interval, since we want the average rate
@@ -26,7 +26,7 @@ function tree_rates(data, model; n = 4)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function tree_rates(data, model, Fs, Ss; n = 4)
+function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 4)
     rates = zeros(size(data.edges)[1], 4)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
@@ -49,7 +49,7 @@ function tree_rates(data, model, Fs, Ss; n = 4)
     return(df)
 end
 
-function ancestral_state_probabilities(data, Ds, Fs)    
+function ancestral_state_probabilities(data::SSEdata, Ds, Fs)    
     Ss = Dict()
     for edge_idx in 1:(maximum(data.edges)-1)
        Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
