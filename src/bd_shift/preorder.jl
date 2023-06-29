@@ -7,10 +7,8 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
 
     ## Preorder pass, compute `F(t)`
     k = length(model.λ)
-    ntips = length(data.tiplab)
     
-    root_node = length(data.tiplab)+1
-    left_root_edge = descendants[root_node][1]    
+    root_node = length(data.tiplab)+1  
 
     nrows = size(data.edges, 1)
     ## Store the numerical solution of F at the end of the branch
@@ -63,28 +61,3 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
 
     return(Fs, F_ends)
 end
-
-export ancestral_state_probs
-function ancestral_state_probs(data, model, D_ends, F_ends)
-    k = length(model.λ)
-    root_node = length(data.tiplab)+1
-    ntips = length(data.tiplab)
-
-    ASP = zeros(ntips-1, k)
-
-    for node in root_node : maximum(data.edges)
-        children = findall(data.edges[:,1] .== node)
-
-        if node == root_node
-            asp = D_ends[children[1],:] .* D_ends[children[2],:] .* model.λ
-        else
-            edge_idx = findall(data.edges[:,2] .== node)[1]
-            asp =  D_ends[children[1],:] .* D_ends[children[2],:] .* model.λ .* F_ends[edge_idx,:]
-        end
-        ## Assign and normalize
-        ASP[node - ntips,:] = asp ./ sum(asp)
-    end
-    return(ASP)
-end
-
-
