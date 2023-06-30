@@ -14,12 +14,17 @@ import DataFrames
 import FastGaussQuadrature
 import LoopVectorization
 
+## the rest
+include("datatypes.jl")
+include("utils.jl")
+include("polytomy.jl")
+include("shiftbins.jl")
+include("display.jl")
+
 ## constant birth-death process
-include("bd_constant/optimize.jl")
 include("bd_constant/constantBDP.jl")
 
 ## birth-death-shift process
-
 include("bd_shift/postorder.jl")
 include("bd_shift/postorder_nosave.jl")
 include("bd_shift/postorder_chunk.jl")
@@ -32,20 +37,16 @@ include("bd_shift/birth_death_shift.jl")
 include("bd_shift/extinction.jl")
 include("bd_shift/nshifts.jl")
 include("bd_shift/analysis.jl")
+include("bd_shift/optimize.jl")
 
 ## input-output
 include("io/writenewick.jl")
 include("io/readnewick.jl")
+include("io/readtree.jl")
 
 ## rcall
 include("rcall/rconvert.jl")
 
-## the rest
-include("datatypes.jl")
-include("utils.jl")
-include("polytomy.jl")
-include("shiftbins.jl")
-include("display.jl")
 
 # Path into package
 export path

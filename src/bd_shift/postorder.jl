@@ -1,7 +1,6 @@
 export postorder
 
 function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = OrdinaryDiffEq.Tsit5())
-
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 

@@ -1,4 +1,4 @@
-export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange
+export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange, make_descendants, make_ancestors
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -20,8 +20,16 @@ data = make_SSEdata(phy, ρ)
 
 make_ancestors(data)
 ```
+with result
+```julia
+Dict{Int64, Int64} with 464 entries:
+  56  => 115
+  35  => 71
+  425 => 379
+  ⋮   => ⋮
+```
 """
-function make_ancestors(data)
+function make_ancestors(data::SSEdata)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
@@ -49,8 +57,16 @@ data = make_SSEdata(phy, ρ)
 
 make_descendants(data)
 ```
+with result
+```julia
+Dict{Int64, Vector{Any}} with 232 entries:
+  402 => [330, 331]
+  413 => [357, 360]
+  425 => [380, 381]
+  ⋮   => ⋮
+```
 """
-function make_descendants(data)
+function make_descendants(data::SSEdata)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
