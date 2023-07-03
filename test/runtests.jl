@@ -1,7 +1,7 @@
-using Diversification
+using Pesto
 using Test
 
-@testset "Diversification.jl" begin
+@testset "Pesto.jl" begin
     # Write your tests here.
     @test true
 
