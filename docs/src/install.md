@@ -5,7 +5,7 @@
 Julia is a high-level programming language similar to R, Matlab or Python. 
 However, it is also a high-performance language.
 Julia programs can be similarly fast to those written in compiled languages like [C/C++/Fortran](https://julialang.org/benchmarks/).
-To install Julia, follow the instructions on the official [website](https://julialang.org/downloads/).
+To install Julia, follow the instructions on the [official website](https://julialang.org/downloads/). If you are new to Julia, there are several [community-made tutorials](https://julialang.org/learning/tutorials/). There is also an extensive [official manual](https://docs.julialang.org/en/v1/manual/getting-started/), useful for looking up specifics.
 
 ## Editors
 

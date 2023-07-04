@@ -249,6 +249,10 @@ mu = [0.05, 0.10, 0.15, 0.20]
 
 λ, μ = allpairwise(lambda, mu)
 ```
+with result
+```julia
+([0.2, 0.3, 0.2, 0.3, 0.2, 0.3, 0.2, 0.3], [0.05, 0.05, 0.1, 0.1, 0.15, 0.15, 0.2, 0.2])
+```
 """
 function allpairwise(xs, ys)
     ny = length(xs)
@@ -277,6 +281,16 @@ Example:
 using Pesto
 
 lrange(0.001, 100.0, 6)
+```
+with result
+```julia
+6-element Vector{Float64}:
+   0.0010000000000000002
+   0.010000000000000004
+   0.10000000000000002
+   1.0000000000000004
+  10.000000000000002
+ 100.00000000000004
 ```
 """
 function lrange(from::Float64, to::Float64, length::Int64 = 6)

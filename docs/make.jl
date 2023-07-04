@@ -13,7 +13,7 @@ makedocs(
             "Number of shifts" => "analysis/shifts.md",
             "Tip rates" => "analysis/tiprates.md",
           ],
-          "index.md",
+          "Functions" => "index.md",
              ]
 )
 

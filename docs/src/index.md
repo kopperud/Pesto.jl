@@ -1,6 +1,6 @@
-# Pesto.jl Documentation
+# Functions
 
-lorem ipsum
+List of available functions
 
 ```@docs
 plottree(x)
@@ -22,7 +22,6 @@ Econstant(t, λ, µ, ρ)
 lp(λ::Vector{Float64}, μ::Vector{Float64}, data::SSEdata)
 ```
 
-
 ```@docs
 estimate_constant_bdp(data::SSEdata)
 ```
@@ -39,3 +38,10 @@ make_descendants(data::SSEdata)
 make_ancestors(data::SSEdata)
 ```
 
+```@docs
+lrange(from::Float64, to::Float64, length::Int64)
+```
+
+```@docs
+allpairwise(λ, µ)
+```

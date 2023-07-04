@@ -2,8 +2,6 @@
 
 In this vignette, we will do the same as in the simple analysis, but we explain how the model is set up in more detail.
 
-We use a State-dependent Speciation Extinction (SSE) model, with a K-sized state space, in order to get at the question of rate heterogeneity across branches. The Binary SSE model (BiSSE) was first introduced to study rate variation in association with trait data, i.e. each species was assigned a state at the tips of the tree. In our approach, however, we don't use trait data, and consider the tip states unknown, and equally probable for all states at the tips. 
-
 ## Tree file
 
 First, we load the necessary modules and read in the tree file.
@@ -25,8 +23,7 @@ primates = SSEdata(phy, ρ)
 
 ## Model choice
 
-Next, we set up the SSE model, including its dimensionality and hyperparameters. For this model, we will draw the speciation rate (λ) and extinction rate (µ) from LogNormal distributions. We pick the median of the LogNormal distributions such that they correspond to the maximum-likelihood estimates of the constant-rate birth-death model. We pick the log-sd as `H = 0.587`, which corresponds to a LogNormal distribution whose 2.5%-97.5% quantile spans one order of magnitude. 
-
+Next, we set up the SSE model, including its dimensionality and hyperparameters. For this model, we will draw the speciation rate (λ) and extinction rate (µ) from LogNormal distributions. We pick the median of the LogNormal distributions such that they correspond to the maximum-likelihood estimates of the constant-rate birth-death model. This is also called the "empirical Bayes" approach, where we use the data twice. We pick the log-sd as `H = 0.587`, which corresponds to a LogNormal distribution whose 2.5%-97.5% quantile spans one order of magnitude. 
 
 ```@example extended
 λml, μml = estimate_constant_bdp(primates)
@@ -52,7 +49,7 @@ Next, we estimate the rate shift parameter η under the SSE model, conditional o
 η = optimize_eta(λ, µ, primates)
 ```
 
-The units of $\eta$ are number of rate shift events per lineage per time. The product of the tree length times $\eta$ will give us the number of expected rate changes under the prior:
+The units of $\eta$ are number of rate shift events per lineage per time. The product of the tree length (the sum of all branch lengths) times $\eta$ will give us the number of expected rate shifts under the prior:
 ```@example extended
 sum(primates.branch_lengths) * η
 ```

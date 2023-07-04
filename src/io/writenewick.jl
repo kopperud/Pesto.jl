@@ -1,8 +1,9 @@
-export write_tree
+export writenewick
+export newick
 
 ## write a newick file
 @doc raw"""
-    write_tree(filename, data, rates)
+writenewick(filename, data, rates)
 
 writes a newick file with the rate values as comments
 
@@ -20,10 +21,10 @@ primates = SSEdata(phy, ρ)
 
 rates = birth_death_shift(model, primates)
 
-write_tree("/tmp/newick.tre", primates, rates)
+writenewick("/tmp/newick.tre", primates, rates)
 ```
 """
-function write_tree(filename::String, data::SSEdata, rates::DataFrames.DataFrame)
+function writenewick(filename::String, data::SSEdata, rates::DataFrames.DataFrame)
     newick_string = newick(data, rates)
 
     open(filename, "a") do io
@@ -61,7 +62,7 @@ end
 
 ## create a newick string from the data object
 ## translated from R-package treeio: https://github.com/YuLab-SMU/treeio/blob/master/R/write-beast.R
-function newick(data, rates)
+function newick(data::SSEdata, rates::DataFrames.DataFrame)
     ancestors = make_ancestors(data)
 
     nd = node_data(rates)
