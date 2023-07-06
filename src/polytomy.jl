@@ -1,6 +1,6 @@
 
 function contains_polytomies(phy::phylo)
-    edge = phy[:edge]
+    edge = phy.edge
 
     id = zeros(Int64, maximum(edge))
     for row in eachrow(edge)
