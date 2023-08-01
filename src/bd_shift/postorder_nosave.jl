@@ -61,37 +61,31 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
         end
     end
 
-    index_partitions = partition_postorder_indices(data)
+    for i in data.po
+        anc, dec = data.edges[i,:]
+        if dec > Ntip
+            
+            left_edge, right_edge = descendants[dec]            
+            node_age = data.node_depth[dec]
 
-    for indices in index_partitions[2:end]
-        #Threads.@threads for node_idx in indices
-        for node_idx in indices
-            i = ancestors[node_idx]
-            anc, dec = data.edges[i,:]
-            if dec > Ntip
-                
-                left_edge, right_edge = descendants[dec]            
-                node_age = data.node_depth[dec]
+            D_left = D_ends[left_edge,:]
+            D_right = D_ends[right_edge,:]
 
-                D_left = D_ends[left_edge,:]
-                D_right = D_ends[right_edge,:]
+            D = D_left .* D_right .* model.λ
+            u0 = D
 
-                D = D_left .* D_right .* model.λ
-                u0 = D
+            parent_node_age = data.node_depth[anc]
+            tspan = (node_age, parent_node_age)
 
-                parent_node_age = data.node_depth[anc]
-                tspan = (node_age, parent_node_age)
-
-                prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-                sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
-                
-                sol = sol[end]
-                k = sum(sol)
-                sol = sol ./ k
-                D_ends[i,:] = sol
-                if k > 0.0
-                    sf[i] += log(k)
-                end
+            prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u), save_everystep = false)
+            
+            sol = sol[end]
+            k = sum(sol)
+            sol = sol ./ k
+            D_ends[i,:] = sol
+            if k > 0.0
+                sf[i] += log(k)
             end
         end
     end
