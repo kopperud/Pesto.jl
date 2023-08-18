@@ -23,6 +23,12 @@ function makebins(N0, model, lower, upper; filter = "", nbins = 18)
     elseif filter == "extinction"
         is_zero = Δμ .!= 0
         N[is_zero] .= 0
+    elseif filter == "speciation+extinction"
+        is_zero_ex = Δμ .!= 0
+        is_zero_sp = Δλ .!= 0
+
+        is_zero = is_zero_ex .& is_zero_sp
+        N[is_zero] .= 0
     end
 
     borders = collect(range(lower, upper; length = nbins+1))
