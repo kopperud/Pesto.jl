@@ -40,6 +40,10 @@ function readtree(treefile)
     """
     RCall.@rget phy
 
+    if !(phy[:branching_times] isa Vector)
+        phy[:branching_times] = Float64[phy[:branching_times]]
+    end
+
     r = phylo(
         phy[:edge],
         phy[:edge_length],
