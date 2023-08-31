@@ -33,7 +33,7 @@ function optimize_eta(λ, μ, data; lower = -Inf, upper = Inf, xinit = -Inf)
 
     if !isfinite(lower)
         #lower = 0.0001 * xinit
-        lower = 0.0
+        lower = 1.0e-10
     end
 
     if !isfinite(upper)
