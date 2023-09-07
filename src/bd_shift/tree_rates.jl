@@ -15,7 +15,7 @@ function meanbranch(f, t0, t1, x, w)
     I = quadrature(f, t0, t1, x, w)
 
     # divide by time interval, since we want the average rate
-    res = I / (t1 -  t0)
+    res = I / (t1 - t0)
     return(res)
 end
 
@@ -37,7 +37,8 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 4)
         rates[i,1] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
         rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
-        rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)) / LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+#        rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)) / LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+        rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
     end
     node = data.edges[:,2]
     edge = 1:size(data.edges)[1]
