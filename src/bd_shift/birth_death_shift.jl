@@ -25,7 +25,7 @@ model = SSEconstant(λ, μ, η)
 res = birth_death_shift(model, data)
 ```
 """
-function birth_death_shift(model, data; verbose = false)
+function birth_death_shift(model, data; shift_bayes_factor = false, verbose = false)
     Ds, Fs = backwards_forwards_pass(model, data; verbose = verbose)
     Ss = ancestral_state_probabilities(data, Ds, Fs)
 
@@ -34,6 +34,12 @@ function birth_death_shift(model, data; verbose = false)
     nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
     append!(nshift, 0.0)
     rates[!,"nshift"] = nshift
+
+    if shift_bayes_factor
+        bf = posterior_prior_shift_odds(model,data)
+        append!(bf, NaN)
+        rates[!,"shift_bf"] = bf
+    end
 
     return(rates)
 end
