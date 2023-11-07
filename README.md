@@ -29,8 +29,6 @@ The output if plotted using the `ggtree` R-package will look something like the 
 
 See the website at [https://kopperud.github.io/Pesto.jl/dev](https://kopperud.github.io/Pesto.jl/dev) for the documentation, and for an explanation of how the model is set up.
 
-This Julia module also has an R-package wrapper with the same name (see [Pesto](https://github.com/kopperud/Pesto)).
-
 ## References
 
 * Maddison, W. P., Midford, P. E., & Otto, S. P. (2007). Estimating a binary character's effect on speciation and extinction. Systematic biology, 56(5), 701-710.
