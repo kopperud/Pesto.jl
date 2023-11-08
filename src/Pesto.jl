@@ -3,7 +3,6 @@ module Pesto
 import OrdinaryDiffEq
 import RCall
 import CSV
-import DataStructures
 import Distributions
 import Optim
 import LinearAlgebra
@@ -24,7 +23,6 @@ include("bd_constant/constantBDP.jl")
 ## birth-death-shift process
 include("bd_shift/postorder.jl")
 include("bd_shift/postorder_nosave.jl")
-include("bd_shift/postorder_chunk.jl")
 include("bd_shift/preorder.jl")
 include("bd_shift/ODE.jl")
 include("bd_shift/logLroot.jl")
