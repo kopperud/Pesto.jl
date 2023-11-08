@@ -3,6 +3,7 @@
 function extinction_prob(dE, E, p, t)
     λ, μ, η, K = p
     dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E.^2 .+ (η/(K-1)) .* (sum(E) .- E) 
+    #dE[:] .= μ .- (λ .+ μ) .* E .+ λ .* E.^2 .+ Q*E
 end
 
 ## Probability of of observing the branch at time `t`
