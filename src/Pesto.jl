@@ -9,6 +9,7 @@ import LinearAlgebra
 import DataFrames
 import FastGaussQuadrature
 import LoopVectorization
+import ForwardDiff
 
 ## the rest
 include("datatypes.jl")
