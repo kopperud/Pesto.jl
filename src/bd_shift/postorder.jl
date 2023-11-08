@@ -1,6 +1,6 @@
 export postorder
 
-function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = OrdinaryDiffEq.Tsit5())
+function postorder(model::SSEconstant, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 
@@ -23,11 +23,6 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
     tspan = (0.0, 1.0)
     prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
  
-    #for i in 1:nrows
-    if verbose
-        prog = ProgressMeter.Progress(length(data.po), "Postorder pass")
-    end
-
     #Threads.@threads for i in data.po
     for i in data.po
         anc, dec = data.edges[i,:]
@@ -60,10 +55,6 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             D_ends[i,:] = sol
             logk = log(k)
             sf[i] = logk
-
-            if verbose
-                ProgressMeter.next!(prog)
-            end
         end
     end
 
@@ -94,10 +85,6 @@ function postorder(model::SSEconstant, data::SSEdata, E; verbose = false, alg = 
             if k > 0.0
                 sf[i] += log(k)
             end
-        end
-
-        if verbose
-            ProgressMeter.next!(prog)
         end
     end
     return(D_ends, Ds, sf)

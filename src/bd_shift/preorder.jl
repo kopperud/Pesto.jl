@@ -1,6 +1,6 @@
 export preorder
 
-function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.Tsit5())
+function preorder(model, data, E, D_ends; alg = OrdinaryDiffEq.Tsit5())
     ## Precompute ancestor edges
     ancestors = make_ancestors(data)
     descendants = make_descendants(data)
@@ -17,10 +17,6 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
     Fs = Dict()
 
     pF = (model.λ, model.μ, model.η, k, E)
-
-    if verbose
-        prog = ProgressMeter.Progress(length(data.po), "Preorder pass ")
-    end
 
     for i in reverse(data.po)
         anc = data.edges[i,1]
@@ -53,10 +49,6 @@ function preorder(model, data, E, D_ends; verbose = false, alg = OrdinaryDiffEq.
         sol = sol[end]
 
         F_ends[i,:] = sol
-
-        if verbose
-            ProgressMeter.next!(prog)
-        end
     end
 
     return(Fs, F_ends)

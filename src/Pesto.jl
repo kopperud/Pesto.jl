@@ -3,12 +3,9 @@ module Pesto
 import OrdinaryDiffEq
 import RCall
 import CSV
-import ProgressMeter
-import Statistics
 import DataStructures
 import Distributions
 import Optim
-import ForwardDiff
 import LinearAlgebra
 import DataFrames
 import FastGaussQuadrature
