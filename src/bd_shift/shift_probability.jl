@@ -13,13 +13,7 @@ function Qmatrix(model)
 end
 
 function Amatrix(model, E, Q, t)
-    #diagm(- model.λ .- model.μ .+ 2 .* model.λ .* E(t)) .+ Q
-    K = length(model.λ)
-    A = zeros(K,K)
-    A[:,:] .= model.η / (K-1)
-    for i in 1:K
-        A[i,i] = - model.η
-    end
+    A = LinearAlgebra.diagm(- model.λ .- model.μ .+ 2 .* model.λ .* E(t)) .+ Q
     return(A) 
 end
 
