@@ -75,6 +75,41 @@ function posterior_shift_prob(model, data; n_knots = 20)
     return(shift_prob)
 end
 
+function no_shifts_prob(dlnX, lnX, p, t)
+    D, S, η, K = p
+    Dt = D(t)
+    #dlnX[1] = sum((η/(K-1)) .* S(t) .* (1 .- D(t)) ./ D(t))
+    dlnX[1] = sum((η/(K-1)) .* S(t) .* (sum(Dt) .- Dt) ./ Dt)
+end
+
+
+function posterior_shift_prob_ode(model, data)
+    alg = OrdinaryDiffEq.Tsit5()
+    ## there is no point in factoring this out, because the rest of the function is much slower
+    Ds, Fs = backwards_forwards_pass(model, data); 
+    Ss = ancestral_state_probabilities(data, Ds, Fs);
+
+    n_edges = length(data.branch_lengths)
+    K = length(model.λ)
+    lnX = zeros(n_edges)
+    
+    Threads.@threads for edge_index in 1:n_edges
+        S = Ss[edge_index]
+        D = Ds[edge_index]
+        t0 = Ds[edge_index].t[1]
+        t1 = Ds[edge_index].t[end]
+        tspan = (t1, t0)
+
+        p = (D, S, model.η, K)
+        u0 = zeros(1)
+        prob = OrdinaryDiffEq.ODEProblem(no_shifts_prob, u0, tspan, p)
+        sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false)
+        lnX[edge_index] = sol[end][1]
+    end
+    prob_no_shift = 1 .- exp.(lnX)
+    return(prob_no_shift)
+end
+
 ## https://en.wikipedia.org/wiki/Poisson_distribution
 function poisson_pmf(rate, time, n)
     r = rate * time
@@ -97,9 +132,17 @@ end
 function posterior_prior_shift_odds(model, data; n_knots = 20)
     prior_atleast_one_shift = Pesto.prior_shift_prob(model, data)
     prior_no_shifts = 1.0 .- prior_atleast_one_shift
-    posterior_atleast_one_shift = posterior_shift_prob(model, data; n_knots = n_knots)
+    #posterior_atleast_one_shift = posterior_shift_prob(model, data; n_knots = n_knots)
+    posterior_atleast_one_shift = posterior_shift_prob_ode(model, data)
     posterior_no_shifts = 1.0 .- posterior_atleast_one_shift
 
     odds = (posterior_atleast_one_shift ./ prior_atleast_one_shift) ./ (posterior_no_shifts ./ prior_no_shifts)
     return(odds)
 end
+
+function bayes_factors(model, data)
+    alg = OrdinaryDiffEq.tsit5()
+
+
+end
+
