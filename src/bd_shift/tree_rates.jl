@@ -19,14 +19,14 @@ function meanbranch(f, t0, t1, x, w)
     return(res)
 end
 
-function tree_rates(data, model; n = 4)
+function tree_rates(data, model; n = 10)
     Ds, Fs = backwards_forwards_pass(model, data);
     Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 4)
+function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 4)
     x, w = FastGaussQuadrature.gausslegendre(n)
     

@@ -38,7 +38,7 @@ function dumb_range(a::Float64, b::Float64, n::Int64)
     end
 end =#
 
-function posterior_shift_prob(model, data; n_knots = 20)
+function posterior_shift_prob_difference_eq(model, data; n_knots = 20)
     E = extinction_probability(model, data);
     ## there is no point in factoring this out, because the rest of the function is much slower
     Ds, Fs = backwards_forwards_pass(model, data); 
@@ -78,12 +78,12 @@ end
 function no_shifts_prob(dlnX, lnX, p, t)
     D, S, η, K = p
     Dt = D(t)
-    #dlnX[1] = sum((η/(K-1)) .* S(t) .* (1 .- D(t)) ./ D(t))
+
     dlnX[1] = sum((η/(K-1)) .* S(t) .* (sum(Dt) .- Dt) ./ Dt)
 end
 
 
-function posterior_shift_prob_ode(model, data)
+function posterior_shift_prob(model, data)
     alg = OrdinaryDiffEq.Tsit5()
     ## there is no point in factoring this out, because the rest of the function is much slower
     Ds, Fs = backwards_forwards_pass(model, data); 
@@ -106,8 +106,8 @@ function posterior_shift_prob_ode(model, data)
         sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false)
         lnX[edge_index] = sol[end][1]
     end
-    prob_no_shift = 1 .- exp.(lnX)
-    return(prob_no_shift)
+    prob_atleast_one_shift = 1.0 .- exp.(lnX)
+    return(prob_atleast_one_shift)
 end
 
 ## https://en.wikipedia.org/wiki/Poisson_distribution
@@ -129,20 +129,14 @@ function prior_shift_prob(model, data)
 end
 
 # Shi, J. J., & Rabosky, D. L. (2015). Speciation dynamics during the global radiation of extant bats. Evolution, 69(6), 1528-1545.
-function posterior_prior_shift_odds(model, data; n_knots = 20)
+function posterior_prior_shift_odds(model, data)
     prior_atleast_one_shift = Pesto.prior_shift_prob(model, data)
     prior_no_shifts = 1.0 .- prior_atleast_one_shift
-    #posterior_atleast_one_shift = posterior_shift_prob(model, data; n_knots = n_knots)
-    posterior_atleast_one_shift = posterior_shift_prob_ode(model, data)
+
+    posterior_atleast_one_shift = posterior_shift_prob(model, data)
     posterior_no_shifts = 1.0 .- posterior_atleast_one_shift
 
     odds = (posterior_atleast_one_shift ./ prior_atleast_one_shift) ./ (posterior_no_shifts ./ prior_no_shifts)
     return(odds)
-end
-
-function bayes_factors(model, data)
-    alg = OrdinaryDiffEq.tsit5()
-
-
 end
 
