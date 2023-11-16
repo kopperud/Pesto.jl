@@ -30,8 +30,8 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 4)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
-    #Threads.@threads for i = 1:size(data.edges)[1]
-    for i = 1:size(data.edges)[1]
+    Threads.@threads for i = 1:size(data.edges)[1]
+    #for i = 1:size(data.edges)[1]
         t0, t1 = extrema(Fs[i].t)
 
         rates[i,1] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
@@ -54,8 +54,8 @@ function tree_rates(data::SSEdata, model::SSEtimevarying, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 4)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
-    #Threads.@threads for i = 1:size(data.edges)[1]
-    for i = 1:size(data.edges)[1]
+    Threads.@threads for i = 1:size(data.edges)[1]
+    #for i = 1:size(data.edges)[1]
         t0, t1 = extrema(Fs[i].t)
 
         rates[i,1] = meanbranch(t -> LinearAlgebra.dot(model.λ(t), Ss[i](t)), t0, t1, x, w)

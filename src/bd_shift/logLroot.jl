@@ -51,3 +51,9 @@ function sselp(η, λ, μ, data)
 
     logL_root(model, data)
 end
+
+function sselp_tv(η, λ, μ, data)
+    model = SSEtimevarying(λ, μ, t -> η)
+
+    logL_root(model, data)
+end
