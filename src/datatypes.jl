@@ -1,9 +1,18 @@
 export SSEconstant, SSEdata, BDconstant
 
-struct SSEconstant <: Distributions.ContinuousUnivariateDistribution
+abstract type SSE <: Distributions.ContinuousUnivariateDistribution end
+
+
+struct SSEconstant <: SSE
     λ
     μ
     η
+end
+
+struct SSEtimevarying <: SSE
+    λ::Function
+    μ::Function
+    η::Function
 end
 
 struct BDconstant <: Distributions.ContinuousUnivariateDistribution

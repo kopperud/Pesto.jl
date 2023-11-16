@@ -2,19 +2,22 @@
 export compute_nshifts
 export state_shifts
 
-function state_shifts(model, data; ape_order = true)
+function state_shifts(model::SSE, data::SSEdata; ape_order = true)
     Ds, Fs = backwards_forwards_pass(model, data);
     Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     state_shifts(model, data, Ds, Ss; ape_order = ape_order)
 end
 
-function state_shifts(model, data, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
+function state_shifts(model::SSE, data::SSEdata, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
     nbranches = size(data.edges)[1]
-    K = length(model.λ)
+#    K = length(model.λ)
+    K = number_of_states(model)    
     nshifts = zeros(nbranches, K, K)
+    ode = shift_problem(model)
 
-    Threads.@threads for edge_idx in 1:nbranches
+    #Threads.@threads for edge_idx in 1:nbranches
+    for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
@@ -22,7 +25,7 @@ function state_shifts(model, data, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_ord
         N0 = zeros(K,K)
         p = (model.η, K, Ss[edge_idx], Ds[edge_idx])
 
-        prob = OrdinaryDiffEq.ODEProblem(number_of_shifts!, N0, tspan, p)
+        prob = OrdinaryDiffEq.ODEProblem(ode, N0, tspan, p)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
 
         nshifts[edge_idx,:,:] = sol[end]

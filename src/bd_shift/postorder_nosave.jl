@@ -2,34 +2,44 @@ export postorder_nosave
 
 notneg(u,p,t) = any(x->x<0,u)
 
+function eltype(model::SSEconstant)
+    return(typeof(model.η))
+end
+function eltype(model::SSEtimevarying)
+    return(typeof(model.η(0.0)))
+end
+
 """
     postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
 
 TBW
 """
-function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
+function postorder_nosave(model::SSE, data::SSEdata, E, alg = OrdinaryDiffEq.Tsit5())
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
     ancestors = make_ancestors(data)
 
-    n = length(model.λ)
+    #n = length(model.λ)
+    n = number_of_states(model)
 
     ## Postorder traversal: computing the branch probabilities through time
     nrows = size(data.edges, 1)
     Ntip = length(data.tiplab)
     
     ## Storing the solution at the end of the branch
-    D_ends = zeros(typeof(model.η), nrows, n)
+    elt = eltype(model)
+    D_ends = zeros(elt, nrows, n)
     ## Storing the scaling factors
-    sf = zeros(typeof(model.η), nrows)
+    sf = zeros(elt, nrows)
 
     pD = (model.λ, model.μ, model.η, n, E)
-    D0 = repeat([1.0], n)
-    u0 = typeof(model.η).(D0)
+    #D0 = repeat([1.0], n)
+    #u0 = typeof(model.η).(D0)
+    u0 = ones(elt, n)
     tspan = (0.0, 1.0)
-    prob = OrdinaryDiffEq.ODEProblem(backward_prob, u0, tspan, pD)
+    ode = backward_prob(model)
+    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pD)
  
-    #Threads.@threads for i in data.po
     for i in data.po
         anc, dec = data.edges[i,:]
         if dec < Ntip+1
@@ -43,7 +53,8 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
                 D = trait_idx .* data.ρ
             end
 
-            u0 = typeof(model.λ[1]).(D)
+#            u0 = typeof(model.λ[1]).(D)
+            u0 = elt.(D)             
 
             node_age = data.node_depth[dec]
             parent_node_age = data.node_depth[anc]
@@ -70,8 +81,9 @@ function postorder_nosave(model::SSEconstant, data::SSEdata, E, alg = OrdinaryDi
 
             D_left = D_ends[left_edge,:]
             D_right = D_ends[right_edge,:]
-
-            D = D_left .* D_right .* model.λ
+           
+            λt = get_speciation_rates(model, node_age) 
+            D = D_left .* D_right .* λt
             u0 = D
 
             parent_node_age = data.node_depth[anc]

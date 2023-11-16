@@ -1,28 +1,73 @@
 ## Probability that a lineage at time `t` is not represented in the reconstructed tree
 ## * This equation does not depend on the topology, so we solve for it first
-function extinction_prob(dE, E, p, t)
+function extinction_ode(dE, E, p, t)
     λ, μ, η, K = p
     dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E.^2 .+ (η/(K-1)) .* (sum(E) .- E) 
-    #dE[:] .= μ .- (λ .+ μ) .* E .+ λ .* E.^2 .+ Q*E
+end
+
+function extinction_ode_tv(dE, E, p, t)
+    λ, μ, η, K = p
+    dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E.^2 .+ (η(t)/(K-1)) .* (sum(E) .- E) 
+end
+
+function extinction_prob(model::SSEconstant)
+    return(extinction_ode)
+end
+    
+function extinction_prob(model::SSEtimevarying)
+    return(extinction_ode_tv)
 end
 
 ## Probability of of observing the branch at time `t`
 ## * We solve this equation in the postorder traversal
-function backward_prob(dD, D, p, t)
+function backward_ode(dD, D, p, t)
     λ, μ, η, K, E = p
 
     Et = E(t)
     dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
 end
 
+
+function backward_ode_tv(dD, D, p, t)
+    λ, μ, η, K, E = p
+    Et = E(t)
+    dD[:] .= - (λ(t) .+ μ(t) .+ η(t)) .* D .+ 2 .* λ(t) .* D .* Et .+ (η(t)/(K-1)) .* (sum(D) .- D)
+end
+
+function backward_prob(model::SSEconstant)
+    return(backward_ode)
+end
+
+function backward_prob(model::SSEtimevarying)
+    return(backward_ode_tv)
+end
+
+
 ## This ODE is the previous one times minus one
 ## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
-function forward_prob(dF, F, p, t)
+function forward_ode(dF, F, p, t)
     λ, μ, η, K, E = p
 
     Et = E(t)
     dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
 end
+
+function forward_ode_tv(dF, F, p, t)
+    λ, μ, η, K, E = p
+
+    Et = E(t)
+    dF[:] .= (-1) .* ( - (λ(t) .+ μ(t) .+ η(t)) .* F .+ 2 .* λ(t) .* F .* Et .+ (η(t)/(K-1)) .* (sum(F) .- F))
+end
+
+function forward_prob(model::SSEconstant)
+    return(forward_ode)
+end
+
+function forward_prob(model::SSEtimevarying)
+    return(forward_ode_tv)
+end
+
+
 
 ## This is the ODE to solve for the numebr of rate shifts
 function number_of_shifts!(dN, N, p, t)
@@ -42,3 +87,25 @@ function number_of_shifts!(dN, N, p, t)
     end
 end
 
+function number_of_shifts_tv!(dN, N, p, t)
+    η, K, S, D = p
+
+    Dt = D(t)
+    St = S(t)
+    r = -(η(t)/(K-1.0))
+
+    LoopVectorization.@turbo for i in 1:K, j in 1:K
+        dN[i,j] = r * St[j] * Dt[i] / Dt[j]
+    end
+    LoopVectorization.@turbo for i in 1:K
+        dN[i,i] = 0.0
+    end
+end
+
+function shift_problem(model::SSEconstant)
+    return(number_of_shifts!)
+end
+
+function shift_problem(model::SSEtimevarying)
+    return(number_of_shifts_tv!)
+end

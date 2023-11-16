@@ -1,6 +1,25 @@
 export logL_root
 
-function logL_root(model::SSEconstant, data::SSEdata)
+function number_of_states(model::SSEtimevarying)
+    x = model.λ(0.0)
+    n = length(x)
+    return(n)
+end
+
+function number_of_states(model::SSEconstant)
+    n = length(model.λ)
+    return(n)
+end
+
+function get_speciation_rates(model::SSEconstant, t::Float64)
+    return(model.λ) 
+end
+
+function get_speciation_rates(model::SSEtimevarying, t::Float64)
+    return(model.λ(t)) 
+end
+
+function logL_root(model::SSE, data::SSEdata)
     E = extinction_probability(model, data)
     D_ends, sf = postorder_nosave(model, data, E)
     root_index = length(data.tiplab)+1
@@ -9,10 +28,10 @@ function logL_root(model::SSEconstant, data::SSEdata)
     left_edge, right_edge = findall(data.edges[:,1] .== root_index)
     D_left = D_ends[left_edge,:]
     D_right = D_ends[right_edge,:]
-    D = D_left .* D_right .* model.λ
+#    λroot = get_speciation_rates(model, root_age)
+    D = D_left .* D_right 
 
-    #    freqs = [0.5, 0.5]
-    n = length(model.λ)
+    n = number_of_states(model)
     freqs = repeat([1.0 / n], n)
 
     # we divide by this to condition the probability density 
@@ -22,7 +41,7 @@ function logL_root(model::SSEconstant, data::SSEdata)
     #D = arr[end,:,2]
     # Why do we divide by (1-E)^2 * λ, and not just (1-E)^2 ?
 #    D = D ./ (nonextinct .* [λ(root_age) for λ in model.λ])
-    D = D ./ (nonextinct .* model.λ)
+    D = D ./ nonextinct
     prob = sum(freqs .* D)
     logL = log(prob) + sum(sf)
 end
