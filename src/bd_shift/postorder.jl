@@ -15,6 +15,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     Ds = Dict()
     ## Storing the solution at the end of the branch
     D_ends = zeros(elt, nrows, n)
+#    D_begins = zeros(elt, nrows, n)
     ## Storing the scaling factors
     sf = zeros(elt, nrows)
 
@@ -40,6 +41,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             end
 
             u0 = elt.(D)
+            #D_begins[i,:] = u0
 
             node_age = data.node_depth[dec]
             parent_node_age = data.node_depth[anc]
@@ -72,6 +74,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             λt = get_speciation_rates(model, node_age)
             D = D_left .* D_right .* λt 
             u0 = D
+            #D_begins[i,:] = u0
 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
@@ -88,5 +91,10 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             end
         end
     end
-    return(D_ends, Ds, sf)
+    ## at root
+  #  root_age = maximum(data.node_depth)
+  #  left_edge, right_edge = descendants[Ntip+1]
+  #k  λroot = get_speciation_rates(model, root_age)
+  #  D_ends[end,:] = D_ends[left_edge,:] .* D_ends[right_edge,:] .* λroot
+    return(Ds, sf)
 end
