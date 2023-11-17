@@ -25,8 +25,8 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     ode = backward_prob(model)
     prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pD)
  
-    for i in data.po
-        anc, dec = data.edges[i,:]
+    for m in data.po
+        anc, dec = data.edges[m,:]
 
         if dec < Ntip+1
 
@@ -49,20 +49,20 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
 
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
-            Ds[i] = sol
+            Ds[m] = sol
             sol = sol[end]
 
             k = sum(sol)
             sol = sol ./ k
-            D_ends[i,:] = sol
+            D_ends[m,:] = sol
             logk = log(k)
-            sf[i] = logk
+            sf[m] = logk
         end
     end
 
-    for i in data.po
+    for m in data.po
 
-        anc, dec = data.edges[i,:]
+        anc, dec = data.edges[m,:]
         if dec > Ntip
 
             left_edge, right_edge = descendants[dec]            
@@ -74,27 +74,21 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             λt = get_speciation_rates(model, node_age)
             D = D_left .* D_right .* λt 
             u0 = D
-            #D_begins[i,:] = u0
 
             parent_node_age = data.node_depth[anc]
             tspan = (node_age, parent_node_age)
 
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
-            Ds[i] = sol
+            Ds[m] = sol
             sol = sol[end]
             k = sum(sol)
             sol = sol ./ k
-            D_ends[i,:] = sol
+            D_ends[m,:] = sol
             if k > 0.0
-                sf[i] += log(k)
+                sf[m] += log(k)
             end
         end
     end
-    ## at root
-  #  root_age = maximum(data.node_depth)
-  #  left_edge, right_edge = descendants[Ntip+1]
-  #k  λroot = get_speciation_rates(model, root_age)
-  #  D_ends[end,:] = D_ends[left_edge,:] .* D_ends[right_edge,:] .* λroot
     return(Ds, sf)
 end

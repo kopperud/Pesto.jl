@@ -29,19 +29,18 @@ function postorder_nosave(model::SSE, data::SSEdata, E, alg = OrdinaryDiffEq.Tsi
     ## Storing the solution at the end of the branch
     elt = eltype(model)
     D_ends = zeros(elt, nrows, n)
+
     ## Storing the scaling factors
     sf = zeros(elt, nrows)
 
     pD = (model.λ, model.μ, model.η, n, E)
-    #D0 = repeat([1.0], n)
-    #u0 = typeof(model.η).(D0)
     u0 = ones(elt, n)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)
     prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pD)
  
-    for i in data.po
-        anc, dec = data.edges[i,:]
+    for m in data.po
+        anc, dec = data.edges[m,:]
         if dec < Ntip+1
             species = data.tiplab[dec]
             trait_value = data.trait_data[species]
@@ -66,14 +65,14 @@ function postorder_nosave(model::SSE, data::SSEdata, E, alg = OrdinaryDiffEq.Tsi
 
             k = sum(sol)
             sol = sol ./ k
-            D_ends[i,:] = sol
+            D_ends[m,:] = sol
             logk = log(k)
-            sf[i] = logk
+            sf[m] = logk
         end
     end
 
-    for i in data.po
-        anc, dec = data.edges[i,:]
+    for m in data.po
+        anc, dec = data.edges[m,:]
         if dec > Ntip
             
             left_edge, right_edge = descendants[dec]            
@@ -95,9 +94,9 @@ function postorder_nosave(model::SSE, data::SSEdata, E, alg = OrdinaryDiffEq.Tsi
             sol = sol[end]
             k = sum(sol)
             sol = sol ./ k
-            D_ends[i,:] = sol
+            D_ends[m,:] = sol
             if k > 0.0
-                sf[i] += log(k)
+                sf[m] += log(k)
             end
         end
     end

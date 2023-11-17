@@ -38,9 +38,8 @@ function logL_root(model::SSE, data::SSEdata)
     # on that in order to have a tree in the first place, at 
     # least two lineages must have survived to the present.
     nonextinct = (1.0 .- E(root_age)).^2
-    #D = arr[end,:,2]
+
     # Why do we divide by (1-E)^2 * λ, and not just (1-E)^2 ?
-#    D = D ./ (nonextinct .* [λ(root_age) for λ in model.λ])
     D = D ./ nonextinct
     prob = sum(freqs .* D)
     logL = log(prob) + sum(sf)
