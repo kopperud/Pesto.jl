@@ -44,9 +44,15 @@ include("io/readtree.jl")
 ## rcall
 include("rcall/rconvert.jl")
 
-
 # Path into package
 export path
 path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
+
+## precompile
+#PrecompileTools.@setup_workload begin
+#    bears_tree = readtree(path("bears.tre"))
+#
+#end
+
 
 end

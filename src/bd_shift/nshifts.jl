@@ -11,22 +11,20 @@ end
 
 function state_shifts(model::SSE, data::SSEdata, Ds, Ss; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
     nbranches = size(data.edges)[1]
-#    K = length(model.λ)
     K = number_of_states(model)    
     nshifts = zeros(nbranches, K, K)
     ode = shift_problem(model)
 
-    #Threads.@threads for edge_idx in 1:nbranches
-    for edge_idx in 1:nbranches
+    Threads.@threads for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
-
         N0 = zeros(K,K)
+
         p = (model.η, K, Ss[edge_idx], Ds[edge_idx])
 
         prob = OrdinaryDiffEq.ODEProblem(ode, N0, tspan, p)
-        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
 
         nshifts[edge_idx,:,:] = sol[end]
     end

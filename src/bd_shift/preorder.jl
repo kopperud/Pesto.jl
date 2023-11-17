@@ -6,7 +6,7 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
     descendants = make_descendants(data)
 
     ## Preorder pass, compute `F(t)`
-    k = number_of_states(model)
+    K = number_of_states(model)
     elt = eltype(model)
     
     root_node = length(data.tiplab)+1  
@@ -15,8 +15,11 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
     ## Store the whole `F(t)` per branch
     Fs = Dict()
 
-    pF = (model.λ, model.μ, model.η, k, E)
+    pF = (model.λ, model.μ, model.η, K, E)
     ode = forward_prob(model)
+    tspan = [0.0, 1.0]
+    u0 = [1.0, 1.0]
+    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pF)
 
     for m in reverse(data.po)
         anc = data.edges[m,1]
@@ -24,7 +27,7 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
         
         ## if root
         if anc == root_node
-            F_parent = ones(elt, k)
+            F_parent = ones(elt, K)
             left_edge, right_edge = descendants[root_node]
             root_age = maximum(data.node_depth)
             λroot = get_speciation_rates(model, root_age)
@@ -45,8 +48,8 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
         tspan = (parent_node_age, node_age)
 
         u0 = F_start
-        prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pF)
-        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+        prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
         Fs[m] = sol
     end
 

@@ -48,7 +48,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             tspan = (node_age, parent_node_age)
 
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
             Ds[m] = sol
             sol = sol[end]
 
@@ -79,7 +79,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             tspan = (node_age, parent_node_age)
 
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = (u,p,t)->any(x->x<0,u))
+            sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
             Ds[m] = sol
             sol = sol[end]
             k = sum(sol)
