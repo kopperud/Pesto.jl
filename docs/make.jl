@@ -5,15 +5,16 @@ makedocs(
      authors = "Bjørn Tore Kopperud and Sebastian Höhna",
      modules = [Pesto],
      pages = [
-          "Home" => "home.md",
+          "Home" => "index.md",
           "Installation" => "install.md",
           "Analyses" => [
             "Simple analysis" => "analysis/simple.md", 
             "Extended analysis" => "analysis/extended.md",
             "Number of shifts" => "analysis/shifts.md",
-            "Tip rates" => "analysis/tiprates.md",
+            "Significant shifts" => "analysis/bayes_factors.md",
+            "Tip rates" => "analysis/tiprates.md"
           ],
-          "Functions" => "index.md",
+          "Functions" => "functions.md",
              ]
 )
 

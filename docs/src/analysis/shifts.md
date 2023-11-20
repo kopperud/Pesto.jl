@@ -36,50 +36,51 @@ model = SSEconstant(λ, μ, η)
 nothing # hide
 ```
 
-## Branch densities
+## Number of total rate shifts
 
-In order to calculate the number of state shifts, we must first calculate the branch probability densities conditional on the tips (postorder tree iteration):
+If we want to see the total number of rate shifts per branch, we can use the function `birth_death_shift` for the standard inference:
 
-```math
-\frac{dD_{M,i}}{dt} = - (\lambda_i + \mu_i + \eta) D_{M,i} + 2 \lambda_i D_{M,i} E_i + \frac{\eta}{K-1} \sum_{j \neq i}^K D_{M,j}
-```
-
-We also calculate the branch densities conditional on the ancestral states (preorder iteration):
-
-```math
-\frac{dF_{M,i}}{dt} = (\lambda_i + \mu_i + \eta) F_{M,i} - 2 \lambda_i F_{M,i} E_i - \frac{\eta}{K-1} \sum_{j \neq i}^K F_{M,j}
-```
-
-where `M` is the branch index, and `i` is the state index. In code, this is done as follows:
 ```@example shift
-Ds, Fs = backwards_forwards_pass(model, primates);
-nothing # hide
-```
-`Ds` and `Fs` are Dictionaries indexed over the branch indices (from 1 up to 2n-2). For example, branch `i=2` has the numerical solution `Ds[2]`. If you are curious, we can plot the solution of `D(t)` for branch `i=2` as follows:
-```@example shift
-using Plots
-plot(Ds[2], xflip = true, grid = false, legend = :topleft, 
-     size = (500, 300), xlabel = "time (Ma)", ylab = "D(t)")
+rates = birth_death_shift(model, primates)
+rates[1:5,:]
 ```
 
-## Ancestral state probabilities
-In order to get the ancestral state probabilities, we need to compute
-```math
-S_{M,i}(t) = \frac{F_{M,i}(t) D_{M,i}(t)}{\sum\limits_{j=1}\limits^K F_{M,j}(t) D_{M,j}(t)}
+We can use ggtree to plot the number of accumulated diversification rates on the branches of the phylogeny
+```julia
+@rput rates
+@rput primates
+
+R"""
+library(tibble)
+library(tidytree)
+library(ggplot2)
+library(ggtree)
+
+x <- as_tibble(primates)
+td <- as.treedata(merge(x, rates, by = "node"))
+p1 <- ggtree(td, aes(color = nshift)) +  
+    geom_tiplab(size=2) +
+    labs(color = "Number of shifts") +
+    scale_colour_gradient(low = "black", high = "red")
+"""
 ```
-which can be done using the following code:
-```@example shift
-Ss = ancestral_state_probabilities(primates, Ds, Fs)
-nothing # hide
+
+```R
+ggsave("src/assets/primates_4state_shift.svg", p3, width = 150, height = 120, units = "mm") # hide
 ```
+![primatestree](../assets/primates_4state_shift.svg)
+
+
 ## Number of rate shifts
+
+The total number of rate shifts, as shown above, is a reduction or simplification of the number of rate shifts that can be inferred by `Pesto`.
 The number of rate shifts from state `j` to state `i` accumulated over the branch length (from old to young) is described by the following differential equation
 ```math
 \frac{d\hat{N}_{M,ij}}{dt} = S_{M,j}(t) \frac{-\eta}{K-1} \frac{D_{M,i}(t)}{D_{M,j}(t)} \text{ if } j \neq i
 ```
 with initial condition $\hat{N}_{ij}(t_0) = 0$. In Pesto, we would compute this using
 ```@example shift
-nshift = state_shifts(model, primates, Ds, Ss; ape_order = false)
+nshift = state_shifts(model, primates; ape_order = false)
 nothing; # hide
 ```
 The object returned `nshift` is a three-dimensional array. The first dimension corresponds to the branch index (what was `M`). The second dimension represents the arrival state (`i`), and the third dimension represents the departure state (`j`). If `ape_order = true`, then the first dimension is reordered such that the indices correspond to the node indices in the tree.
@@ -111,39 +112,3 @@ shifts_weighted = Nmatrix .* (λ .- λ')
 mean_magnitude = sum(shifts_weighted) / sum(Nmatrix)
 ```
 meaning that the overall shift magnitude for the primates tree under this model was an increase of 0.098 speciation rate units.
-
-## Tree plots
-If we want to plot the results, we can use the module `RCall`. Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.
-
-```julia
-using RCall
-
-N = state_shifts(model, primates, Ds, Ss; ape_order = true)
-N = sum(N, dims = 2:3)[:,1,1]
-@rput primates
-@rput N
-
-R"""
-library(tibble)
-library(tidytree)
-x <- as_tibble(primates)
-rates <- data.frame("node" = 1:465, "nshift" = N)
-td <- as.treedata(merge(x, rates, by = "node"))
-"""
-```
-
-We can use ggtree to plot the number of accumulated shifts on the branches
-```julia
-R"""
-library(ggplot2)
-library(ggtree)
-p3 <- ggtree(td, aes(color = nshift)) + 
-    geom_tiplab(size=2) +
-    scale_colour_gradient(low = "black", high = "red")
-"""
-```
-
-```R
-ggsave("src/asses/primates_4state_shift.svg", p3, width = 150, height = 120, units = "mm") # hide
-```
-![primatestree](../assets/primates_4state_shift.svg)
