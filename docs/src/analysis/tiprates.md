@@ -25,63 +25,25 @@ primates = SSEdata(phy, ρ)
 
 ### Model setup
 
-Let's use the LogNormal quantiles again.
+Let's use the standard `Pesto.jl` model again, with LogNormal quantiles and maximum-likelihood shift rate ($\eta$).
 
 ```@example tips
-λml, μml = estimate_constant_bdp(primates)
-
-H = 0.587
-n = 6
-
-using Distributions
-dλ = LogNormal(log(λml), H)
-dμ = LogNormal(log(µml), H)
-
-λquantiles = make_quantiles(dλ, n)
-µquantiles = make_quantiles(dμ, n)
-λ, μ = allpairwise(λquantiles, µquantiles)
-η = optimize_eta(λ, µ, primates)
-model = SSEconstant(λ, μ, η)
+model, rates = pesto(primates)
 nothing # hide
-```
-
-
-
-## Ancestral state probabilities
-
-We calculate the expression for the ancestral state probabilities (`S(t)`).
-```@example tips
-Ds, Fs = backwards_forwards_pass(model, primates)
-Ss = ancestral_state_probabilities(primates, Ds, Fs)
-nothing # hide
-```
-
-The `Ss` is a dictionary indexed over the branches. Each item corresponds to the function that when evaluated at time `t` yields the ancestral state probabilities for being in each state. For example, at branch `i=5`, at time `t=3.1`, the ancestral state probabilities are
-```@example tips
-Ss[5](3.1)
 ```
 
 ## Tip rates
 
-If we loop over the branch incides, and find out which branches are terminal branches, we can store the mean rate value at time `t=0` for each species:
+In order to calculate the value of the rates at the present, we need to evalute the following expression
+
+```math
+    \lambda_\text{tip} = \mathbf{S}(t=0)^\top \boldsymbol{\lambda},
+```
+where $\mathbf{S}(t=0)$ are the posterior state probabilities at time $t=0$, i.e. the present. We can compute the tip rates conveniently with the `tip_rates()` function, which gives a `DataFrame` as a result.
+
 ```@example tips
-branch_indices = 1:size(primates.edges)[1]
-ntips = length(primates.tiplab)
-
-tip_rates = Dict{String,Float64}()
-for i in branch_indices
-    parent, child = primates.edges[i,:]
-
-    if child <= ntips
-        tiplab = primates.tiplab[child]
-
-        rate = model.λ
-        t = Ds[i].t[1]
-        S = Ss[i](t)
-        tip_rates[tiplab] = rate' * S
-    end
-end
-tip_rates
+df = tip_rates(model, primates)
+df[1:5,:]
 ```
 
 ## Distribution
@@ -89,8 +51,14 @@ tip_rates
 If we plot the tip rates as a histogram, we can see that the primates tips are bimodally distributed. The high-rate species are the Old World Monkeys, and the low-rate species is everything else in the tree.
 
 ```@example tips
-histogram(collect(values(tip_rates)), bins = 30, 
-          grid = false, label = "",
-          xlabel = "Tip rate (speciation rate, λ)",
-          ylabel = "Frequency", size = (500, 300))
+plots = []
+for rate in [:lambda, :mu, :netdiv, :relext]
+    p = histogram(df[!,rate], bins = 30, 
+            grid = false, label = "",
+            xlabel = string("Tip rate (", rate, ")"),
+            ylabel = "Frequency", size = (500, 300))
+    append!(plots, [p])
+end
+p3 = plot(plots...; layout = (2,2))
 ```
+

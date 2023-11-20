@@ -35,6 +35,7 @@ include("bd_shift/nshifts.jl")
 include("bd_shift/analysis.jl")
 include("bd_shift/optimize.jl")
 include("bd_shift/shift_probability.jl")
+include("bd_shift/tip_rates.jl")
 
 ## input-output
 include("io/writenewick.jl")
