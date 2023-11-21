@@ -27,7 +27,7 @@ writenewick("/tmp/newick.tre", primates, rates)
 function writenewick(filename::String, data::SSEdata, rates::DataFrames.DataFrame)
     newick_string = newick(data, rates)
 
-    open(filename, "a") do io
+    open(filename, "w") do io
         write(io, newick_string)
         write(io, "\n")
     end
