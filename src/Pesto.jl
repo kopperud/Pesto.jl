@@ -45,6 +45,9 @@ include("io/readtree.jl")
 ## rcall
 include("rcall/rconvert.jl")
 
+## plot
+include("plot/plot_tree.jl")
+
 # Path into package
 export path
 path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
