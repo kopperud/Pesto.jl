@@ -11,6 +11,7 @@ import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
 import RecipesBase
+import ColorSchemes
 
 ## the rest
 include("datatypes.jl")
