@@ -10,6 +10,7 @@ import DataFrames
 import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
+import RecipesBase
 
 ## the rest
 include("datatypes.jl")
