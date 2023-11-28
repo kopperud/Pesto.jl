@@ -95,8 +95,6 @@ end
 function no_shifts_problem(model::SSEtimevarying)
     return(no_shifts_prob_tv)
 end
-    
-
 
 
 function posterior_shift_prob(model::SSE, data::SSEdata)
@@ -128,25 +126,38 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
 end
 
 ## https://en.wikipedia.org/wiki/Poisson_distribution
-function poisson_pmf(model::SSEconstant, time::Float64, n::Int64)
+function poisson_pmf(model::SSEconstant, t0::Float64, t1::Float64, n::Int64)
     η = model.η
+    time = t1 - t0
     r = η * time
     res = (r^n) * exp(-r) / factorial(n)
 end
 
-function poisson_pmf(model::SSEtimevarying, time::Float64, n::Int64)
-    η = model.η(0.0) ## assuming η is actually constant. must change this for the non-homogeneous Poisson distribution
+function poisson_zero(model::SSEconstant, t0::Float64, t1::Float64)
+    η = model.η
+    time = t1 - t0
     r = η * time
-    res = (r^n) * exp(-r) / factorial(n)
+    res = exp(-r) 
 end
+
+function poisson_zero(model::SSEtimevarying, t0::Float64, t1::Float64)
+    x, w = FastGaussQuadrature.gausslegendre(10)
+    η_int = quadrature(model.η, t0, t1, x, w)
+   
+    res = exp(-η_int)
+end
+
 
 function prior_shift_prob(model, data)
     n_edges = length(data.branch_lengths)
     prob_no_shift = zeros(n_edges)
 
     for edge_index in 1:n_edges
-        time_span = data.branch_lengths[edge_index]
-        prob_no_shift[edge_index] = poisson_pmf(model, time_span, 0)
+        node_index = data.edges[edge_index,2]
+        bl = data.branch_lengths[edge_index]
+        t0 = data.node_depth[node_index]
+        t1 = t0 + bl
+        prob_no_shift[edge_index] = poisson_zero(model, t0, t1)
     end
     prob_shift = 1.0 .- prob_no_shift
     return(prob_shift)
