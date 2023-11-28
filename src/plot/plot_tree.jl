@@ -105,6 +105,13 @@ RecipesBase.@recipe function f(
 
     df2 = DataFrames.sort(df, :edge)
     r = df2[!,Symbol(rate)][2:end]
+
+
+    #framestyle := [:none, :none]
+
+    #legend := false
+    #layout := RecipesBase.@layout [a{0.95w} b]
+    #layout := (2,1)
     
     
     h = coordinates(data, r)
@@ -124,6 +131,7 @@ RecipesBase.@recipe function f(
             xaxis := false
             color := colors[i]
             title := rate
+            subplot := 1
             x, y
         end
         #plot!(p, , , label = "", )
@@ -145,6 +153,7 @@ RecipesBase.@recipe function f(
                 color := :black
                 label := ""
                 color := colors[i]
+                subplot := 1
                 x, y
             end
 
@@ -156,13 +165,21 @@ RecipesBase.@recipe function f(
                 color := :black
                 label := ""
                 color := colors[i+1]
+                subplot := 1
                 x, y
             end
-
-            #RecipesBase.@
         end
-
         ## tip labels
-
     end
+#= 
+    cmap = :thermal
+    RecipesBase.@series begin
+        seriestype := :heatmap
+        clims := extrema(r)
+        #subplot := 2
+        framestyle := :none
+        c := cmap
+        cbar := true
+        #lims := (-1,0)
+    end =#
 end
