@@ -140,6 +140,7 @@ function poisson_zero(model::SSEconstant, t0::Float64, t1::Float64)
     res = exp(-r) 
 end
 
+# https://gtribello.github.io/mathNET/resources/jim-chap22.pdf
 function poisson_zero(model::SSEtimevarying, t0::Float64, t1::Float64)
     x, w = FastGaussQuadrature.gausslegendre(10)
     η_int = quadrature(model.η, t0, t1, x, w)
