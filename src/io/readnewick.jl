@@ -11,7 +11,6 @@ end
 function readnewick(filename)
     s = readfile(filename)
 
-    #y = [item[1] for item in findall(";", s)]
     s = replace(s, r"^_+|_+$" => "")
     s = replace(s, r"[ \t]" => "")
     s = s[findfirst('(', s):end]
@@ -39,7 +38,77 @@ function readnewick(filename)
         end
     end
 
-    return(edges, el, tiplabs)
+    #return(edges, el, tiplabs)
+    node_depths = get_node_depths(edges, el)
+    Nnode = length(tiplabs)-1
+    po = postorder(edges)
+    branching_times = rand(10)
+    phylo(
+        edges,
+        el,
+        Nnode,
+        tiplabs,
+        node_depths,
+        branching_times,
+        po
+    )
+end
+
+function postorder!(po, edges, n_tips, edge_index)
+    dec = edges[edge_index,2]
+    
+    if dec > n_tips
+        left,right = findall(edges[:,1] .== dec)
+        postorder!(po, edges, n_tips, left) ## left subtree
+        postorder!(po, edges, n_tips, right) ## right subtree
+    end
+    append!(po, edge_index)
+end
+
+function postorder(edges)
+    n_tips = (size(edges)[1]+2) ÷ 2
+
+    po = Int64[]
+
+    root_node = n_tips+1
+    left,right = findall(edges[:,1] .== root_node)
+
+    postorder!(po, edges, n_tips, left)
+    postorder!(po, edges, n_tips, right)
+
+    return(po)
+end
+
+function nd!(node_depths, t, edges, el, n_tips, edge_index)
+    dec = edges[edge_index,2]
+    t += el[edge_index]
+
+    node_depths[dec] = t
+    ## if internal node
+    if dec > n_tips
+        left,right = findall(edges[:,1] .== dec)
+        nd!(node_depths, t, edges, el, n_tips, left) ## left subtree
+        nd!(node_depths, t, edges, el, n_tips, right) ## right subtree
+    end
+    ## if is tip, do nothing
+end
+
+function get_node_depths(edges, el)
+    n_tips = (size(edges)[1]+2) ÷ 2
+    n_nodes = size(edges)[1]+1
+
+    node_depths = zeros(Float64, n_nodes)
+    
+    root_node = n_tips+1
+    left,right = findall(edges[:,1] .== root_node)
+
+    t = 0.0 ## t is not mutable/not a reference, and will become a new object for each function call
+    nd!(node_depths, t, edges, el, n_tips, left)
+    nd!(node_depths, t, edges, el, n_tips, right)
+
+    th = maximum(node_depths) ## tree height
+    node_depths = th .- node_depths ## in units of time before the present
+    return(node_depths)
 end
 
 function stripcomments(s)
@@ -63,8 +132,8 @@ function tokenize(s)
             i += 1
         else
             l = Int64[]
-            firstcomma = findfirst(',', s[i:end])
-            firstclose = findfirst(')', s[i:end])
+            firstcomma = findfirst(',', @view s[i:end])
+            firstclose = findfirst(')', @view s[i:end])
             if !isnothing(firstcomma)
                 append!(l, firstcomma-1)
             end
@@ -74,12 +143,12 @@ function tokenize(s)
 
             if !isempty(l)
                 close_idx = minimum(l)
-                token = s[i:close_idx+i-1]
+                token = @view s[i:close_idx+i-1]
                 append!(tokens, [token])
                 i += length(token)
             else
                 i += 1
-            end 
+            end
         end
     end
     return(tokens)
@@ -114,8 +183,8 @@ end
 function partition(tokens)
     comma = findsplit(tokens)
 
-    left = tokens[1:comma-1]
-    right = tokens[1+comma:end]
+    left = @view tokens[1:comma-1]
+    right = @view tokens[1+comma:end]
 
     return (left, right)
 end

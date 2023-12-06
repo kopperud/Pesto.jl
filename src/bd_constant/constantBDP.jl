@@ -38,9 +38,15 @@ function lp(λ, μ, data::SSEdata)
     logL = (n+1) * log(ρ) + log(ψ(ts[1], λ, μ, ρ))
     logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, ρ))
 
+#    res = zeros(typeof(λ), n)
+    #Threads.@threads for i in 1:n
     for i in 1:n
         logL += log(λ) + log(ψ(ts[i], λ, μ, ρ))
+#        res[i] = log(λ) + log(ψ(ts[i], λ, μ, ρ))
     end
+#   logL = sum(res)
+#   logL += (n+1) * log(ρ) + log(ψ(ts[1], λ, μ, ρ))
+#   logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, ρ))
 
     return(logL)
 end
