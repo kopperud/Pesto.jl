@@ -82,6 +82,22 @@ function make_descendants(data::SSEdata)
     return(descendants)
 end
 
+function make_descendants(edges::Array{Int64,2})
+    ntip = size(edges)[1]÷2 + 1
+    rootnode = ntip + 1
+    maxnode = maximum(edges)
+
+    descendants = Dict(node => [] for node in rootnode:maxnode)
+
+    for (i, row) in enumerate(eachrow(edges))
+        anc, dec = row
+        if anc > ntip
+            append!(descendants[anc], i)
+        end
+    end
+    return(descendants)
+end
+
 @doc raw"""
     make_descendants_nodes(data)
 
@@ -111,6 +127,8 @@ function make_descendants_nodes(data)
     end
     return(descendants)
 end
+
+
 
 function parental_node(node, data)
     parental_edge_idx = findall(data.edges[:,2] .== node)
