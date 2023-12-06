@@ -42,7 +42,7 @@ function readnewick(filename)
     node_depths = get_node_depths(edges, el)
     Nnode = length(tiplabs)-1
     po = postorder(edges)
-    branching_times = rand(10)
+    branching_times = get_branching_times(node_depths, ntip)
     phylo(
         edges,
         el,
@@ -54,13 +54,18 @@ function readnewick(filename)
     )
 end
 
-function postorder!(po, edges, n_tips, edge_index)
+function get_branching_times(node_depths, n_tips)
+    branching_times = sort(node_depths[(n_tips+1):end], rev = true)
+    return(branching_times)
+end
+
+function postorder!(po, edges, n_tips, descendants, edge_index)
     dec = edges[edge_index,2]
     
     if dec > n_tips
-        left,right = findall(edges[:,1] .== dec)
-        postorder!(po, edges, n_tips, left) ## left subtree
-        postorder!(po, edges, n_tips, right) ## right subtree
+        left,right = descendants[dec]
+        postorder!(po, edges, n_tips, descendants, left) ## left subtree
+        postorder!(po, edges, n_tips, descendants, right) ## right subtree
     end
     append!(po, edge_index)
 end
@@ -69,26 +74,27 @@ function postorder(edges)
     n_tips = (size(edges)[1]+2) ÷ 2
 
     po = Int64[]
+    descendants = make_descendants(edges)
 
     root_node = n_tips+1
-    left,right = findall(edges[:,1] .== root_node)
+    left, right = descendants[root_node]
 
-    postorder!(po, edges, n_tips, left)
-    postorder!(po, edges, n_tips, right)
+    postorder!(po, edges, n_tips, descendants, left)
+    postorder!(po, edges, n_tips, descendants, right)
 
     return(po)
 end
 
-function nd!(node_depths, t, edges, el, n_tips, edge_index)
+function nd!(node_depths, t, edges, el, n_tips, descendants, edge_index)
     dec = edges[edge_index,2]
     t += el[edge_index]
 
     node_depths[dec] = t
     ## if internal node
     if dec > n_tips
-        left,right = findall(edges[:,1] .== dec)
-        nd!(node_depths, t, edges, el, n_tips, left) ## left subtree
-        nd!(node_depths, t, edges, el, n_tips, right) ## right subtree
+        left, right = descendants[dec]
+        nd!(node_depths, t, edges, el, n_tips, descendants, left) ## left subtree
+        nd!(node_depths, t, edges, el, n_tips, descendants, right) ## right subtree
     end
     ## if is tip, do nothing
 end
@@ -100,11 +106,12 @@ function get_node_depths(edges, el)
     node_depths = zeros(Float64, n_nodes)
     
     root_node = n_tips+1
-    left,right = findall(edges[:,1] .== root_node)
+    descendants = make_descendants(edges)
+    left, right = descendants[root_node]
 
-    t = 0.0 ## t is not mutable/not a reference, and will become a new object for each function call
-    nd!(node_depths, t, edges, el, n_tips, left)
-    nd!(node_depths, t, edges, el, n_tips, right)
+    t = 0.0 ## t is not mutable/not a reference
+    nd!(node_depths, t, edges, el, n_tips, descendants, left)
+    nd!(node_depths, t, edges, el, n_tips, descendants, right)
 
     th = maximum(node_depths) ## tree height
     node_depths = th .- node_depths ## in units of time before the present
@@ -203,7 +210,6 @@ function internaledge!(edges, el, tiplabs, tokens, idx, node)
     for branch in [left, right]
         if !isempty(branch)
             if branch[end][1] != ':'
-                #println(idx)
                 terminaledge!(edges, el, tiplabs, branch[1], idx, node)
             else
                 internaledge!(edges, el, tiplabs, branch, idx, node)
