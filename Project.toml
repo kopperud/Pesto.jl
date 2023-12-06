@@ -5,7 +5,6 @@ version = "0.1.6"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
@@ -15,24 +14,30 @@ LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
-RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[weakdeps]
+ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+
+[extensions]
+PestoMakieExt = ["Makie", "ColorSchemes"]
 
 [compat]
 CSV = "0.10"
+ColorSchemes = "3.24"
 DataFrames = "1.5"
 Distributions = "0.25"
 FastGaussQuadrature = "0.5"
 ForwardDiff = "0.10"
 LinearAlgebra = "1"
 LoopVectorization = "0.12"
+Makie = "0.20"
 Optim = "1.7"
 OrdinaryDiffEq = "6.49"
 RCall = "0.13"
 StatsBase = "0.33"
 julia = "1.7"
-RecipesBase = "1.3"
-ColorSchemes = "3.24"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
