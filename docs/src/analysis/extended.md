@@ -73,40 +73,11 @@ rates[1:5,:]
 ```
 
 ## Tree plots
-If we want to plot the results, we can use the module `RCall`. Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.
 
-```julia
-using RCall
+As before, we can use `Makie` to make some quick tree plots. Here we are plotting the average net-diversification rate per branch, with a two-color scheme going from black to green.
+```@example extended
+using Makie, CairoMakie
 
-@rput primates
-@rput rates
-
-R"""
-library(tibble)
-library(tidytree)
-x <- as_tibble(primates)
-td <- as.treedata(merge(x, rates, by = "node"))
-"""
+cmap = Makie.cgrad([:black, :green])
+treeplot(primates, rates, "mean_netdiv"; cmap = cmap)
 ```
-
-We can plot the mean speciation rate
-
-```julia
-R"""
-library(ggtree)
-p1 <- ggtree(td, aes(color = mean_lambda)) +  
-    geom_tiplab(size=2)
-"""
-```
-![primatestree](../assets/primates_lambda.svg)
-
-We can also plot the number of accumulated shifts on the branches
-```julia
-R"""
-library(ggplot2)
-p2 <- ggtree(td, aes(color = nshift)) + 
-    geom_tiplab(size=2) +
-    scale_colour_gradient(low = "black", high = "red")
-"""
-```
-![primatestree](../assets/primates_nshift.svg)

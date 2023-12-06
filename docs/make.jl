@@ -12,7 +12,8 @@ makedocs(
             "Extended analysis" => "analysis/extended.md",
             "Number of shifts" => "analysis/shifts.md",
             "Significant shifts" => "analysis/bayes_factors.md",
-            "Tip rates" => "analysis/tiprates.md"
+            "Tip rates" => "analysis/tiprates.md",
+            "Plot with ggtree" => "plotting/ggtree.md"
           ],
           "Functions" => "functions.md",
              ]

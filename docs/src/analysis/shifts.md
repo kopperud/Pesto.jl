@@ -45,31 +45,13 @@ rates = birth_death_shift(model, primates)
 rates[1:5,:]
 ```
 
-We can use ggtree to plot the number of accumulated diversification rates on the branches of the phylogeny
-```julia
-@rput rates
-@rput primates
+We can use `Makie` to plot the number of accumulated diversification rate shifts on the branches of the phylogeny
+```@example shift
+using Makie, CairoMakie
 
-R"""
-library(tibble)
-library(tidytree)
-library(ggplot2)
-library(ggtree)
-
-x <- as_tibble(primates)
-td <- as.treedata(merge(x, rates, by = "node"))
-p1 <- ggtree(td, aes(color = nshift)) +  
-    geom_tiplab(size=2) +
-    labs(color = "Number of shifts") +
-    scale_colour_gradient(low = "black", high = "red")
-"""
+cmap = Makie.cgrad([:black, :red])
+treeplot(primates, rates, "shifts"; cmap = cmap)
 ```
-
-```R
-ggsave("src/assets/primates_4state_shift.svg", p3, width = 150, height = 120, units = "mm") # hide
-```
-![primatestree](../assets/primates_4state_shift.svg)
-
 
 ## Number of rate shifts
 

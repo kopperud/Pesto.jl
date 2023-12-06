@@ -29,6 +29,26 @@ nothing # hide
 ```
 To see how this analysis is set up, see the next section ([Extended analysis](@ref extended)).
 
+## Tree plots
+If we want to plot the results immediately, we will need to use the `Makie` dependency. `Makie` has several backends, but we will use `CairoMakie` for now, as it is designed to plot high-quality 2-dimensional figures.
+
+```@example simple
+using Makie, CairoMakie
+
+treeplot(primates, rates)
+```
+If you want to instead plot the number of shifts, and for example use a different color gradient, you can enter the following
+```@example simple
+
+cmap = Makie.cgrad([:black, :red])
+f = treeplot(primates, rates, "nshift"; cmap = cmap)
+```
+The figure can be saved using the following code
+```julia
+Makie.save("path/to/figure.pdf", f)
+```
+See section [Plot with ggtree](@ref ggtree) for more instructions on how to make more customized and publication-quality figures.
+
 ## Save to file
 A summary of the results of the analysis is stored in the `rates` object, which is a data frame. We can print the first five rows to get an idea of it:
 ```@example simple
@@ -44,34 +64,4 @@ If we want to save the newick string to a file, we can use the `writenewick` fun
 ```julia
 writenewick("primates_analysis.tre", primates, rates)
 ```
-This tree file can be loaded in other programs such as `R` and can be plotted using standard packages like `ape` and `ggtree`.
-
-## Tree plots
-If we want to plot the results immediately, without saving it to a file, we can use the module `RCall` to access R packages directly. Julia objects can be exported to an R session using the macro `@rput`, (and retrieved from R with `@rget`). R code can be called by prefixing a string with `R`, e.g. `R"print()"`, or multiline `R"""..."""`. You can also enter the R session interactively through the Julia REPL by entering the character `$`. Here we plot the phylogeny using some R-packages that we load first.
-
-```julia
-using RCall
-
-@rput primates
-@rput rates
-
-R"""
-library(tibble)
-library(tidytree)
-x <- as_tibble(primates)
-td <- as.treedata(merge(x, rates, by = "node"))
-"""
-```
-
-We can plot the mean speciation rate
-
-```julia
-R"""
-library(ggplot2)
-library(ggtree)
-p1 <- ggtree(td, aes(color = mean_lambda)) +  
-    geom_tiplab(size=2) +
-    labs(color = "Mean speciation rate")
-"""
-```
-![primatestree](../assets/primates_lambda.svg)
+This tree file can be loaded in other programs such as `R` and can be plotted using standard packages like `ape` and `ggtree` (see section [Plot with ggtree](@ref ggtree)).

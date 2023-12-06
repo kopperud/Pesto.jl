@@ -16,7 +16,6 @@ include("../../src/primates.jl")
 ```
 ```julia bayes
 using Pesto
-using Plots
 
 phy = readtree(Pesto.path("primates.tre"))
 ρ = 0.635
@@ -43,22 +42,16 @@ where $P_M(\geq \text{1 shifts})$ is the posterior probability of at least one s
 
 ## Plotting Bayes factors
 
-```julia
-using RCall
-
-@rput primates
-@rput rates
-
-R"""
-library(tibble)
-library(tidytree)
-
-x <- as_tibble(primates)
-td <- as.treedata(merge(x, rates, by = "node"))
-"""
-```
-
 We can for example plot the Bayes factor directly on the tree. Since the Bayes factor can vary considerably, we instead plot the log-transformed Bayes factors, which are more concentrated around 0. A log Bayes factor with a value of 0 means that the prior and posterior support for the shift hypotheses are equal. A value much larger than 0 means that there is support for one or more shifts. A value of less than 0 means that there is more support for 0 rate shifts.
+
+```@example bayes
+using Makie, CairoMakie
+
+min, max = extrema(rates[1:end-1,"shift_bf_log"])
+values = [min, 0, max]
+cmap = Makie.cgrad([:gray, :black, :purple], values = values)
+treeplot(primates, rates, "shift_bf_log"; cmap = cmap)
+```
 
 ```julia
 R"""
@@ -76,12 +69,12 @@ p1 <- ggtree(td, aes(color = log(shift_bf))) +
 
 Alternatively, we can assess which branches had a strong support for there being at least one shift. We first set the significance level at 10, meaning strong support (Kass & Raftery 1995). Next, we can compute which branches has strong support for at least one diversification rate shift, vs the null hypothesis of zero shifts. 
 
-| Bayes factor  | log10 Bayes factor | Level of support |
-| ----- | ------ | ----- |
-| 0 to 3.2  | 0 to 0.5 | Not worth mentioning |
-| 3.2 to 10 | 0.5 to 1    |  Substantial
-| 10 to 100    | 1 to 2    | Strong |
-| >100    | >2    | Decisive |
+| Bayes factor   | log10 Bayes factor | Level of support     |
+| -------------- | ------------------ | -------------------- |
+| 0 to 3.2       | 0 to 0.5           | Not worth mentioning |
+| 3.2 to 10      | 0.5 to 1           | Substantial          |   
+| 10 to 100      | 1 to 2             | Strong               |
+| >100           | >2                 | Decisive             |
 
 ```julia
 R"""
