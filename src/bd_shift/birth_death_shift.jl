@@ -40,6 +40,7 @@ function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = tru
         bf = posterior_prior_shift_odds(model,data)
         append!(bf, NaN)
         rates[!,"shift_bf"] = bf
+        rates[!,"shift_bf_log"] = log10.(bf)
     end
 
     return(rates)
