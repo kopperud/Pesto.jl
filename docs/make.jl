@@ -5,7 +5,11 @@ CairoMakie.activate!(type="svg")
 makedocs(
      sitename="Pesto.jl",
      authors = "Bjørn Tore Kopperud and Sebastian Höhna",
-     modules = [Pesto],
+     modules = [
+      Pesto,
+      isdefined(Base, :get_extension) ? Base.get_extension(Pesto, :PestoMakieExt) :
+      Pesto.PestoMakieExt
+      ],
      pages = [
           "Home" => "index.md",
           "Installation" => "install.md",
