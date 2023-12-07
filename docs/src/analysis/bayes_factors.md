@@ -8,7 +8,6 @@ First, we load the necessary modules and read in the tree file.
 
 ```@setup bayes
 using Pesto
-using Plots
 
 ρ = 0.635
 
@@ -48,22 +47,9 @@ We can for example plot the Bayes factor directly on the tree. Since the Bayes f
 using Makie, CairoMakie
 
 min, max = extrema(rates[1:end-1,"shift_bf_log"])
-values = [min, 0, max]
-cmap = Makie.cgrad([:gray, :black, :purple], values = values)
+cmap = Makie.cgrad([:gray, :black, :purple])
 treeplot(primates, rates, "shift_bf_log"; cmap = cmap)
 ```
-
-```julia
-R"""
-library(ggplot2)
-library(ggtree)
-p1 <- ggtree(td, aes(color = log(shift_bf))) +
-    scale_color_gradient2(low = "white", mid = "black", high = "red", midpoint = 0) +
-    geom_tiplab(size=2) +
-    labs(color = "log Bayes factor")
-"""
-```
-![primatestree](../assets/bayes_factor_phylogeny.svg)
 
 ## Plotting supported branches
 
@@ -76,25 +62,23 @@ Alternatively, we can assess which branches had a strong support for there being
 | 10 to 100      | 1 to 2             | Strong               |
 | >100           | >2                 | Decisive             |
 
-```julia
-R"""
-significance_level <- 10
-
-td@data$signif_shifts <- factor(td@data$shift_bf > significance_level)
-p2 <- ggtree(td, aes(color = signif_shifts)) +
-    scale_color_manual(values = c("black", "red"), labels = c("no support", "strong support")) +
-    geom_tiplab(size=2) +
-    labs(color = "Significant shift")
-"""
-```
-![primatestree](../assets/signif_support.svg)
-
-If we inspect the data frame with the branch-specific outputs, we can also see this branch specifically. Both the phylogeny plot, as well as the filtered data frame, only show one branch that had strong support (with a Bayes factor of >10) for one or more shifts. The number of estimated diversification rate shifts ($\hat{N}$) on this branch is also significantly larger than one, almost at 1 number of shifts.
+If we inspect the data frame with the branch-specific outputs, we can see specifically which branches has strong support. 
 
 ```@example bayes
 using DataFrames
-filter(:shift_bf => x -> x > 10, rates)
+cutoff = 10
+filter(:shift_bf => x -> x > cutoff, rates)
 ```
+The result is that one branch had strong support for there being at least one shift on the branch. The branch that led to the Old World Monkeys has decisive support (Bayes factor of 30.7). 
+
+In order to plot these, we can create a dummy variable and use it in the tree plotting function.
+```@example bayes
+rates[!,:strong_support] = Float64.(rates[!,:shift_bf] .> cutoff)
+cmap = Makie.cgrad([:black, :red])
+treeplot(primates, rates, "strong_support"; cmap = cmap)
+```
+
+Both the phylogeny plot, as well as the filtered data frame, only show one branch that had strong support (with a Bayes factor of >10) for one or more shifts. The number of estimated diversification rate shifts ($\hat{N}$) on this branch is also significantly larger than zero, almost at 1 number of shifts.
 
 ### References
 

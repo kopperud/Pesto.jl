@@ -12,6 +12,7 @@ using Pesto
 ρ = 0.635
 
 include("../../src/primates.jl")
+model, rates = pesto(primates)
 ```
 ```julia simple
 using Pesto
@@ -34,8 +35,8 @@ treeplot(primates, rates)
 
 ## Tree plots in ggtree
 
-The plotting functionality include in `Pesto` is intended as an interactive tool, and it's functionality is rather rudimentary. If you wish to make a publication-quality plot, we recommend instead to use a more established, well-tested and feature-rich library especially for this purpose. A good choice is to use the `ggtree` library in `R`, although other libraries could be used as well.
-In `Pesto`, we provide functionality to save the results as a Newick strinc with metadata for each node. If we want to save the newick string to a file, we can use the `writenewick` function
+The plotting functionality include in `Pesto` is intended as an interactive tool, and its functionality is rather rudimentary. If you wish to make a publication-quality plot, we recommend instead to use a more established, well-tested and feature-rich library especially for this purpose. A good choice is to use the `ggtree` library in `R`, although other libraries could be used as well.
+In `Pesto`, we provide functionality to save the results as a Newick string with metadata for each node. If we want to save the newick string to a file, we can use the `writenewick` function
 ```julia
 writenewick("primates_analysis.tre", primates, rates)
 ```
@@ -43,7 +44,7 @@ This tree file can be loaded in other programs such as `R` and can be opened usi
 
 ```R
 library(treeio)
-phy <- treeio::read.beast.newick("primates.analysis.tre")
+phy <- treeio::read.beast.newick("primates_analysis.tre")
 
 library(ggplot2)
 library(ggtree)

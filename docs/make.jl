@@ -1,5 +1,7 @@
 using Documenter, Pesto, Makie, CairoMakie
 
+CairoMakie.activate!(type="svg")
+
 makedocs(
      sitename="Pesto.jl",
      authors = "Bjørn Tore Kopperud and Sebastian Höhna",

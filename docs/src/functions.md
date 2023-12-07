@@ -3,10 +3,6 @@
 List of available functions
 
 ```@docs
-plottree(x)
-```
-
-```@docs
 birth_death_shift(model, data)
 ```
 
