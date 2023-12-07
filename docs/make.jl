@@ -1,4 +1,4 @@
-using Documenter, Pesto
+using Documenter, Pesto, Makie, CairoMakie
 
 makedocs(
      sitename="Pesto.jl",

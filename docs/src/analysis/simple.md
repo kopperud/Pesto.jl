@@ -39,7 +39,6 @@ treeplot(primates, rates)
 ```
 If you want to instead plot the number of shifts, and for example use a different color gradient, you can enter the following
 ```@example simple
-
 cmap = Makie.cgrad([:black, :red])
 f = treeplot(primates, rates, "nshift"; cmap = cmap)
 ```
