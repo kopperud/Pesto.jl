@@ -27,7 +27,7 @@ function tree_rates(data, model; n = 10)
 end
 
 function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
-    rates = zeros(size(data.edges)[1], 4)
+    rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
     Threads.@threads for i = 1:size(data.edges)[1]
@@ -38,20 +38,28 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
         rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+
+        ## difference from oldest to youngest point on branch
+        ## t0 is youngest, t1 is oldest
+        rates[i,5] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+        rates[i,6] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+        rates[i,7] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+        rates[i,8] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
     end
     node = data.edges[:,2]
     edge = 1:size(data.edges)[1]
-    names = ["mean_lambda", "mean_mu", "mean_netdiv", "mean_relext"]
+    names = ["mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
+            "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"]
     df = DataFrames.DataFrame(rates, names)
     df[!, "node"] = node
     df[!, "edge"] = edge
     root_index = length(data.tiplab)+1
-    push!(df, [NaN NaN NaN NaN root_index 0])
+    push!(df, [NaN NaN NaN NaN NaN NaN NaN NaN root_index 0])
     return(df)
 end
 
 function tree_rates(data::SSEdata, model::SSEtimevarying, Fs, Ss; n = 10)
-    rates = zeros(size(data.edges)[1], 4)
+    rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
     Threads.@threads for i = 1:size(data.edges)[1]
@@ -62,15 +70,23 @@ function tree_rates(data::SSEdata, model::SSEtimevarying, Fs, Ss; n = 10)
         rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ(t), Ss[i](t)), t0, t1, x, w)
         rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ(t) .- model.μ(t), Ss[i](t)), t0, t1, x, w)
         rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ(t) ./ model.λ(t), Ss[i](t)), t0, t1, x, w)
+
+        ## difference from oldest to youngest point on branch
+        ## t0 is youngest, t1 is oldest
+        rates[i,5] = LinearAlgebra.dot(model.λ(t0), Ss[i](t0)) - LinearAlgebra.dot(model.λ(t1), Ss[i](t1))
+        rates[i,6] = LinearAlgebra.dot(model.μ(t0), Ss[i](t0)) - LinearAlgebra.dot(model.μ(t1), Ss[i](t1))
+        rates[i,7] = LinearAlgebra.dot(model.λ(t0) .- model.μ(t0), Ss[i](t0)) - LinearAlgebra.dot(model.λ(t1) .- model.μ(t1), Ss[i](t1))
+        rates[i,8] = LinearAlgebra.dot(model.μ(t0)  ./ model.λ(t0), Ss[i](t0)) - LinearAlgebra.dot(model.μ(t1) ./ model.λ(t1), Ss[i](t1))
     end
     node = data.edges[:,2]
     edge = 1:size(data.edges)[1]
-    names = ["mean_lambda", "mean_mu", "mean_netdiv", "mean_relext"]
+    names = ["mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
+            "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"]
     df = DataFrames.DataFrame(rates, names)
     df[!, "node"] = node
     df[!, "edge"] = edge
     root_index = length(data.tiplab)+1
-    push!(df, [NaN NaN NaN NaN root_index 0])
+    push!(df, [NaN NaN NaN NaN NaN NaN NaN NaN root_index 0])
     return(df)
 end
 
