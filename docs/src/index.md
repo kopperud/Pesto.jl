@@ -26,7 +26,7 @@ The birth-death-shift model has three parameters:
 * The common shift rate ($\eta$). 
 
 ```@raw html
-<center><img src="../assets/bdshift.png" alt="bdshift" width="300" height="300"></center>
+<center><img src="assets/bdshift.png" alt="bdshift" width="300" height="300"></center>
 ```
 
 When a shift event occurs, the speciation and extinction rate shifts from the previous state (say $\lambda_1,\mu_1$) to a new state with different rates ($\lambda_2,\mu_2$). A rate shift to any other rate category occurs with rate $\eta$, and a rate shift from state $i$ to a specific other state $j$ occurs with rate $\eta/(K-1)$. The figure above depicts a three-state model. However, depending on how the model is set up, there can by any $K$ number of states. 
