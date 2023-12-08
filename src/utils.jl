@@ -1,4 +1,5 @@
 export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange, make_descendants, make_ancestors
+export make_descendants_nodes
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -112,7 +113,7 @@ data = make_SSEdata(phy, ρ)
 make_descendants_nodes(data)
 ```
 """
-function make_descendants_nodes(data)
+function make_descendants_nodes(data::SSEdata)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
@@ -160,11 +161,11 @@ function make_quantiles3(d, k)
 end
 
 
-function SSEdata(phy, ρ)
+function SSEdata(phy::phylo, ρ::Float64)
     make_SSEdata(phy, ρ)
 end
 
-function make_SSEdata(phy, datafile, ρ; include_traits = true)
+function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits = true)
     if contains_polytomies(phy)
         throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
     end
@@ -200,7 +201,7 @@ phy = readtree(Pesto.path("primates.tre"))
 data = make_SSEdata(phy, ρ) 
 ```
 """
-function make_SSEdata(phy, ρ)
+function make_SSEdata(phy::phylo, ρ::Float64)
     trait_data = Dict(taxon => "?" for taxon in phy.tip_label)
 
     node_depth = phy.node_depths

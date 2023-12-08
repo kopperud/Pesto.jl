@@ -13,7 +13,7 @@ phy = readtree(Pesto.path("primates.tre"))
 display(phy)
 ```
 """
-function readtree(treefile)
+function readtree(treefile::String)
     s = readuntil(treefile, "(")
     isnexus = contains(s, "#NEXUS")
 

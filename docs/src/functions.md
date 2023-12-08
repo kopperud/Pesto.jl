@@ -41,3 +41,23 @@ lrange(from::Float64, to::Float64, length::Int64)
 ```@docs
 allpairwise(λ, µ)
 ```
+
+```@docs
+writenewick(fpath::String, data::SSEdata, rates::DataFrames.DataFrame)
+```
+
+```@docs
+make_SSEdata(phy::Pesto.phylo, ρ::Float64)
+```
+
+```@docs
+make_descendants_nodes(data::SSEdata)
+```
+
+```@docs
+readtree(path::String)
+```
+
+```@docs
+postorder_nosave(model::SSEconstant, data::SSEdata, E)
+```
