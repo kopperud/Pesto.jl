@@ -1,4 +1,4 @@
-using Documenter, Pesto, Makie, CairoMakie
+using Documenter, Pesto, Makie, CairoMakie, ColorSchemes
 
 CairoMakie.activate!(type="svg")
 
