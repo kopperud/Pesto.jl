@@ -1,7 +1,9 @@
 ## wrapper foranalysis
 export pesto
 
-function pesto(data; n = 6, sd = 0.587)
+export empirical_bayes
+
+function empirical_bayes(data::SSEdata; n = 6, sd = 0.587)
     λml, μml = estimate_constant_bdp(data)
 
     dλ = Distributions.LogNormal(log(λml), sd)
@@ -12,6 +14,11 @@ function pesto(data; n = 6, sd = 0.587)
     λ, μ = allpairwise(λquantiles, µquantiles)
     η = optimize_eta(λ, µ, data)
     model = SSEconstant(λ, μ, η)
+    return(model)
+end
+
+function pesto(data::SSEdata; n = 6, sd = 0.587)
+    model = empirical_bayes(data)
 
     rates = birth_death_shift(model, data);
     return(model, rates)

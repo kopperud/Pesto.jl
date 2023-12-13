@@ -1,10 +1,7 @@
 export tip_rates
 
-function tip_rates(model::SSEconstant, data::SSEdata)
-    Ds, Fs = backwards_forwards_pass(model, data)
+function tip_rates(model::SSEconstant, data::SSEdata, Ds, Fs)
     Ss = ancestral_state_probabilities(data, Ds, Fs)
-
-    branch_indices = 1:size(data.edges)[1]
     ntips = length(data.tiplab)
     ancestors = make_ancestors(data)
 
@@ -16,7 +13,6 @@ function tip_rates(model::SSEconstant, data::SSEdata)
         model.λ .- model.µ,
         model.µ ./ model.λ
     )
-
    
     for i in 1:size(data.tiplab)[1]
         edge_index = ancestors[i]
@@ -33,4 +29,10 @@ function tip_rates(model::SSEconstant, data::SSEdata)
     df[!,"species"] = data.tiplab
 
     return(df)
+end
+
+function tip_rates(model::SSEconstant, data::SSEdata)
+    Ds, Fs = backwards_forwards_pass(model, data)
+
+    tip_rates(model, data, Ds, Fs)
 end
