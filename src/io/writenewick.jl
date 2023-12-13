@@ -76,8 +76,8 @@ function newick(data::SSEdata, rates::DataFrames.DataFrame)
 
     root = getRoot(data.edges)
     desc = kids[root]
-    s = []
-    append!(s, "(")
+    s = String[]
+    append!(s, ["("])
     n = ntip(data)
 
     for j in desc
@@ -88,17 +88,17 @@ function newick(data::SSEdata, rates::DataFrames.DataFrame)
         end
 
         if j != desc[length(desc)]
-            append!(s, ",")
+            append!(s, [","])
         end
     end
-    append!(s, "):0.0;")
+    append!(s, ["):0.0;"])
     
-    newick = *(s...)
+    newick = join(s)
     return(newick)
 end
 
 function addinternal!(s, kids, nd, data, ind, i)
-    append!(s, "(")
+    append!(s, ["("])
 
     desc = kids[i]
 
@@ -110,24 +110,24 @@ function addinternal!(s, kids, nd, data, ind, i)
         end
 
         if j != desc[length(desc)]
-            append!(s, ",")
+            append!(s, [","])
         end
     end
 
-    append!(s, ")")
-    append!(s, nd[i])
-    append!(s, ":")
-    append!(s, string(data.branch_lengths[ind[i]]))
+    append!(s, [")"])
+    append!(s, [nd[i]])
+    append!(s, [":"])
+    append!(s, [string(data.branch_lengths[ind[i]])])
 end
 
 function addterminal!(s, data, nd, i)
     ii = data.edges[i,2]
     tl = data.tiplab[ii]
 
-    append!(s, tl)
-    append!(s, nd[ii])
-    append!(s, ":")
-    append!(s, string(data.branch_lengths[i]))
+    append!(s, [tl])
+    append!(s, [nd[ii]])
+    append!(s, [":"])
+    append!(s, [string(data.branch_lengths[i])])
 end
 
 function nnode(data)
