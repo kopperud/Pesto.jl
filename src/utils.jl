@@ -72,7 +72,7 @@ function make_descendants(data::SSEdata)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
 
-    descendants = Dict(node => [] for node in rootnode:maxnode)
+    descendants = Dict(node => Int64[] for node in rootnode:maxnode)
 
     for (i, row) in enumerate(eachrow(data.edges))
         anc, dec = row
@@ -118,7 +118,7 @@ function make_descendants_nodes(data::SSEdata)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
 
-    descendants = Dict(node => [] for node in rootnode:maxnode)
+    descendants = Dict(node => Int64[] for node in rootnode:maxnode)
 
     for row in eachrow(data.edges)
         anc, dec = row

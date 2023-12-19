@@ -12,7 +12,7 @@ function number_of_states(model::SSEconstant)
 end
 
 function get_speciation_rates(model::SSEconstant, t::Float64)
-    return(model.λ) 
+    return(model.λ)
 end
 
 function get_speciation_rates(model::SSEtimevarying, t::Float64)
@@ -21,7 +21,8 @@ end
 
 function logL_root(model::SSE, data::SSEdata)
     E = extinction_probability(model, data)
-    D_ends, sf = postorder_nosave(model, data, E)
+    #D_ends, sf = postorder_nosave(model, data, E)
+    D_ends, sf = postorder_async(model, data, E)
     root_index = length(data.tiplab)+1
     root_age = data.node_depth[root_index]
 
