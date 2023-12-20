@@ -23,14 +23,14 @@ end
 struct SSEdata
     state_space
     trait_data
-    edges
-    tiplab
-    node_depth
-    ρ
-    branch_lengths
-    branching_times
-    po
-    Nnode
+    edges::Array{Int64, 2}
+    tiplab::Vector{String}
+    node_depth::Vector{Float64}
+    ρ::Float64
+    branch_lengths::Vector{Float64}
+    branching_times::Vector{Float64}
+    po::Vector{Int64}
+    Nnode::Int64
 end
 
 struct phylo
