@@ -35,14 +35,14 @@ LoopVectorization = "0.12"
 Makie = "0.20"
 Optim = "1.7"
 OrdinaryDiffEq = "6.49"
-RCall = "0.13"
+RCall = "0.13, 0.14"
 StatsBase = "0.33"
 julia = "1.9"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test"]
