@@ -67,9 +67,18 @@ function forward_prob(model::SSEtimevarying)
     return(forward_ode_tv)
 end
 
+## this doesn't output a matrix but rather a scalar
+function number_of_shifts_simple!(dN, N, p, t)
+    η, K, S, D = p
 
+    Dt = D(t)
+    St = S(t)
+    r = -(η/(K-1.0))
+ 
+    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
+end
 
-## This is the ODE to solve for the numebr of rate shifts
+## This is the ODE to solve for the number of rate shifts
 function number_of_shifts!(dN, N, p, t)
     η, K, S, D = p
 
