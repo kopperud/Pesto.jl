@@ -18,6 +18,7 @@ function extinction_prob(model::SSEtimevarying)
     return(extinction_ode_tv)
 end
 
+
 ## Probability of of observing the branch at time `t`
 ## * We solve this equation in the postorder traversal
 function backward_ode(dD, D, p, t)
@@ -78,6 +79,17 @@ function number_of_shifts_simple!(dN, N, p, t)
     dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
 end
 
+function number_of_shifts_simple_tv!(dN, N, p, t)
+    η, K, S, D = p
+
+    Dt = D(t)
+    St = S(t)
+    r = -(η(t)/(K-1.0))
+ 
+    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
+end
+
+
 ## This is the ODE to solve for the number of rate shifts
 function number_of_shifts!(dN, N, p, t)
     η, K, S, D = p
@@ -117,4 +129,13 @@ end
 
 function shift_problem(model::SSEtimevarying)
     return(number_of_shifts_tv!)
+end
+
+function shift_problem_simple(model::SSEconstant)
+    return(number_of_shifts_simple!)
+end
+
+
+function shift_problem_simple(model::SSEtimevarying)
+    return(number_of_shifts_simple_tv!)
 end
