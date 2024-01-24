@@ -95,18 +95,25 @@ end
 function ancestral_state_probabilities(data::SSEdata, Ds, Fs)    
     Ss = Dict()
     for edge_idx in 1:(maximum(data.edges)-1)
-       Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+       Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
     return (Ss)
 end
 
+## problem: this function is not type stable, or atleast S(t) is not 
 function ancestral_state_probabilities(Ds, Fs)    
     Ss = Dict()
     #for edge_idx in 1:(maximum(data.edges)-1)
     for edge_idx in collect(keys(Ds))
-       Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+#       Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+       Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
     return (Ss)
+end
+
+function ancestral_state_probability(D::Vector{Float64}, F::Vector{Float64}, t::Float64)
+    S = D .* F ./ (sum(F .* D))
+    return (S)
 end

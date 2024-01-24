@@ -2,12 +2,12 @@
 ## * This equation does not depend on the topology, so we solve for it first
 function extinction_ode(dE, E, p, t)
     λ, μ, η, K = p
-    dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E.^2 .+ (η/(K-1)) .* (sum(E) .- E) 
+    dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
 end
 
 function extinction_ode_tv(dE, E, p, t)
     λ, μ, η, K = p
-    dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E.^2 .+ (η(t)/(K-1)) .* (sum(E) .- E) 
+    dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E .* E .+ (η(t)/(K-1)) .* (sum(E) .- E) 
 end
 
 function extinction_prob(model::SSEconstant)
@@ -70,20 +70,22 @@ end
 
 ## this doesn't output a matrix but rather a scalar
 function number_of_shifts_simple!(dN, N, p, t)
-    η, K, S, D = p
+    η, K, D, F = p
 
     Dt = D(t)
-    St = S(t)
+    Ft = F(t)
+    St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))
  
     dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
 end
 
 function number_of_shifts_simple_tv!(dN, N, p, t)
-    η, K, S, D = p
+    η, K, D, F = p
 
     Dt = D(t)
-    St = S(t)
+    Ft = F(t)
+    St = ancestral_state_probability(Dt, Ft, t)
     r = -(η(t)/(K-1.0))
  
     dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
@@ -92,10 +94,11 @@ end
 
 ## This is the ODE to solve for the number of rate shifts
 function number_of_shifts!(dN, N, p, t)
-    η, K, S, D = p
+    η, K, D, F = p
 
     Dt = D(t)
-    St = S(t)
+    Ft = F(t)
+    St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))
 
     LoopVectorization.@turbo for i in 1:K, j in 1:K
@@ -109,10 +112,11 @@ function number_of_shifts!(dN, N, p, t)
 end
 
 function number_of_shifts_tv!(dN, N, p, t)
-    η, K, S, D = p
+    η, K, D, F = p
 
     Dt = D(t)
-    St = S(t)
+    Ft = F(t)
+    St = ancestral_state_probability(Dt, Ft, t)
     r = -(η(t)/(K-1.0))
 
     LoopVectorization.@turbo for i in 1:K, j in 1:K
