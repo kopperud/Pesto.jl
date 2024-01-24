@@ -1,4 +1,5 @@
 /Manifest.toml
 **/history.txt
+**/*.swp
 
 docs/build/
