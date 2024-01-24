@@ -42,9 +42,10 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
         F_start = D_parent .* F_parent ./ Dm
         F_start = F_start ./ sum(F_start) ## Normalize, because these numbers can get very tiny (1E-10)
 
-        node_age = data.node_depth[dec]
-        parent_node = parental_node(dec, data)
-        parent_node_age = data.node_depth[parent_node]
+        parent_node = parental_node(dec, data) 
+
+        node_age = data.node_depth[dec] ## node age (youngest) 
+        parent_node_age = data.node_depth[parent_node] ## parent node age (oldest)
         tspan = (parent_node_age, node_age)
 
         u0 = F_start
