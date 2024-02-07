@@ -33,12 +33,15 @@ Dict{Int64, Int64} with 464 entries:
 function make_ancestors(data::SSEdata)
     ntip = length(data.tiplab)
     rootnode = ntip + 1
-    maxnode = maximum(data.edges)
+#    maxnode = maximum(data.edges)
+    maxnode = data.Nnode + length(data.tiplab)    
 
-    ancestors = Dict(node => 0 for node in 1:maxnode if node != rootnode)
+    ancestors = Dict{Int64, Int64}()    
+    #ancestors = zeros(Int64, maxnode)
 
-    for (i, row) in enumerate(eachrow(data.edges))
-        anc, dec = row
+    #for (i, row) in enumerate(eachrow(data.edges))
+    for i in 1:size(data.edges)[1]
+        dec = data.edges[i,2]
 
         ancestors[dec] = i
     end
