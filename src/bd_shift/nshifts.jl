@@ -3,28 +3,21 @@ export compute_nshifts
 export state_shifts
 export state_shifts_simple
 
-function state_shifts(model::SSE, data::SSEdata; ape_order = true)
+function state_shifts(model::SSE, data::SSEdata)
     Ds, Fs = backwards_forwards_pass(model, data);
     #Ss = ancestral_state_probabilities(data, Ds, Fs);
 
-    state_shifts(model, data, Ds, Fs; ape_order = ape_order)
+    state_shifts(model, data, Ds, Fs)
 end
 
-function state_shifts_simple(model::SSE, data::SSEdata; ape_order = true)
-    Ds, Fs = backwards_forwards_pass(model, data);
-
-    state_shifts_simple(model, data, Ds, Fs; ape_order = ape_order)
-end
-
-function state_shifts_simple(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
+function state_shifts_simple(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
     nbranches = size(data.edges)[1]
     K = number_of_states(model)    
     nshifts = zeros(nbranches)
     ode = shift_problem_simple(model)
 
     Threads.@threads for edge_idx in 1:nbranches
-#        println(edge_idx)
-
+    #for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
@@ -38,30 +31,53 @@ function state_shifts_simple(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDi
         nshifts[edge_idx] = sol[end][1]
     end
 
-    if ape_order
-        ## reorder to ape node indices
-        ancestors = make_ancestors(data)
-
-        node_nshifts = zeros(maximum(data.edges))
-        for i in 1:maximum(data.edges)
-            if i == length(data.tiplab)+1
-                node_nshifts[i] = 0.0
-            else
-                edge_idx = ancestors[i]
-                node_val = nshifts[edge_idx]
-                node_nshifts[i] = node_val
-            end
-        end
-        return(node_nshifts)
-    else
-        return(nshifts)
-    end
+    return(nshifts)
 end
 
-function state_shifts(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5(), ape_order = true)
+function reorder_ape(nshifts::Array{Float64, 1}, data::SSEdata)
+    ancestors = make_ancestors(data)
+
+    n_nodes = data.Nnode + length(data.tiplab)
+    root_index = length(data.tiplab)+1
+    #n_nodes = maximum(data.edges)
+
+    node_nshifts = zeros(Float64, n_nodes)
+    for i in 1:n_nodes
+        if i == root_index
+            node_nshifts[i] = 0.0
+        else
+            edge_idx = ancestors[i]
+            node_val = nshifts[edge_idx]
+            node_nshifts[i] = node_val
+        end
+    end
+    return(node_nshifts)
+end
+
+function reorder_ape(nshifts::Array{Float64, 3}, data::SSEdata, K::Int64)
+    ancestors = make_ancestors(data)
+
+    n_nodes = data.Nnode + length(data.tiplab)
+    root_index = length(data.tiplab)+1
+    #n_nodes = maximum(data.edges)
+
+    node_nshifts = zeros(Float64, n_nodes, K, K)
+    for i in 1:n_nodes
+        if i == root_index
+            node_nshifts[i,:,:] .= 0.0
+        else
+            edge_idx = ancestors[i]
+            node_val = nshifts[edge_idx,:,:]
+            node_nshifts[i,:,:] = node_val
+        end
+    end
+    return(node_nshifts)
+end
+
+function state_shifts(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
     nbranches = size(data.edges)[1]
     K = number_of_states(model)    
-    nshifts = zeros(nbranches, K, K)
+    nshifts = zeros(Float64, nbranches, K, K)
     ode = shift_problem(model)
 
     Threads.@threads for edge_idx in 1:nbranches
@@ -78,37 +94,11 @@ function state_shifts(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Ts
         nshifts[edge_idx,:,:] = sol[end]
     end
 
-    if ape_order
-        ## reorder to ape node indices
-        ancestors = make_ancestors(data)
-
-        node_nshifts = zeros(maximum(data.edges), K, K)
-        for i in 1:maximum(data.edges)
-            if i == length(data.tiplab)+1
-                node_nshifts[i,:,:] .= 0.0
-            else
-                edge_idx = ancestors[i]
-                node_val = nshifts[edge_idx,:,:]
-                node_nshifts[i,:,:] = node_val
-            end
-        end
-        return(node_nshifts)
-    else
-        return(nshifts)
-    end
+    return(nshifts)
 end
 
-function compute_nshifts(model, data; ape_order = true)
-    Ds, Fs = backwards_forwards_pass(model, data);
-#    Ss = ancestral_state_probabilities(data, Ds, Fs);
-
-    compute_nshifts(model, data, Ds, Fs; ape_order = ape_order)
-end
-
-function compute_nshifts(model, data, Ds, Fs; ape_order = true)
-    nshifts = state_shifts_simple(model, data, Ds, Fs; ape_order = ape_order)
-    #res = sum(nshifts, dims = 2:3)[:,1,1]
-#    res = sum(nshifts, dims = 2:3)[:,1,1]
+function compute_nshifts(model::SSE, data::SSEdata, Ds, Fs)
+    nshifts = state_shifts_simple(model, data, Ds, Fs)
     return(nshifts)
 end
 

@@ -76,10 +76,12 @@ function posterior_shift_prob_difference_eq(model, data; n_knots = 20)
 end
 
 function no_shifts_prob(dlnX, lnX, p, t)
-    D, S, η, K = p
+    D, F, η, K = p
     Dt = D(t)
+    Ft = F(t)
+    St = ancestral_state_probability(Dt, Ft, t)
 
-    dlnX[1] = sum((η/(K-1)) .* S(t) .* (sum(Dt) .- Dt) ./ Dt)
+    dlnX[1] = sum((η/(K-1)) .* St .* (sum(Dt) .- Dt) ./ Dt)
 end
 
 function no_shifts_prob_tv(dlnX, lnX, p, t)
@@ -101,7 +103,7 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5()
     ## there is no point in factoring this out, because the rest of the function is much slower
     Ds, Fs = backwards_forwards_pass(model, data); 
-    Ss = ancestral_state_probabilities(data, Ds, Fs);
+    #Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     n_edges = length(data.branch_lengths)
     K = number_of_states(model)
@@ -109,16 +111,17 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
     ode = no_shifts_problem(model)
     
     Threads.@threads for edge_index in 1:n_edges
-        S = Ss[edge_index]
-        D = Ds[edge_index]
+        D = Ds[edge_index];
+        F = Fs[edge_index];
         t0 = Ds[edge_index].t[1]
         t1 = Ds[edge_index].t[end]
         tspan = (t1, t0)
 
-        p = (D, S, model.η, K)
-        u0 = zeros(1)
-        prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p)
-        sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false)
+        p = (D, F, model.η, K);
+        #u0 = zeros(1)
+        u0 = Float64[0.0]
+        prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p);
+        sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false);
         lnX[edge_index] = sol[end][1]
     end
     prob_atleast_one_shift = 1.0 .- exp.(lnX)

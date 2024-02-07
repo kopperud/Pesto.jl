@@ -26,12 +26,13 @@ res = birth_death_shift(model, data)
 """
 function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = true) 
     Ds, Fs = backwards_forwards_pass(model, data)
-    Ss = ancestral_state_probabilities(data, Ds, Fs)
 
+    Ss = ancestral_state_probabilities(data, Ds, Fs)
     rates = tree_rates(data, model, Fs, Ss)
 
     if nshifts
-        nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
+        #nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
+        nshift = state_shifts_simple(model, data, Ds, Fs)
         append!(nshift, 0.0)
         rates[!,"nshift"] = nshift
     end
