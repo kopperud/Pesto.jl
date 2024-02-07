@@ -62,10 +62,10 @@ The number of rate shifts from state `j` to state `i` accumulated over the branc
 ```
 with initial condition $\hat{N}_{ij}(t_0) = 0$. In Pesto, we would compute this using
 ```@example shift
-nshift = state_shifts(model, primates; ape_order = false)
+nshift = state_shifts(model, primates)
 nothing; # hide
 ```
-The object returned `nshift` is a three-dimensional array. The first dimension corresponds to the branch index (what was `M`). The second dimension represents the arrival state (`i`), and the third dimension represents the departure state (`j`). If `ape_order = true`, then the first dimension is reordered such that the indices correspond to the node indices in the tree.
+The object returned `nshift` is a three-dimensional array. The first dimension corresponds to the branch index (what was `M`). The second dimension represents the arrival state (`i`), and the third dimension represents the departure state (`j`). The order of the first index (`M`) is the same order as the edge indices in a standard `ape`-style tree in R.
 
 If we sum over second and third dimension, we get the number of rate shifts per branch:
 ```@example shift
