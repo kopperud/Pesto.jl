@@ -17,6 +17,11 @@ function makebins(N0, model, lower, upper; filter = "", nbins = 18)
     ϵ = μ ./ λ
     Δϵ = ϵ * ones(K)' .- ones(K) * ϵ'
 
+    ## remove diagonals just to be sure
+    for i in 1:K
+        N[i,i] = 0.0
+    end
+
     if filter == "speciation"
         is_zero = Δλ .!= 0
         N[is_zero] .= 0
