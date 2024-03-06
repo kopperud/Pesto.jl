@@ -49,9 +49,9 @@ function subtree!(edge_index, D_ends, sf, prob, model, data, descendants, Ntip, 
         left_edge, right_edge = descendants[dec]
         
         Threads.@sync begin ## wait for both subtrees to finish before proceeding
-            ## spawn a new task for both subtrees, so that they can be computed in parallel
+            ## spawn a new task for the left subtree, so that it can be computed in parallel
             Threads.@spawn subtree!(left_edge, D_ends, sf, prob, model, data, descendants, Ntip, K, elt)
-            Threads.@spawn subtree!(right_edge, D_ends, sf, prob, model, data, descendants, Ntip, K, elt)
+            subtree!(right_edge, D_ends, sf, prob, model, data, descendants, Ntip, K, elt)
         end
 
         D_left = D_ends[left_edge,:]
