@@ -1,5 +1,14 @@
 export lp, ψ, Econstant, estimate_constant_bdp
 
+function printlambda(λ::Float64)
+    println(λ)
+end
+
+function printlambda(λ::T) where {T <: ForwardDiff.Dual}
+    println(λ.value)
+end
+
+
 @doc raw"""
     lp(λ, μ, data)
 
@@ -116,9 +125,12 @@ data = make_SSEdata2(phy, ρ)
 function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.00000001, 0.00000001], upper = [20.0, 20.0])
     ## ML estimates of parameters
     f(x) = -lp(x[1], x[2], data) ## function to minimize
+    g!(G, x) = begin
+        G[:] .= ForwardDiff.gradient(f, x)
+    end
 
     inner_optimizer = Optim.GradientDescent()
-    optres = Optim.optimize(f, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
+    optres = Optim.optimize(f, g!, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
 
     λml, μml = optres.minimizer
     return(λml, μml)
