@@ -70,7 +70,7 @@ function postorder_nosave(model::SSE, data::SSEdata, E, alg = OrdinaryDiffEq.Tsi
         prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, save_everystep = false)
         
-        sol = sol[end]
+        sol = sol.u[end]
         c = sum(sol)
         sol = sol ./ c
         D_ends[m,:] = sol

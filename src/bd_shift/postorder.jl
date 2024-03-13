@@ -50,7 +50,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
             Ds[m] = sol
-            sol = sol[end]
+            sol = sol.u[end]
 
             k = sum(sol)
             sol = sol ./ k
@@ -81,7 +81,7 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
             sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
             Ds[m] = sol
-            sol = sol[end]
+            sol = sol.u[end]
             k = sum(sol)
             sol = sol ./ k
             D_ends[m,:] = sol
