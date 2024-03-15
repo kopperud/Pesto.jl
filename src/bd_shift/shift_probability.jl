@@ -98,6 +98,8 @@ function no_shifts_problem(model::SSEtimevarying)
     return(no_shifts_prob_tv)
 end
 
+isneg(u,p,t) = any(x->x>0,u)
+
 
 function posterior_shift_prob(model::SSE, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5()
@@ -121,8 +123,13 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
         #u0 = zeros(1)
         u0 = Float64[0.0]
         prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p);
-        sol = OrdinaryDiffEq.solve(prob, alg, save_everystep = false);
-        lnX[edge_index] = sol[end][1]
+
+        sol = OrdinaryDiffEq.solve(
+            prob, 
+            alg, 
+            isoutofdomain = isneg, ## log probabilities must be negative
+            save_everystep = false);
+        lnX[edge_index] = sol.u[end][1]
     end
     prob_atleast_one_shift = 1.0 .- exp.(lnX)
     return(prob_atleast_one_shift)

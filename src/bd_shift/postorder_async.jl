@@ -23,7 +23,7 @@ function postorder_async(model::SSE, data::SSEdata, E)
     u0 = ones(elt, K)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)
-    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pD)
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
 
     root_index = Ntip+1
     left_edge, right_edge = descendants[root_index]

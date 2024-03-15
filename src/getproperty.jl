@@ -1,0 +1,3 @@
+getλ(model::SSEconstant)
+    
+end

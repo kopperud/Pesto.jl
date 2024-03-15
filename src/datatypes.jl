@@ -3,10 +3,10 @@ export SSEconstant, SSEdata, BDconstant
 abstract type SSE <: Distributions.ContinuousUnivariateDistribution end
 
 
-struct SSEconstant <: SSE
-    λ
-    μ
-    η
+struct SSEconstant{T1 <: Real, T2 <: Real} <: SSE
+    λ::Vector{T1}
+    μ::Vector{T1}
+    η::T2
 end
 
 struct SSEtimevarying <: SSE
@@ -15,9 +15,9 @@ struct SSEtimevarying <: SSE
     η::Function
 end
 
-struct BDconstant <: Distributions.ContinuousUnivariateDistribution
-    λ
-    μ
+struct BDconstant{T <: Real} <: Distributions.ContinuousUnivariateDistribution
+    λ::T
+    μ::T
 end
 
 struct SSEdata
