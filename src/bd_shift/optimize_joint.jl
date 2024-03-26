@@ -24,7 +24,7 @@ function getpar(x::ForwardDiff.Dual)
     return(x.value)
 end
 
-function optimize_hyperparameters(data::SSEdata; n = 6, H = 0.587)
+function optimize_hyperparameters(data::SSEdata; n = 6, H = 0.587, n_attempts = 10)
 
     f(x::Vector{T}) where {T <: Real} = begin
         #d, μmean, η = x
@@ -54,7 +54,8 @@ function optimize_hyperparameters(data::SSEdata; n = 6, H = 0.587)
 
     converged = false
     global i = 1
-    while !converged && i <= 10
+    
+    while !converged && i <= n_attempts
         ## random starting values
         xinit = rand(3) .* 0.1
         xinit[3] = xinit[3] * 0.1
@@ -62,6 +63,10 @@ function optimize_hyperparameters(data::SSEdata; n = 6, H = 0.587)
         ## limits
         lower = [0.001, 0.001, 1e-08]
         upper = [2.0, 2.0, 0.8]
+
+        xinit = [
+            maximum([x,l+0.0001]) for (x,l) in zip(xinit, lower)
+        ]
 
         global optres = Optim.optimize(f, g!, lower, upper, xinit, Optim.Fminbox(inner_optimizer), opts)
 
@@ -75,6 +80,6 @@ function optimize_hyperparameters(data::SSEdata; n = 6, H = 0.587)
     end
 
     model = newmodel(optres.minimizer)
-    return(optres, model)
+    return(optres, model, i-1)
 
 end
