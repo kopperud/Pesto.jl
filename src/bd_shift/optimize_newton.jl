@@ -101,7 +101,7 @@ function optimize_hyperparameters(
 
     if !converged
         println("did not converge after $(i-1) iterations")
-        throw(ConvergenceException)
+        throw(ConvergenceException())
         #println("did not converge $(n_converged) times after $(i-1) iterations")
     end
     
