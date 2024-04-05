@@ -135,3 +135,28 @@ function estimate_constant_bdp(data::SSEdata; xinit = [0.11, 0.09], lower = [0.0
     λml, μml = optres.minimizer
     return(λml, μml)
 end
+
+export estimate_constant_netdiv_mu
+
+function estimate_constant_netdiv_mu(data::SSEdata; xinit = [0.05, 0.1], lower = [0.00000001, 0.00000001], upper = [20.0, 20.0])
+    ## ML estimates of parameters
+    ## constrain λ > μ, i.e. r = λ - μ > 0
+
+    ## x[1] is net-div
+    ## x[2] is extinction rate
+    ## x[2] + x[1] is speciation
+    f(x) = begin  ## function to minimize
+        return(-lp(x[2] + x[1], x[2], data))
+    end
+    g!(G, x) = begin
+        G[:] .= ForwardDiff.gradient(f, x)
+    end
+
+    inner_optimizer = Optim.GradientDescent()
+    optres = Optim.optimize(f, g!, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
+
+    r, μml = optres.minimizer
+    #λml = μml + x2
+    return(r, μml)
+end
+
