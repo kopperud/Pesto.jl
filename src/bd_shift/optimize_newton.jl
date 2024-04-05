@@ -65,10 +65,10 @@ function optimize_hyperparameters(
     inner_optimizer = Optim.Newton()
 
     opts = Optim.Options(
-            x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
-            x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
-            show_trace = false)
-            #iterations = 250, outer_iterations = 250)
+            #x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
+            #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
+            show_trace = false,
+            iterations = 150, outer_iterations = 150)
     
     while !converged && i <= n_attempts
 
@@ -84,7 +84,7 @@ function optimize_hyperparameters(
         xinit_tilde = h(xinit)
 
         try
-            global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer)#, opts)
+            global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer, opts)
             converged = optres.x_converged || optres.f_converged || optres.g_converged
 
         catch e
