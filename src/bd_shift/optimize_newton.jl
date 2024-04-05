@@ -79,9 +79,16 @@ function optimize_hyperparameters(
         println(xinit)
         xinit_tilde = h(xinit)
 
-        global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer)#, opts)
+        try
+            global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer)#, opts)
+            converged = optres.x_converged || optres.f_converged || optres.g_converged
 
-        converged = optres.x_converged || optres.f_converged || optres.g_converged
+        catch y
+            if isa(y, AssertionError)
+                println("assertion error with optimizing")
+            end
+        end
+
 
         i += 1
     end
