@@ -62,7 +62,7 @@ function subtree!(edge_index, D_ends, sf, prob, model, data, descendants, Ntip, 
     end
 
     prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
-    sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, save_everystep = false)
+    sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, save_everystep = false, reltol = 1e-3)
     
     sol = sol.u[end]
     c = sum(sol)
