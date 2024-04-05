@@ -13,10 +13,13 @@ import ForwardDiff
 
 ## the rest
 include("datatypes.jl")
-include("utils.jl")
 include("polytomy.jl")
 include("shiftbins.jl")
 include("display.jl")
+
+## utils
+include("utils/utils.jl")
+include("utils/logistic.jl")
 
 ## constant birth-death process
 include("bd_constant/constantBDP.jl")
@@ -34,8 +37,9 @@ include("bd_shift/birth_death_shift.jl")
 include("bd_shift/extinction.jl")
 include("bd_shift/nshifts.jl")
 include("bd_shift/analysis.jl")
-include("bd_shift/optimize_eta.jl")
-include("bd_shift/optimize_joint.jl")
+include("bd_shift/optimize_eta.jl") 
+include("bd_shift/optimize_gd.jl") ## gradient descent
+include("bd_shift/optimize_newton.jl") ### Newton's method
 include("bd_shift/shift_probability.jl")
 include("bd_shift/tip_rates.jl")
 
