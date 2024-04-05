@@ -319,3 +319,10 @@ function lrange(from::Float64, to::Float64, length::Int64 = 6)
     exp.(collect(range(log(from), log(to); length = length)))
 end
 
+function getpar(x::Float64)
+    return(x)
+end
+
+function getpar(x::ForwardDiff.Dual)
+    return(getpar(x.value)) ## recursive incase of higher-order derivatives
+end
