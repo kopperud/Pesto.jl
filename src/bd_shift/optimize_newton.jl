@@ -1,5 +1,9 @@
 export optimize_hyperparameters
 
+export ConvergenceException
+
+struct ConvergenceException <: Exception end
+
 function optimize_hyperparameters(
     data::SSEdata; 
     n = 6, 
@@ -83,9 +87,11 @@ function optimize_hyperparameters(
             global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer)#, opts)
             converged = optres.x_converged || optres.f_converged || optres.g_converged
 
-        catch y
-            if isa(y, AssertionError)
+        catch e
+            if isa(e, AssertionError)
                 println("assertion error with optimizing")
+            else
+                rethrow(e)
             end
         end
 
@@ -94,7 +100,8 @@ function optimize_hyperparameters(
     end
 
     if !converged
-        error("did not converge after $(i-1) iterations")
+        println("did not converge after $(i-1) iterations")
+        throw(ConvergenceException)
         #println("did not converge $(n_converged) times after $(i-1) iterations")
     end
     
