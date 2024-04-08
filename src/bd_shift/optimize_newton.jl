@@ -69,17 +69,21 @@ function optimize_hyperparameters(
             #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
             show_trace = false,
             iterations = 150, outer_iterations = 150)
+
+    use_random_inits = ismissing(xinit)
+
+    if use_random_inits
+        xinit = zeros(3)
+    end
     
     while !converged && i <= n_attempts
 
-        if ismissing(xinit)
-            xinit = zeros(3)
+        if use_random_inits
             xinit[1] = rand(dη)
             xinit[2] = rand(dμ)
             xinit[3] = rand(dr)
         end
             
-
         println(xinit)
         xinit_tilde = h(xinit)
 
