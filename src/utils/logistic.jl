@@ -20,3 +20,23 @@ function logistic(
     
     return(g, h) ## returns two functions
 end
+
+function logistic(
+        lower::Vector{Float64},
+        upper::Vector{Float64},
+        steepness::Float64
+    )
+
+    midpoint = (lower .+ upper) .* 0.5
+
+    g(x::Vector{T}) where {T <: Real} = begin
+        (upper .- lower) ./ (1 .+ exp.(-steepness .* (x .- midpoint))) .+ lower
+    end
+
+    h(y::Vector{T}) where {T <: Real} = begin
+        midpoint .- log.((upper .- lower) ./ (y .- lower) .- 1) ./ steepness
+    end
+
+    return(g,h)
+end
+
