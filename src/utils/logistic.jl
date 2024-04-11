@@ -28,12 +28,16 @@ function logistic(
     )
 
     midpoint = (lower .+ upper) .* 0.5
+    ## cheating a bit here, so the inverse function doesn't go to +/- Inf
+    #ϵ = 1e-20 ## an offset
 
     g(x::Vector{T}) where {T <: Real} = begin
         (upper .- lower) ./ (1 .+ exp.(-steepness .* (x .- midpoint))) .+ lower
     end
 
     h(y::Vector{T}) where {T <: Real} = begin
+        #y = [maximum([yi, li + ϵ]) for (yi, li) in zip(y, lower)]
+        #y = [minimum([yi, li - ϵ]) for (yi, li) in zip(y, upper)]
         midpoint .- log.((upper .- lower) ./ (y .- lower) .- 1) ./ steepness
     end
 

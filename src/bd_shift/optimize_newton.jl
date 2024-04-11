@@ -8,9 +8,9 @@ function optimize_hyperparameters(
     data::SSEdata; 
     n = 6, 
     sd = 0.587, 
-    n_attempts = 20,
+    n_attempts = 10,
     lower = [1e-08, 1e-04, 1e-04],
-    upper = [0.4, 2.0, 1.0],
+    upper = [0.3, 1.0, 1.0],
     xinit = missing
     )
 
@@ -18,14 +18,16 @@ function optimize_hyperparameters(
     #@assert ntips > 50
 
     ## create the logistic transform functions
-    g, h = logistic(upper, lower, 0.5)
+    #ϵ = 1e-20
+    g, h = logistic(lower, upper, 0.5)
 
     f(x_tilde::Vector{T}) where {T <: Real} = begin
+        #println([getpar(e) for e in x_tilde])
         x = g(x_tilde) ## backtransform to bounded realm
 
         η = x[1]
-        μ = x[1] + x[2]
-        λ = x[1] + x[2] + x[3]
+        μ = x[2]
+        λ = maximum([5*x[1], x[2]]) + x[3]
         #ps = [getpar(λ), getpar(μ), getpar(η)]
         #println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
         #println([getpar(e) for e in x])

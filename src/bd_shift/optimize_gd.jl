@@ -3,8 +3,8 @@ export optimize_gd
 
 function newmodel(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     η = x[1]
-    μmean = x[1] + x[2]
-    λmean = x[1] + x[2] + x[3]
+    μmean = x[2]
+    λmean = maximum([5*x[1], x[2]]) + x[3]
             
     dλ = Distributions.LogNormal(log(λmean), sd)
     dμ = Distributions.LogNormal(log(μmean), sd)
