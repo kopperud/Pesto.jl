@@ -1,5 +1,9 @@
 export extinction_probability
 
+#notneg(u,p,t) = any(x->x<0,u)
+isnegative(u,p,t) = any(x->x<0,u)
+above_one(u,p,t) = any(x -> x >= 1, u)
+
 function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE}
     alg = OrdinaryDiffEq.Tsit5()
     K = number_of_states(model)
@@ -13,6 +17,6 @@ function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE
     pr = OrdinaryDiffEq.ODEProblem{true}(ode, E0, tspan, pE);
     
     ## use low tolerance because we only solve E once, so we can afford it
-    E = OrdinaryDiffEq.solve(pr, alg, abstol = 1e-10, reltol = 1e-10)
+    E = OrdinaryDiffEq.solve(pr, alg, abstol = 1e-10, reltol = 1e-10, isoutofdomain = above_one)#, isoutofdomain = ispositive)
     return(E)
 end
