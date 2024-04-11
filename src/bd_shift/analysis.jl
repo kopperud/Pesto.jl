@@ -1,5 +1,6 @@
-## wrapper foranalysis
+## wrapper for analysis
 export pesto
+export pesto_twostep
 
 export empirical_bayes
 
@@ -17,8 +18,15 @@ function empirical_bayes(data::SSEdata; n = 6, sd = 0.587)
     return(model)
 end
 
-function pesto(data::SSEdata; n = 6, sd = 0.587)
+function pesto_twostep(data::SSEdata; n = 6, sd = 0.587)
     model = empirical_bayes(data)
+
+    rates = birth_death_shift(model, data);
+    return(model, rates)
+end
+
+function pesto(data::SSEdata; n = 6, sd = 0.587)
+    optres, model, i = optimize_hyperparameters(data; n = n, sd = sd, n_attempts = 5)
 
     rates = birth_death_shift(model, data);
     return(model, rates)
