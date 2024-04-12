@@ -21,12 +21,15 @@ include("display.jl")
 include("utils/utils.jl")
 include("utils/logistic.jl")
 
+## surface
+include("loglsurface/surface.jl")
+
 ## constant birth-death process
 include("bd_constant/constantBDP.jl")
 
 ## birth-death-shift process
 include("bd_shift/postorder.jl")
-include("bd_shift/postorder_nosave.jl")
+include("bd_shift/postorder_sync.jl")
 include("bd_shift/postorder_async.jl")
 include("bd_shift/preorder.jl")
 include("bd_shift/ODE.jl")

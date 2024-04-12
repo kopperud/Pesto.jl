@@ -20,10 +20,15 @@ function get_speciation_rates(model::SSEtimevarying, t::Float64)
 end
 
 
-function logL_root(model::SSE, data::SSEdata)
+function logL_root(model::SSE, data::SSEdata; multithread = true)
     E = extinction_probability(model, data)
     #D_ends, sf = postorder_nosave(model, data, E)
-    D, sf = postorder_async(model, data, E)
+    if multithread
+        D, sf = postorder_async(model, data, E)
+    else
+        D, sf = postorder_sync(model, data, E)
+    end
+
     root_index = length(data.tiplab)+1
     root_age = data.node_depth[root_index]
 
