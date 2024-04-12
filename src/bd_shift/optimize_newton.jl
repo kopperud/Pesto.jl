@@ -23,17 +23,25 @@ function optimize_hyperparameters(
 
     f(x_tilde::Vector{T}) where {T <: Real} = begin
         #println([getpar(e) for e in x_tilde])
+ 
         x = g(x_tilde) ## backtransform to bounded realm
-
         η = x[1]
         μ = x[2]
         λ = maximum([5*x[1], x[2]]) + x[3]
-        #ps = [getpar(λ), getpar(μ), getpar(η)]
-        #println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
+        ps = [getpar(λ), getpar(μ), getpar(η)]
+        println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
         #println([getpar(e) for e in x])
 
-        model = newmodel(x; n = n, sd = sd)
-        logl = logL_root(model, data)
+        if any((x .- lower).^2 .< 1e-30)
+            logl = -Inf
+        elseif any((x .- upper) .^2 .< 1e-30)
+            logl = -Inf
+        else
+            model = newmodel(x; n = n, sd = sd)
+            logl = logL_root(model, data)
+        end
+
+        println("logl: \t", getpar(logl))
 
 
         return(-logl)
@@ -59,9 +67,10 @@ function optimize_hyperparameters(
     dr = Distributions.LogNormal(log(0.5*rml), 0.5)
 
     ## truncate the distribution
-    dη = Distributions.Truncated(dη, lower[1], upper[1])
-    dμ = Distributions.Truncated(dμ, lower[2], upper[2])
-    dr = Distributions.Truncated(dr, lower[3], upper[3])
+    ϵ = 1e-8
+    dη = Distributions.Truncated(dη, lower[1] + ϵ, upper[1] - ϵ)
+    dμ = Distributions.Truncated(dμ, lower[2] + ϵ, upper[2] - ϵ)
+    dr = Distributions.Truncated(dr, lower[3] + ϵ, upper[3] - ϵ)
     
     inner_optimizer = Optim.Newton()
 
@@ -69,7 +78,7 @@ function optimize_hyperparameters(
             #x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
             #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
             show_trace = false,
-            iterations = 50, outer_iterations = 50)
+            iterations = 100, outer_iterations = 100)
 
     use_random_inits = ismissing(xinit)
 
