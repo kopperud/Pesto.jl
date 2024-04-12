@@ -189,4 +189,69 @@ function Pesto.treeplot(
     return(fig)
 end
 
+
+##########################################
+#
+#          plot logl surface
+#          
+##########################################
+
+
+function Pesto.plot_loglsurface(
+        vectors::Vector{Vector{Float64}},
+        logls::Vector{Matrix{Float64}};
+        offsets = [10.0, 10.0, 10.0]
+    )
+    logls = deepcopy(logls)
+
+    λs, μs, ηs = vectors
+
+    for (i, offset) in enumerate(offsets)
+        max = maximum(logls[i])    
+        #logls[i][:,:] .= logls[i][:,:] .- max ## set top to equal 0
+
+        logls[i][(logls[i] .< (max-offset))] .= max -offset
+    end
+
+    fig = Makie.Figure(size = (300, 600))
+
+    viewmode = :stretch
+    elevation = 0.3 * pi
+    #            (left,right, bottom?, top?)
+    protrusions = (50, 20, 0, 0)
+
+    ax1 = Makie.Axis3(fig[1,1], xlabel = "μ", ylabel = "η", zlabel = "logl"; viewmode, elevation, protrusions)
+    ax2 = Makie.Axis3(fig[2,1], xlabel = "λ", ylabel = "η", zlabel = "logl"; viewmode, elevation, protrusions) 
+    ax3 = Makie.Axis3(fig[3,1], xlabel = "λ", ylabel = "μ", zlabel = "logl"; viewmode, elevation, protrusions) 
+
+    methods = [
+               Makie.surface!, 
+               Makie.contour3d!
+              ]
+    for method! in methods 
+        method!(ax1, μs, ηs, logls[1])
+        method!(ax2, λs, ηs, logls[2])
+        method!(ax3, λs, μs, logls[3])
+    end
+
+    ## draw plane with a mesh (two triangles)
+    # (x, y, z)
+    ma = maximum(logls[3]) 
+    mi = minimum(logls[3]) 
+
+    p1 = Makie.Point3(minimum(λs), minimum(λs), ma)
+    p2 = Makie.Point3(maximum(λs), maximum(λs), ma)
+    p3 = Makie.Point3(minimum(λs), minimum(λs), mi)
+    p4 = Makie.Point3(maximum(λs), maximum(λs), mi)
+    
+    Makie.mesh!(ax3, [p1, p2, p3], color = (:red, 0.3), shading = Makie.automatic, transprent = true)
+    Makie.mesh!(ax3, [p2, p3, p4], color = (:red, 0.3), shading = Makie.automatic, transprent = true)
+
+    Makie.rowgap!(fig.layout, 0.0)
+    Makie.colgap!(fig.layout, 0.0)
+
+    return(fig)
+end
+
+
 end

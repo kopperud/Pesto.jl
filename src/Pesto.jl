@@ -10,6 +10,7 @@ import DataFrames
 import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
+import ProgressMeter
 
 ## the rest
 include("datatypes.jl")

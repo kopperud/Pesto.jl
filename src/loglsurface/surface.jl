@@ -13,40 +13,91 @@ function lognormal_pairwise(λmean, μmean, η; n = 6, sd = 0.587)
     return(model)
 end
 
+export plot_loglsurface
+
+function plot_loglsurface() end
+
 function logl_slice(
-        λmin::Float64, 
-        λmax::Float64,
-        μmin::Float64, 
-        μmax::Float64,
-        η::Float64,
+        λ::Vector{Float64},
+        μ::Vector{Float64},
+        η::Vector{Float64},
         data::SSEdata;
-        i = 10,
-        j = 15,
-        n = 6,
+        n_λ = 10,
+        n_μ = 11,
+        n_η = 12,
+        n_categories = 6,
         sd = 0.587
     )
+    @assert length(λ) == 3
+    @assert length(μ) == 3
+    @assert length(η) == 3
 
-    λs = collect(range(λmin, λmax; length = i))
-    μs = collect(range(μmin, μmax; length = i))
+    λ_fixed, λ_min, λ_max = λ
+    μ_fixed, μ_min, μ_max = μ
+    η_fixed, η_min, η_max = η
 
-    #prog = ProgressMeter.Progress(n*m)A
+    @assert λ_min < λ_fixed < λ_max
+    @assert μ_min < μ_fixed < μ_max
+    @assert η_min < η_fixed < η_max
 
-    logls = zeros(i, j)
+    λs = collect(range(λ_min, λ_max; length = n_λ))
+    μs = collect(range(μ_min, μ_max; length = n_μ))
+    ηs = collect(range(η_min, η_max; length = n_η))
 
-    for ii in 1:i
-        for jj in 1:j
-             
-            λ = λs[ii]
-            μ = μs[ii]
+    prog = ProgressMeter.Progress(n_λ * n_μ * n_η; desc =  "hello")
 
-            model = lognormal_pairwise(λ, μ, η; n = n, sd = sd)
-            Threads.@spawn logls[ii,jj] = logL_root(model, data, multithread = false)
-    #        Progress.next!(prog)
+    logls_fixed_lambda = zeros(n_μ, n_η)
+    logls_fixed_mu = zeros(n_λ, n_η)
+    logls_fixed_eta = zeros(n_λ, n_μ)
+
+    ## fixed lambda
+    Threads.@sync for i in 1:n_μ, j in 1:n_η
+        Threads.@spawn begin
+            μi = μs[i]
+            ηj = ηs[j]
+
+            model = lognormal_pairwise(λ_fixed, μi, ηj; n = n_categories, sd = sd)
+            logls_fixed_lambda[i, j] = logL_root(model, data, multithread = false)
+            ProgressMeter.next!(prog)
         end
     end
 
-    #Progress.Meterfinish!(prog)
+    ## fixed μ
+    Threads.@sync for i in 1:n_λ, j in 1:n_η
+        Threads.@spawn begin
+            λi = λs[i]
+            ηj = ηs[j]
 
-    return(logls)
+            model = lognormal_pairwise(λi, μ_fixed, ηj; n = n_categories, sd = sd)
+            logls_fixed_mu[i, j] = logL_root(model, data, multithread = false)
+            ProgressMeter.next!(prog)
+        end
+    end
+
+    ## fixed η
+    Threads.@sync for i in 1:n_λ, j in 1:n_μ
+        Threads.@spawn begin
+            λi = λs[i]
+            μj = μs[j]
+
+            model = lognormal_pairwise(λi, μj, η_fixed; n = n_categories, sd = sd)
+            logls_fixed_eta[i,j] = logL_root(model, data, multithread = false)
+            ProgressMeter.next!(prog)
+        end
+    end
+
+    ProgressMeter.finish!(prog)
+
+    logls = [
+             logls_fixed_lambda,
+             logls_fixed_mu,
+             logls_fixed_eta
+            ]
+
+    vectors = [
+               λs, μs, ηs
+              ]
+
+    return((vectors, logls))
 
 end
