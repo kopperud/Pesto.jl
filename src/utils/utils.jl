@@ -326,3 +326,16 @@ end
 function getpar(x::ForwardDiff.Dual)
     return(getpar(x.value)) ## recursive incase of higher-order derivatives
 end
+
+
+
+notneg(u,p,t) = any(x->x<0,u)
+
+function eltype(model::SSEconstant)
+    return(typeof(model.η))
+end
+function eltype(model::SSEtimevarying)
+    return(typeof(model.η(0.0)))
+end
+
+
