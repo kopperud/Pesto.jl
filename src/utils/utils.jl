@@ -1,5 +1,4 @@
-export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange, make_descendants, make_ancestors
-export make_descendants_nodes
+export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange, make_descendants, make_ancestors, make_descendants_nodes
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)
@@ -121,7 +120,12 @@ function make_descendants_nodes(data::SSEdata)
     rootnode = ntip + 1
     maxnode = maximum(data.edges)
 
-    descendants = Dict(node => Int64[] for node in rootnode:maxnode)
+    #descendants = Dict(node => Int64[] for node in rootnode:maxnode)
+    descendants = Dict{Int64, Vector{Int64}}()
+    for node in rootnode:maxnode
+        descendants[node] = Int64[]
+    end
+
 
     for row in eachrow(data.edges)
         anc, dec = row
