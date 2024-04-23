@@ -80,7 +80,7 @@ In this case, the most frequent rate shift was from state `2` to state `4`, with
 ```@example shift
 mids, bins = makebins(Nmatrix, model, -0.35, 0.35; nbins = 7)
 
-f = Makie.Figure(resolution = (500, 300))
+f = Makie.Figure(size = (500, 300))
 ax = Makie.Axis(f[1,1], 
         ylabel = "Number of rate shifts",
         xlabel = "Change in speciation rate (λi - λj)",

@@ -66,10 +66,10 @@ If we inspect the data frame with the branch-specific outputs, we can see specif
 
 ```@example bayes
 using DataFrames
-cutoff = 10
+cutoff = 3.2
 filter(:shift_bf => x -> x > cutoff, rates)
 ```
-The result is that one branch had strong support for there being at least one shift on the branch. The branch that led to the Old World Monkeys has decisive support (Bayes factor of 30.7). 
+The result is that there are two branches that had strong support for there being at least one shift on the branch. The branch that led to the Old World Monkeys has the highest support (Bayes factor of 6.9), while the gibbons clade (represented by Hylobates) have a slightly lower support (Bayes factor of 3.5). 
 
 In order to plot these, we can create a dummy variable and use it in the tree plotting function.
 ```@example bayes
@@ -78,7 +78,7 @@ cmap = Makie.cgrad([:black, :red])
 treeplot(primates, rates, "strong_support"; cmap = cmap)
 ```
 
-Both the phylogeny plot, as well as the filtered data frame, only show one branch that had strong support (with a Bayes factor of >10) for one or more shifts. The number of estimated diversification rate shifts ($\hat{N}$) on this branch is also significantly larger than zero, almost at 1 number of shifts.
+Both the phylogeny plot, as well as the filtered data frame, show two branches that had substantial support (with a Bayes factor of >3.2) for one or more shifts. The number of estimated diversification rate shifts ($\hat{N}$) on this branch is also significantly larger than zero, at 1.05 and 0.65.
 
 ### References
 

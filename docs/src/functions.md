@@ -59,5 +59,9 @@ readtree(path::String)
 ```
 
 ```@docs
-postorder_nosave(model::SSEconstant, data::SSEdata, E)
+postorder_async(model::SSEconstant, data::SSEdata, E)
+```
+
+```@docs
+postorder_sync(model::SSEconstant, data::SSEdata, E)
 ```
