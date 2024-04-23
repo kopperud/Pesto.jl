@@ -22,7 +22,7 @@ end
 
 function logL_root(model::SSE, data::SSEdata; multithread = true)
     E = extinction_probability(model, data)
-    #D_ends, sf = postorder_nosave(model, data, E)
+
     if multithread
         D, sf = postorder_async(model, data, E)
     else
