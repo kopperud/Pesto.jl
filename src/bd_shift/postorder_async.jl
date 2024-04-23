@@ -1,6 +1,39 @@
 export postorder_async
 
 ## async log likelihood calculation
+@doc raw"""
+    postorder_async(data)
+
+performs the postorder iteration asynchronously (left and right subtrees are run on different threads)
+
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre"))
+ρ = 0.635
+data = make_SSEdata(phy, ρ)
+
+λ = [0.3, 0.15]
+μ = [0.1, 0.2]
+η = 0.01
+
+model = SSEconstant(λ, μ, η)
+E = extinction_probability(model, data)
+
+D, sf = postorder_async(model, data, E)
+```
+The `D` is the partial likelihood at the root node. `D` is re-scaled by a factor such that it sums to one. The rescaling factor is `sf`, which is given on a log scale
+
+```julia
+julia> D
+2-element Vector{Float64}:
+ 0.013941190827498735
+ 0.9860588091725013
+
+julia> sf
+-705.9668193580866
+```
+"""
 function postorder_async(model::SSE, data::SSEdata, E)
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
