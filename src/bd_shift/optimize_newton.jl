@@ -25,11 +25,11 @@ function optimize_hyperparameters(
         #println([getpar(e) for e in x_tilde])
  
         x = g(x_tilde) ## backtransform to bounded realm
-        η = x[1]
-        μ = x[2]
-        λ = maximum([5*x[1], x[2]]) + x[3]
-        ps = [getpar(λ), getpar(μ), getpar(η)]
-        println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
+        #η = x[1]
+        #μ = x[2]
+        #λ = maximum([5*x[1], x[2]]) + x[3]
+        #ps = [getpar(λ), getpar(μ), getpar(η)]
+        #println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
         #println([getpar(e) for e in x])
 
         if any((x .- lower).^2 .< 1e-30)
@@ -41,7 +41,7 @@ function optimize_hyperparameters(
             logl = logL_root(model, data)
         end
 
-        println("logl: \t", getpar(logl))
+        #println("logl: \t", getpar(logl))
 
 
         return(-logl)
