@@ -46,6 +46,7 @@ include("bd_shift/optimize_gd.jl") ## gradient descent
 include("bd_shift/optimize_newton.jl") ### Newton's method
 include("bd_shift/shift_probability.jl")
 include("bd_shift/tip_rates.jl")
+include("bd_shift/magnitude.jl")
 
 ## input-output
 include("io/writenewick.jl")
