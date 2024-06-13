@@ -102,3 +102,32 @@ function compute_nshifts(model::SSE, data::SSEdata, Ds, Fs)
     return(nshifts)
 end
 
+
+function nshifts_simple_whole_branch(
+        model::SSE, 
+        data::SSEdata, 
+        Ds, 
+        Fs; 
+        alg = OrdinaryDiffEq.Tsit5())
+
+    nbranches = size(data.edges)[1]
+    K = number_of_states(model)    
+    nshifts = Dict() ## problem: not type stable
+    ode = shift_problem_simple(model)
+
+    for edge_idx in 1:nbranches
+        a = Ds[edge_idx].t[end]
+        b = Ds[edge_idx].t[1]
+        tspan = (a,b)
+        N0 = [0.0]
+
+        p = (model.η, K, Ds[edge_idx], Fs[edge_idx]);
+
+        prob = OrdinaryDiffEq.ODEProblem(ode, N0, tspan, p);
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
+
+        nshifts[edge_idx] = sol
+    end
+
+    return(nshifts)
+end

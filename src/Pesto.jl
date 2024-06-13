@@ -11,6 +11,7 @@ import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
 import ProgressMeter
+import Interpolations
 
 ## the rest
 include("datatypes.jl")
@@ -47,6 +48,7 @@ include("bd_shift/optimize_newton.jl") ### Newton's method
 include("bd_shift/shift_probability.jl")
 include("bd_shift/tip_rates.jl")
 include("bd_shift/magnitude.jl")
+include("bd_shift/shifts_along_branch.jl")
 
 ## input-output
 include("io/writenewick.jl")
