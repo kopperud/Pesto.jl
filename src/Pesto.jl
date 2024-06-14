@@ -11,7 +11,6 @@ import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
 import ProgressMeter
-import Interpolations
 
 ## the rest
 include("datatypes.jl")
