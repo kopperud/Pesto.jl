@@ -65,3 +65,7 @@ postorder_async(model::SSEconstant, data::SSEdata, E)
 ```@docs
 postorder_sync(model::SSEconstant, data::SSEdata, E)
 ```
+
+```@docs
+magnitude(model::SSEconstant, data::SSEdata)
+```
