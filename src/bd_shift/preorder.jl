@@ -24,10 +24,11 @@ function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5()
     for m in reverse(data.po)
         anc = data.edges[m,1]
         dec = data.edges[m,2]
-        
+       
         ## if root
         if anc == root_node
-            F_parent = ones(elt, K)
+            F_parent = ones(elt, K) ./ K
+
             left_edge, right_edge = descendants[root_node]
             root_age = maximum(data.node_depth)
             λroot = get_speciation_rates(model, root_age)
