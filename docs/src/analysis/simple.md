@@ -4,12 +4,12 @@ Here is an example of an analysis of branch-specific rates under the birth-death
 
 ## Tree file
 
-First, we load the necessary modules and read in the tree file.
+First, we load the necessary modules and read in the tree file. We assume that we know the total number of extant species, and using that we can calculate the sampling fraction.
 
 ```@setup simple
 using Pesto
 
-ρ = 0.635
+sampling_fraction = 0.635
 
 include("../../src/primates.jl")
 ```
@@ -17,8 +17,8 @@ include("../../src/primates.jl")
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_fraction = 0.635
+primates = SSEdata(phy, sampling_fraction)
 ```
 
 ## Analysis

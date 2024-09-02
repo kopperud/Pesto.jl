@@ -4,13 +4,13 @@ In this vignette we go a little more in-depth and explain how the number of rate
 
 ### Tree file
 
-First, we load the necessary modules and read in the tree file.
+First, we load the necessary modules and read in the tree file. We assume that we know the total number of extant species, and using that we can calculate the sampling fraction.
 
 ```@setup shift
 using Pesto
 using CairoMakie
 
-ρ = 0.635
+sampling_fraction = 0.635
 
 include("../../src/primates.jl")
 ```
@@ -19,8 +19,8 @@ using Pesto
 using CairoMakie
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_fraction = 0.635
+primates = SSEdata(phy, sampling_fraction)
 ```
 
 ### Model setup

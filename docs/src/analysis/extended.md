@@ -4,12 +4,12 @@ In this vignette, we will do the same as in the simple analysis, but we explain 
 
 ## Tree file
 
-First, we load the necessary modules and read in the tree file.
+First, we load the necessary modules and read in the tree file. We assume that we know the total number of extant species, and using that we can calculate the sampling fraction.
 
 ```@setup extended
 using Pesto
 
-ρ = 0.635
+sampling_fraction = 0.635
 
 include("../../src/primates.jl")
 ```
@@ -17,8 +17,8 @@ include("../../src/primates.jl")
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_fraction = 0.635
+primates = SSEdata(phy, sampling_fraction)
 ```
 
 ## Model choice

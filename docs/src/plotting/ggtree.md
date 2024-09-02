@@ -4,12 +4,12 @@ Here is an example of how the results can be plotted using `ggtree` in `R`.
 
 ## Tree file
 
-First, we load the necessary modules, read in the tree file, and do a quick analysis.
+First, we load the necessary modules, read in the tree file, and do a quick analysis. We assume that we know the total number of extant species, and using that we can calculate the sampling fraction.
 
 ```@setup simple
 using Pesto
 
-ρ = 0.635
+sampling_fraction = 0.635
 
 include("../../src/primates.jl")
 model, rates = pesto(primates)
@@ -18,8 +18,8 @@ model, rates = pesto(primates)
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_fraction = 0.635
+primates = SSEdata(phy, sampling_fraction)
 model, rates = pesto(primates)
 nothing # hide
 ```
