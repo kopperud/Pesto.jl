@@ -167,14 +167,29 @@ function make_quantiles3(d, k)
     return(quantiles)
 end
 
+@doc raw"""
+    SSEdata(phy, ρ)
 
+Example:
+```julia
+using Pesto
+phy = readtree(Pesto.path("primates.tre")) 
+ρ = 0.635  
+data = SSEdata(phy, ρ) 
+```
+"""
 function SSEdata(phy::phylo, ρ::Float64)
-    make_SSEdata(phy, ρ)
+    make_SSEdata(phy, "", ρ; include_traits = false)
 end
 
 function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits = true)
     if contains_polytomies(phy)
-        throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
+        #throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
+        throw(PolytomyError())
+    end
+
+    if !is_ultrametric(phy)
+        @warn "asd" "Your tree appears to not be ultrametric. Check if this is a rounding error issue, or if it really is not ultrametric. Pesto only works for ultrametric trees."
     end
    
     if include_traits
@@ -193,40 +208,47 @@ function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits 
     po = phy.po
     Nnode = phy.Nnode
 
+    if any(el .< 0)
+        throw(NegativeBranchError())
+    end
+
     data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
     return(data)
 end
 
-@doc raw"""
-    make_SSEdata(phy, ρ)
-
-Example:
-```julia
-using Pesto
-phy = readtree(Pesto.path("primates.tre")) 
-ρ = 0.635  
-data = make_SSEdata(phy, ρ) 
-```
-"""
+#=
 function make_SSEdata(phy::phylo, ρ::Float64)
+    if contains_polytomies(phy)
+        throw(PolytomyError())
+        #throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
+    end
+
+    if !is_ultrametric(phy)
+        @warn "Your tree appears to not be ultrametric. Check if this is a rounding error issue or if it really is not ultrametric. Pesto only works for ultrametric trees."
+    end
+
     trait_data = Dict(taxon => "?" for taxon in phy.tip_label)
 
     node_depth = phy.node_depths
     tiplab = phy.tip_label
     branching_times = phy.branching_times
 
-    state_space = NaN
+    #state_space = NaN
+    state_space = String["?"]
     edges = convert.(Int64, phy.edge)
     el = phy.edge_length
     po = phy.po
-    if any(el .< 0)
-        throw(error("Tree includes negative branch lengths."))
-    end
     Nnode = phy.Nnode
+
+    if any(el .< 0)
+        throw(NegativeBranchError())
+        #throw(error("Tree includes negative branch lengths."))
+    end
 
     data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
     return(data)
 end
+=#
 
 function partition_postorder_indices(data)
     ancestor_node = Dict(val => key for (key, val) in eachrow(data.edges))

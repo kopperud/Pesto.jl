@@ -14,7 +14,7 @@ import ProgressMeter
 
 ## the rest
 include("datatypes.jl")
-include("polytomy.jl")
+include("treechecks.jl")
 include("shiftbins.jl")
 include("display.jl")
 
@@ -59,6 +59,9 @@ include("rcall/rconvert.jl")
 
 ## plot
 include("plot/plot_tree.jl")
+
+## custom exceptions
+include("errors.jl")
 
 # Path into package
 export path
