@@ -189,7 +189,7 @@ function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits 
     end
 
     if !is_ultrametric(phy)
-        @warn "asd" "Your tree appears to not be ultrametric. Check if this is a rounding error issue, or if it really is not ultrametric. Pesto only works for ultrametric trees."
+        @warn "Your tree appears to not be ultrametric. Check if this is a rounding error issue, or if it really is not ultrametric. Pesto only works for ultrametric trees."
     end
    
     if include_traits
