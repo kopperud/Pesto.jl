@@ -1,4 +1,4 @@
-export make_SSEdata, make_quantiles, make_SSEdata2, allpairwise, lrange, make_descendants, make_ancestors, make_descendants_nodes
+export make_SSEdata, make_quantiles, SSEdata, allpairwise, lrange, make_descendants, make_ancestors, make_descendants_nodes
 
 function descendant_nodes(node, data)
     desc_edge_idxs = findall(data.edges[:,1] .== node)

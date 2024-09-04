@@ -33,7 +33,7 @@ Example:
 
 phy = readtrees(Pesto.path("bears.tre"))
 ρ = 1.0
-data = make_SSEdata2(phy, ρ)
+data = make_SSEdata(phy, ρ)
 
 lp(λ, μ, data)
 ```
@@ -117,7 +117,7 @@ Example:
 ```julia
 phy = readtree(Pesto.path("primates.tre"))
 ρ = 0.67
-data = make_SSEdata2(phy, ρ)
+data = make_SSEdata(phy, ρ)
 
 λml, μml = estimate_constant_bdp(data)
 ```

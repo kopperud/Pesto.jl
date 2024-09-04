@@ -47,7 +47,7 @@ writenewick(fpath::String, data::SSEdata, rates::DataFrames.DataFrame)
 ```
 
 ```@docs
-make_SSEdata(phy::Pesto.phylo, ρ::Float64)
+SSEdata(phy::Pesto.phylo, ρ::Float64)
 ```
 
 ```@docs
