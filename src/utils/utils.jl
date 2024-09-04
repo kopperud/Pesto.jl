@@ -212,6 +212,10 @@ function make_SSEdata(phy::phylo, datafile::String, sampling_probability::Float6
         throw(NegativeBranchError())
     end
 
+    if any(el .< 1e-6)
+        @warn "Your tree has some branch lengths that are very short (<0.000001). Check if this is really is a good representation of the divergence times."
+    end
+
     data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, sampling_probability, el, branching_times, po, Nnode)
     return(data)
 end
