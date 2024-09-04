@@ -216,39 +216,6 @@ function make_SSEdata(phy::phylo, datafile::String, sampling_probability::Float6
     return(data)
 end
 
-#=
-function make_SSEdata(phy::phylo, sampling_probability::Float64)
-    if contains_polytomies(phy)
-        throw(PolytomyError())
-        #throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
-    end
-
-    if !is_ultrametric(phy)
-        @warn "Your tree appears to not be ultrametric. Check if this is a rounding error issue or if it really is not ultrametric. Pesto only works for ultrametric trees."
-    end
-
-    trait_data = Dict(taxon => "?" for taxon in phy.tip_label)
-
-    node_depth = phy.node_depths
-    tiplab = phy.tip_label
-    branching_times = phy.branching_times
-
-    #state_space = NaN
-    state_space = String["?"]
-    edges = convert.(Int64, phy.edge)
-    el = phy.edge_length
-    po = phy.po
-    Nnode = phy.Nnode
-
-    if any(el .< 0)
-        throw(NegativeBranchError())
-        #throw(error("Tree includes negative branch lengths."))
-    end
-
-    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, sampling_probability, el, branching_times, po, Nnode)
-    return(data)
-end
-=#
 
 function partition_postorder_indices(data)
     ancestor_node = Dict(val => key for (key, val) in eachrow(data.edges))
