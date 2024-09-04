@@ -32,30 +32,30 @@ Example:
 μ = 0.5
 
 phy = readtrees(Pesto.path("bears.tre"))
-ρ = 1.0
-data = make_SSEdata(phy, ρ)
+sampling_probability = 1.0
+data = make_SSEdata(phy, sampling_probability)
 
 lp(λ, μ, data)
 ```
 """
 function lp(λ, μ, data::SSEdata)
-    ρ = data.ρ
+    sampling_probability = data.sampling_probability
 
     ts = data.branching_times
     n = length(ts)
 
-    logL = (n+1) * log(ρ) + log(ψ(ts[1], λ, μ, ρ))
-    logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, ρ))
+    logL = (n+1) * log(sampling_probability) + log(ψ(ts[1], λ, μ, sampling_probability))
+    logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, sampling_probability))
 
 #    res = zeros(typeof(λ), n)
     #Threads.@threads for i in 1:n
     for i in 1:n
-        logL += log(λ) + log(ψ(ts[i], λ, μ, ρ))
-#        res[i] = log(λ) + log(ψ(ts[i], λ, μ, ρ))
+        logL += log(λ) + log(ψ(ts[i], λ, μ, sampling_probability))
+#        res[i] = log(λ) + log(ψ(ts[i], λ, μ, sampling_probability))
     end
 #   logL = sum(res)
-#   logL += (n+1) * log(ρ) + log(ψ(ts[1], λ, μ, ρ))
-#   logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, ρ))
+#   logL += (n+1) * log(sampling_probability) + log(ψ(ts[1], λ, μ, sampling_probability))
+#   logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, sampling_probability))
 
     return(logL)
 end
@@ -76,17 +76,17 @@ We use this one, simplified where `s = 0`
 Example:
 
 ```julia
-ρ = 1.0
+sampling_probability = 1.0
 λ = 1.0
 μ = 0.5
 t = 0.1
 
-ψ(t, λ, μ, ρ)
+ψ(t, λ, μ, sampling_probability)
 ```
 """
-function ψ(t, λ, μ, ρ)
+function ψ(t, λ, μ, sampling_probability)
     nom = exp(t * (λ - μ))
-    denom = 1 + ((ρ * λ) /(λ - μ)) * (exp(t * (λ - μ)) - 1)
+    denom = 1 + ((sampling_probability * λ) /(λ - μ)) * (exp(t * (λ - μ)) - 1)
     res = nom / (denom*denom)
 
     return res
@@ -99,9 +99,9 @@ from Morlon et al. 2011 [PNAS], eq. S4
 E(t) = 1 - \frac{\exp(t(\lambda - \mu))}{\frac{1}{\rho} + \frac{\lambda}{\lambda -\mu} \Big ( \exp((\lambda - \mu)t) - 1 \Big)}
 ```
 """
-function Econstant(t, λ, μ, ρ)
+function Econstant(t, λ, μ, sampling_probability)
     nom = exp((λ - μ) * t)
-    denom = (1 / ρ) + (λ / (λ - μ)) * (exp((λ - μ)*t) - 1)
+    denom = (1 / sampling_probability) + (λ / (λ - μ)) * (exp((λ - μ)*t) - 1)
 
     res = 1 - nom/denom
     return res
@@ -116,8 +116,8 @@ Example:
 
 ```julia
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.67
-data = make_SSEdata(phy, ρ)
+sampling_probability = 0.67
+data = make_SSEdata(phy, sampling_probability)
 
 λml, μml = estimate_constant_bdp(data)
 ```

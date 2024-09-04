@@ -10,8 +10,8 @@ Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-data = make_SSEdata(phy, ρ)
+sampling_probability = 0.635
+data = make_SSEdata(phy, sampling_probability)
 
 λ = [0.3, 0.15]
 μ = [0.1, 0.2]
@@ -89,7 +89,7 @@ function subtree(edge_index, prob, model, data, descendants, Ntip, K, elt)
 
     local sf_left, sf_right
     if dec <= Ntip
-        u0 = ones(elt, K) .* data.ρ
+        u0 = ones(elt, K) .* data.sampling_probability
         sf_left = 0.0
         sf_right = 0.0
     else
@@ -176,7 +176,7 @@ function subtree!(edge_index, D_ends, sf, prob, model, data, descendants, Ntip, 
     tspan = (node_age, parent_node_age)  
 
     if dec <= Ntip
-        u0 = ones(elt, K) .* data.ρ
+        u0 = ones(elt, K) .* data.sampling_probability
     else
         left_edge, right_edge = descendants[dec]
         

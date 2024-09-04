@@ -17,9 +17,9 @@ end
 function Base.Multimedia.display(data::SSEdata)
     n = data.Nnode
     ntip = length(data.tiplab)
-    ρ = data.ρ
+    sampling_probability = data.sampling_probability
 
-    println("Rooted phylogenetic tree with $ntip tips and $n internal nodes, and sampling fraction ρ = $ρ.\n")
+    println("Rooted phylogenetic tree with $ntip tips and $n internal nodes, and sampling fraction sampling_probability = $sampling_probability.\n")
     println("Tip labels:")
     print("\t")
     for i in 1:minimum((ntip, 6))

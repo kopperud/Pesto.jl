@@ -34,10 +34,10 @@ function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
             trait_value = data.trait_data[species]
 
             if trait_value == "?" ## If we don't know or or didn't observe the trait
-                D = repeat([1.0], n) .* data.ρ                
+                D = repeat([1.0], n) .* data.sampling_probability                
             else ## If we observed the trait and measured it 
                 trait_idx = convert.(Float64, trait_value .== data.state_space)
-                D = trait_idx .* data.ρ
+                D = trait_idx .* data.sampling_probability
             end
 
             u0 = elt.(D)

@@ -11,7 +11,7 @@ function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE
 
     tree_height = maximum(data.node_depth)
     tspan = (0.0, tree_height)
-    E0 = repeat([1.0 - data.ρ], K)
+    E0 = repeat([1.0 - data.sampling_probability], K)
     
     ode = extinction_prob(model)
     pr = OrdinaryDiffEq.ODEProblem{true}(ode, E0, tspan, pE);

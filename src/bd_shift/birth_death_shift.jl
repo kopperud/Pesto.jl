@@ -13,8 +13,8 @@ Example:
 using Pesto
 
 phy = readtree(Pesto.path("bears.tre")) 
-ρ = 1.0  
-data = make_SSEdata(phy, "", ρ; include_traits = false) 
+sampling_probability = 1.0  
+data = make_SSEdata(phy, "", sampling_probability; include_traits = false) 
 λ = [0.1, 0.2] 
 μ = [0.05, 0.15] 
 

@@ -12,8 +12,8 @@ Example:
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_probability = 0.635
+primates = SSEdata(phy, sampling_probability)
 
 λ = [0.1, 0.2, 0.3, 0.4, 0.20]
 μ = [0.05, 0.15, 0.05, 0.15, 0.25]

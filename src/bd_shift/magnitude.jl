@@ -13,8 +13,8 @@ Example:
 
 ```julia
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-primates = SSEdata(phy, ρ)
+sampling_probability = 0.635
+primates = SSEdata(phy, sampling_probability)
 
 λ = [0.05, 0.15, 0.25]
 μ = [0.03, 0.08, 0.05]

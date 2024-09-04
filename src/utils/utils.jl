@@ -15,8 +15,8 @@ Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-data = make_SSEdata(phy, ρ)
+sampling_probability = 0.635
+data = make_SSEdata(phy, sampling_probability)
 
 make_ancestors(data)
 ```
@@ -55,8 +55,8 @@ Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-data = make_SSEdata(phy, ρ)
+sampling_probability = 0.635
+data = make_SSEdata(phy, sampling_probability)
 
 make_descendants(data)
 ```
@@ -109,8 +109,8 @@ Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre"))
-ρ = 0.635
-data = make_SSEdata(phy, ρ)
+sampling_probability = 0.635
+data = make_SSEdata(phy, sampling_probability)
 
 make_descendants_nodes(data)
 ```
@@ -168,21 +168,21 @@ function make_quantiles3(d, k)
 end
 
 @doc raw"""
-    SSEdata(phy, ρ)
+    SSEdata(phy, sampling_probability)
 
 Example:
 ```julia
 using Pesto
 phy = readtree(Pesto.path("primates.tre")) 
-ρ = 0.635  
-data = SSEdata(phy, ρ) 
+sampling_probability = 0.635  
+data = SSEdata(phy, sampling_probability) 
 ```
 """
-function SSEdata(phy::phylo, ρ::Float64)
-    make_SSEdata(phy, "", ρ; include_traits = false)
+function SSEdata(phy::phylo, sampling_probability::Float64)
+    make_SSEdata(phy, "", sampling_probability; include_traits = false)
 end
 
-function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits = true)
+function make_SSEdata(phy::phylo, datafile::String, sampling_probability::Float64; include_traits = true)
     if contains_polytomies(phy)
         #throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
         throw(PolytomyError())
@@ -212,12 +212,12 @@ function make_SSEdata(phy::phylo, datafile::String, ρ::Float64; include_traits 
         throw(NegativeBranchError())
     end
 
-    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
+    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, sampling_probability, el, branching_times, po, Nnode)
     return(data)
 end
 
 #=
-function make_SSEdata(phy::phylo, ρ::Float64)
+function make_SSEdata(phy::phylo, sampling_probability::Float64)
     if contains_polytomies(phy)
         throw(PolytomyError())
         #throw("Your tree is not a binary tree (it has hard polytomies). This program does not support trees with hard polytomies.")
@@ -245,7 +245,7 @@ function make_SSEdata(phy::phylo, ρ::Float64)
         #throw(error("Tree includes negative branch lengths."))
     end
 
-    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, ρ, el, branching_times, po, Nnode)
+    data = SSEdata(state_space, trait_data, edges, tiplab, node_depth, sampling_probability, el, branching_times, po, Nnode)
     return(data)
 end
 =#
