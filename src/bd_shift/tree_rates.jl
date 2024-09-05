@@ -26,35 +26,52 @@ function tree_rates(data, model; n = 10)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
+function posterior_variance(rate_categories::Vector{Float64}, St::Vector{Float64})#data::SSEdata, model::SSEconstant, Ss, t::Float64)
+    m = LinearAlgebra.dot(rate_categories, St) 
+
+    var = sum((rate_categories .- m) .^2 .* St)
+    return(var)
+end
+
 function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
-    rates = zeros(size(data.edges)[1], 8)
+    rates = zeros(size(data.edges)[1], 12)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
     Threads.@threads for i = 1:size(data.edges)[1]
     #for i = 1:size(data.edges)[1]
         t0, t1 = extrema(Fs[i].t)
+        ## t0 is youngest, t1 is oldest
 
+        ## posterior mean rate
         rates[i,1] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
         rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
 
+        ## posterior variance
+        rates[i, 5] = meanbranch(t -> posterior_variance(model.λ, Ss[i](t)), t0, t1, x, w)
+        rates[i, 6] = meanbranch(t -> posterior_variance(model.μ, Ss[i](t)), t0, t1, x, w)
+        rates[i, 7] = meanbranch(t -> posterior_variance(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
+        rates[i, 8] = meanbranch(t -> posterior_variance(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+
         ## difference from oldest to youngest point on branch
-        ## t0 is youngest, t1 is oldest
-        rates[i,5] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
-        rates[i,6] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
-        rates[i,7] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
-        rates[i,8] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+        rates[i,9] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+        rates[i,10] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+        rates[i,11] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+        rates[i,12] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
     end
     node = data.edges[:,2]
     edge = 1:size(data.edges)[1]
-    names = ["mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
-            "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"]
+    names = [
+         "mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
+         "var_lambda", "var_mu", "var_netdiv", "var_relext",
+         "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"
+        ]
     df = DataFrames.DataFrame(rates, names)
     df[!, "node"] = node
     df[!, "edge"] = edge
     root_index = length(data.tiplab)+1
-    push!(df, [NaN NaN NaN NaN NaN NaN NaN NaN root_index 0])
+    push!(df, vcat(repeat([NaN], length(names)), root_index, 0))
     return(df)
 end
 
