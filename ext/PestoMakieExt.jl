@@ -166,13 +166,17 @@ function Pesto.treeplot(
     if !isnothing(rate_name)
         @assert rate_name in names(rates) "rate name must be equal to one of the column names in the rates data frame"
     end
+
+    rates = deepcopy(rates)
+    sort!(rates, :edge)
+
     #cmap = Makie.cgrad(:Spectral, 5, categorical = true)
 
     fig = Makie.Figure()
     ax = Makie.Axis(fig[1,1])
     Pesto.treeplot!(ax, data, rates, rate_name, cmap; tip_label = tip_label, tip_label_size = tip_label_size)
     if !isnothing(rate_name)
-        Makie.Colorbar(fig[0,1], limits = extrema(rates[1:end-1, Symbol(rate_name)]), label = rate_name, colormap = cmap, vertical = false)
+        Makie.Colorbar(fig[0,1], limits = extrema(rates[2:end, Symbol(rate_name)]), label = rate_name, colormap = cmap, vertical = false)
         Makie.rowgap!(fig.layout, 2.0)
     end
     return(fig)
