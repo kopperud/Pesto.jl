@@ -34,7 +34,7 @@ function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = tru
         #nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
         nshift = state_shifts_simple(model, data, Ds, Fs)
         append!(nshift, 0.0)
-        rates[!,"nshift"] = nshift
+        rates![!,:nshift] = nshift
     end
 
     if shift_bayes_factor

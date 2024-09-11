@@ -76,8 +76,9 @@ function number_of_shifts_simple!(dN, N, p, t)
     Ft = F(t)
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))
- 
-    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
+
+    ## [1] is the number of rate shifts, dN(t)/dt
+    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) - 1.0)
 end
 
 function number_of_shifts_simple_tv!(dN, N, p, t)
@@ -88,7 +89,8 @@ function number_of_shifts_simple_tv!(dN, N, p, t)
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η(t)/(K-1.0))
  
-    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) -1)
+    ## [1] is the number of rate shifts, dN(t)/dt
+    dN[1] = r * (sum(Dt .* sum(St ./ Dt)) - 1.0)
 end
 
 

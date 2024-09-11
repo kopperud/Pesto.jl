@@ -49,10 +49,10 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
         rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
 
         ## posterior variance
-        rates[i, 5] = meanbranch(t -> posterior_variance(model.λ, Ss[i](t)), t0, t1, x, w)
-        rates[i, 6] = meanbranch(t -> posterior_variance(model.μ, Ss[i](t)), t0, t1, x, w)
-        rates[i, 7] = meanbranch(t -> posterior_variance(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
-        rates[i, 8] = meanbranch(t -> posterior_variance(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+        rates[i, 5] = sqrt.(meanbranch(t -> posterior_variance(model.λ, Ss[i](t)), t0, t1, x, w))
+        rates[i, 6] = sqrt.(meanbranch(t -> posterior_variance(model.μ, Ss[i](t)), t0, t1, x, w))
+        rates[i, 7] = sqrt.(meanbranch(t -> posterior_variance(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w))
+        rates[i, 8] = sqrt.(meanbranch(t -> posterior_variance(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w))
 
         ## difference from oldest to youngest point on branch
         rates[i,9] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
@@ -64,7 +64,7 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
     edge = 1:size(data.edges)[1]
     names = [
          "mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
-         "var_lambda", "var_mu", "var_netdiv", "var_relext",
+         "std_lambda", "std_mu", "std_netdiv", "std_relext",
          "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"
         ]
     df = DataFrames.DataFrame(rates, names)

@@ -21,6 +21,7 @@ function state_shifts_simple(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDi
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
+
         N0 = [0.0]
 
         p = (model.η, K, Ds[edge_idx], Fs[edge_idx]);
@@ -33,6 +34,7 @@ function state_shifts_simple(model::SSE, data::SSEdata, Ds, Fs; alg = OrdinaryDi
 
     return(nshifts)
 end
+
 
 function reorder_ape(nshifts::Array{Float64, 1}, data::SSEdata)
     ancestors = make_ancestors(data)
@@ -119,7 +121,8 @@ function nshifts_simple_whole_branch(
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)
-        N0 = [0.0]
+
+        N0 = Float64[0.0] 
 
         p = (model.η, K, Ds[edge_idx], Fs[edge_idx]);
 
