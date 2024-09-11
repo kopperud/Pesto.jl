@@ -166,7 +166,45 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
 end
 =#
 
-function posterior_shift_prob_categories(model::SSE, D, K, ode, alg)
+#notneg(u,p,t) = any(x->x<0,u)
+between0and1(u,p,t) = any(x -> (x < 0.0) || (x > 1.0), u)
+
+function noshiftprob5_log(du, u, p, t)
+    η, K, D = p
+
+    r = η / (K - 1.0)
+    Dt = D(t)
+
+    du[:] .= r .* (sum(Dt) .- Dt) ./ Dt
+end
+
+#is_not_pos(u,p,t) = any(x -> x > 0, u)
+
+function posterior_shift_prob_categories(model::SSEconstant, D, K, ode, alg)
+    t0 = D.t[1]
+    t1 = D.t[end]
+    tspan = (t1, t0)
+
+    p = (model.η, K, D);
+    #u0 = ones(K);
+    u0 = zeros(K);
+    prob = OrdinaryDiffEq.ODEProblem(noshiftprob5_log, u0, tspan, p);
+
+    sol = OrdinaryDiffEq.solve(
+        prob, 
+        alg, 
+        #isoutofdomain = is_not_pos, ## log probs must 0 or smaller
+        save_everystep = false);
+    logX = sol.u[end]
+
+    X = exp.(logX)
+    # liitle hack here
+    #X[X .> 1.0] .= 1.0
+
+    return(X)
+end
+
+function posterior_shift_prob_categories2(model::SSE, D, K, ode, alg)
     t0 = D.t[1]
     t1 = D.t[end]
     tspan = (t1, t0)
@@ -178,11 +216,17 @@ function posterior_shift_prob_categories(model::SSE, D, K, ode, alg)
     sol = OrdinaryDiffEq.solve(
         prob, 
         alg, 
-        isoutofdomain = notneg, ## probabilities must be non-negative
+        #isoutofdomain = notneg, ## probabilities must be non-negative
+        isoutofdomain = between0and1, ## probabilities must bt 0 and 1
         save_everystep = false);
     X = sol.u[end]
+
+    # liitle hack here
+    X[X .> 1.0] .= 1.0
+
     return(X)
 end
+
 
 function posterior_shift_prob(model::SSE, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5() 
