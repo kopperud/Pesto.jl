@@ -75,6 +75,7 @@ function posterior_shift_prob_difference_eq(model, data; n_knots = 20)
     return(shift_prob)
 end
 
+#=
 function no_shifts_prob(dlnX, lnX, p, t)
     D, F, η, K = p
     Dt = D(t)
@@ -89,6 +90,35 @@ function no_shifts_prob_tv(dlnX, lnX, p, t)
     Dt = D(t)
     dlnX[1] = sum((η(t)/(K-1)) .* S(t) .* (sum(Dt) .- Dt) ./ Dt)
 end
+=#
+
+function no_shifts_prob(du, u, p, t)
+    η, K, D = p
+
+    r = η / (K-1.0)
+    Dt = D(t)
+    Dsum = sum(Dt)
+
+    du[:] = r .* u .* (sum(Dt) .- Dt) ./ Dt
+    #for i in 1:K
+    #    du[i] = r * u[i] * (Dsum - Dt[i]) / Dt[i]
+    #end
+end
+
+function no_shifts_prob_tv(du, u, p, t)
+    η, K, D = p
+
+    r = η(t) / (K-1.0)
+    Dt = D(t)
+    Dsum = sum(Dt)
+
+    du[:] = r .* u .* (sum(Dt) .- Dt) ./ Dt
+    #for i in 1:K
+    #    du[i] = r * u[i] * (Dsum - Dt[i]) / Dt[i]
+    #end
+end
+
+
 
 function no_shifts_problem(model::SSEconstant)
     return(no_shifts_prob)
@@ -100,7 +130,7 @@ end
 
 isneg(u,p,t) = any(x->x>0,u)
 
-
+#=
 function posterior_shift_prob(model::SSE, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5()
     ## there is no point in factoring this out, because the rest of the function is much slower
@@ -133,6 +163,50 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
     end
     prob_atleast_one_shift = 1.0 .- exp.(lnX)
     return(prob_atleast_one_shift)
+end
+=#
+
+function posterior_shift_prob_categories(model::SSE, D, K, ode, alg)
+    t0 = D.t[1]
+    t1 = D.t[end]
+    tspan = (t1, t0)
+
+    p = (model.η, K, D);
+    u0 = ones(K);
+    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p);
+
+    sol = OrdinaryDiffEq.solve(
+        prob, 
+        alg, 
+        isoutofdomain = notneg, ## probabilities must be non-negative
+        save_everystep = false);
+    X = sol.u[end]
+    return(X)
+end
+
+function posterior_shift_prob(model::SSE, data::SSEdata)
+    alg = OrdinaryDiffEq.Tsit5() 
+    Ds, Fs = backwards_forwards_pass(model, data);
+
+    n_edges = length(data.branch_lengths)
+
+    K = number_of_states(model)
+    X = zeros(n_edges)
+    ode = no_shifts_problem(model)
+    
+    Threads.@threads for edge_index in 1:n_edges
+        D = Ds[edge_index];
+        F = Fs[edge_index];
+        t1 = D.t[end]
+    
+        Xt0 = posterior_shift_prob_categories(model, D, K, ode, alg)
+        St = ancestral_state_probability(D(t1), F(t1), t1)
+
+        #X[edge_index] = sum(sol.u[end] .* St)
+        X[edge_index] = sum(Xt0 .* St)
+    end
+    prob_atleast_one_shift = 1.0 .- X
+    
 end
 
 ## https://en.wikipedia.org/wiki/Poisson_distribution
