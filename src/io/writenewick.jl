@@ -19,6 +19,8 @@ primates = SSEdata(phy, sampling_probability)
 μ = [0.05, 0.15, 0.05, 0.15, 0.25]
 η = 1 / tree_length
 
+model = SSEconstant(λ, μ, η)
+
 rates = birth_death_shift(model, primates)
 
 writenewick("/tmp/newick.tre", primates, rates)

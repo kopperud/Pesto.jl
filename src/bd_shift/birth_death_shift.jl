@@ -5,7 +5,7 @@ export plottree
 @doc raw"""
     birth_death_shift(model, data)
 
-Calculates average branch rates under the birth-death-shift model with a finite state space.
+Calculates average branch rates under the birth-death-shift model with a discrete rate categories.
 
 Example:
 
@@ -14,14 +14,14 @@ using Pesto
 
 phy = readtree(Pesto.path("bears.tre")) 
 sampling_probability = 1.0  
-data = make_SSEdata(phy, "", sampling_probability; include_traits = false) 
-λ = [0.1, 0.2] 
-μ = [0.05, 0.15] 
+bears = SSEdata(phy, sampling_probability)
 
+λ = [0.1, 0.2] 
+μ = [0.05, 0.12] 
 η = 0.05 
 model = SSEconstant(λ, μ, η)
 
-res = birth_death_shift(model, data)
+rates = birth_death_shift(model, bears)
 ```
 """
 function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = true) 
