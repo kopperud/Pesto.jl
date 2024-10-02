@@ -19,7 +19,7 @@ data = SSEdata(phy, sampling_probability)
 
 ηml = optimize_eta(λ, μ, data)
 
-#model = SSEconstant(λ, μ, ηml)
+#model = BDSconstant(λ, μ, ηml)
 ```
 11
 """

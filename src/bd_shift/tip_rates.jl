@@ -1,6 +1,6 @@
 export tip_rates
 
-function tip_rates(model::SSEconstant, data::SSEdata, Ds, Fs)
+function tip_rates(model::BDSconstant, data::SSEdata, Ds, Fs)
     Ss = ancestral_state_probabilities(data, Ds, Fs)
     ntips = length(data.tiplab)
     ancestors = make_ancestors(data)
@@ -31,7 +31,7 @@ function tip_rates(model::SSEconstant, data::SSEdata, Ds, Fs)
     return(df)
 end
 
-function tip_rates(model::SSEconstant, data::SSEdata)
+function tip_rates(model::BDSconstant, data::SSEdata)
     Ds, Fs = backwards_forwards_pass(model, data)
 
     tip_rates(model, data, Ds, Fs)

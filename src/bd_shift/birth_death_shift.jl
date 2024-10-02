@@ -19,7 +19,7 @@ bears = SSEdata(phy, sampling_probability)
 λ = [0.1, 0.2] 
 μ = [0.05, 0.12] 
 η = 0.05 
-model = SSEconstant(λ, μ, η)
+model = BDSconstant(λ, μ, η)
 
 rates = birth_death_shift(model, bears)
 ```

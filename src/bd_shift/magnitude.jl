@@ -20,20 +20,20 @@ primates = SSEdata(phy, sampling_probability)
 μ = [0.03, 0.08, 0.05]
 η = 0.003
 
-model = SSEconstant(λ, μ, η)
+model = BDSconstant(λ, μ, η)
 
 mag = magnitude(model, primates)
 println(mag)
 ```
 """
-function magnitude(model::SSE, data::SSEdata)
+function magnitude(model::Model, data::SSEdata)
     N = state_shifts(model, data)
     mag = magnitude(model, data, N)
 
     return(mag)
 end
 
-function magnitude(model::SSE, data::SSEdata, N::Array{Float64, 3})
+function magnitude(model::Model, data::SSEdata, N::Array{Float64, 3})
     N = sum(N, dims = 1)[1,:,:]
 
     r = model.λ .- model.μ

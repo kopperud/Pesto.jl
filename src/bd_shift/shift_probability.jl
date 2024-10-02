@@ -120,18 +120,18 @@ end
 
 
 
-function no_shifts_problem(model::SSEconstant)
+function no_shifts_problem(model::BDSconstant)
     return(no_shifts_prob)
 end
 
-function no_shifts_problem(model::SSEtimevarying)
+function no_shifts_problem(model::BDStimevarying)
     return(no_shifts_prob_tv)
 end
 
 isneg(u,p,t) = any(x->x>0,u)
 
 #=
-function posterior_shift_prob(model::SSE, data::SSEdata)
+function posterior_shift_prob(model::Model, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5()
     ## there is no point in factoring this out, because the rest of the function is much slower
     Ds, Fs = backwards_forwards_pass(model, data); 
@@ -180,7 +180,7 @@ end
 
 #is_not_pos(u,p,t) = any(x -> x > 0, u)
 
-function posterior_shift_prob_categories(model::SSEconstant, D, K, ode, alg)
+function posterior_shift_prob_categories(model::BDSconstant, D, K, ode, alg)
     t0 = D.t[1]
     t1 = D.t[end]
     tspan = (t1, t0)
@@ -204,7 +204,7 @@ function posterior_shift_prob_categories(model::SSEconstant, D, K, ode, alg)
     return(X)
 end
 
-function posterior_shift_prob_categories2(model::SSE, D, K, ode, alg)
+function posterior_shift_prob_categories2(model::Model, D, K, ode, alg)
     t0 = D.t[1]
     t1 = D.t[end]
     tspan = (t1, t0)
@@ -228,7 +228,7 @@ function posterior_shift_prob_categories2(model::SSE, D, K, ode, alg)
 end
 
 
-function posterior_shift_prob(model::SSE, data::SSEdata)
+function posterior_shift_prob(model::Model, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5() 
     Ds, Fs = backwards_forwards_pass(model, data);
 
@@ -254,14 +254,14 @@ function posterior_shift_prob(model::SSE, data::SSEdata)
 end
 
 ## https://en.wikipedia.org/wiki/Poisson_distribution
-function poisson_pmf(model::SSEconstant, t0::Float64, t1::Float64, n::Int64)
+function poisson_pmf(model::BDSconstant, t0::Float64, t1::Float64, n::Int64)
     η = model.η
     time = t1 - t0
     r = η * time
     res = (r^n) * exp(-r) / factorial(n)
 end
 
-function poisson_zero(model::SSEconstant, t0::Float64, t1::Float64)
+function poisson_zero(model::BDSconstant, t0::Float64, t1::Float64)
     η = model.η
     time = t1 - t0
     r = η * time
@@ -269,7 +269,7 @@ function poisson_zero(model::SSEconstant, t0::Float64, t1::Float64)
 end
 
 # https://gtribello.github.io/mathNET/resources/jim-chap22.pdf
-function poisson_zero(model::SSEtimevarying, t0::Float64, t1::Float64)
+function poisson_zero(model::BDStimevarying, t0::Float64, t1::Float64)
     x, w = FastGaussQuadrature.gausslegendre(10)
     η_int = quadrature(model.η, t0, t1, x, w)
    

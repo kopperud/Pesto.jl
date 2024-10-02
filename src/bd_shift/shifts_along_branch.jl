@@ -13,7 +13,7 @@ end
 export shift_rate_through_time
 
 function shift_rate_through_time(
-        model::SSEconstant, 
+        model::BDSconstant, 
         data::SSEdata;
         height = maximum(data.node_depth),
         tspan = range(height, 0.0; length = 500),

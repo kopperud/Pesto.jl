@@ -26,14 +26,14 @@ function tree_rates(data, model; n = 10)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function posterior_variance(rate_categories::Vector{Float64}, St::Vector{Float64})#data::SSEdata, model::SSEconstant, Ss, t::Float64)
+function posterior_variance(rate_categories::Vector{Float64}, St::Vector{Float64})
     m = LinearAlgebra.dot(rate_categories, St) 
 
     var = sum((rate_categories .- m) .^2 .* St)
     return(var)
 end
 
-function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
+function tree_rates(data::SSEdata, model::BDSconstant, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 12)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
@@ -75,7 +75,7 @@ function tree_rates(data::SSEdata, model::SSEconstant, Fs, Ss; n = 10)
     return(df)
 end
 
-function tree_rates(data::SSEdata, model::SSEtimevarying, Fs, Ss; n = 10)
+function tree_rates(data::SSEdata, model::BDStimevarying, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
     

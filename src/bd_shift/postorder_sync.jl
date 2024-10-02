@@ -17,7 +17,7 @@ data = make_SSEdata(phy, sampling_probability)
 μ = [0.1, 0.2]
 η = 0.01
 
-model = SSEconstant(λ, μ, η)
+model = BDSconstant(λ, μ, η)
 E = extinction_probability(model, data)
 
 D, sf = postorder_sync(model, data, E)
@@ -34,7 +34,7 @@ julia> sf
 -705.9668193580866
 ```
 """
-function postorder_sync(model::SSE, data::SSEdata, E)
+function postorder_sync(model::Model, data::SSEdata, E)
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 

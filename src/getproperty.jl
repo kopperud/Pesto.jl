@@ -1,3 +1,3 @@
-getλ(model::SSEconstant)
+getλ(model::BDSconstant)
     
 end

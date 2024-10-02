@@ -12,7 +12,7 @@ function newmodel(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     λquantiles = Pesto.make_quantiles2(dλ, n)
     µquantiles = Pesto.make_quantiles2(dμ, n)
     λ, μ = allpairwise(λquantiles, µquantiles)
-    model = SSEconstant(λ, μ, η)
+    model = BDSconstant(λ, μ, η)
 
     return(model)
 end

@@ -1,6 +1,6 @@
 export postorder
 
-function postorder(model::SSE, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
+function postorder(model::Model, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 

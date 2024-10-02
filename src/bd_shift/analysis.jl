@@ -14,7 +14,7 @@ function empirical_bayes(data::SSEdata; n = 6, sd = 0.587)
     µquantiles = make_quantiles(dμ, n)
     λ, μ = allpairwise(λquantiles, µquantiles)
     η = optimize_eta(λ, µ, data)
-    model = SSEconstant(λ, μ, η)
+    model = BDSconstant(λ, μ, η)
     return(model)
 end
 

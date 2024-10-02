@@ -328,10 +328,10 @@ end
 
 notneg(u,p,t) = any(x->x<0,u)
 
-function eltype(model::SSEconstant)
+function eltype(model::BDSconstant)
     return(typeof(model.η))
 end
-function eltype(model::SSEtimevarying)
+function eltype(model::BDStimevarying)
     return(typeof(model.η(0.0)))
 end
 

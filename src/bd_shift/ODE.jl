@@ -10,11 +10,11 @@ function extinction_ode_tv(dE, E, p, t)
     dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E .* E .+ (η(t)/(K-1)) .* (sum(E) .- E) 
 end
 
-function extinction_prob(model::SSEconstant)
+function extinction_prob(model::BDSconstant)
     return(extinction_ode)
 end
     
-function extinction_prob(model::SSEtimevarying)
+function extinction_prob(model::BDStimevarying)
     return(extinction_ode_tv)
 end
 
@@ -35,11 +35,11 @@ function backward_ode_tv(dD, D, p, t)
     dD[:] .= - (λ(t) .+ μ(t) .+ η(t)) .* D .+ 2 .* λ(t) .* D .* Et .+ (η(t)/(K-1)) .* (sum(D) .- D)
 end
 
-function backward_prob(model::SSEconstant)
+function backward_prob(model::BDSconstant)
     return(backward_ode)
 end
 
-function backward_prob(model::SSEtimevarying)
+function backward_prob(model::BDStimevarying)
     return(backward_ode_tv)
 end
 
@@ -60,11 +60,11 @@ function forward_ode_tv(dF, F, p, t)
     dF[:] .= (-1) .* ( - (λ(t) .+ μ(t) .+ η(t)) .* F .+ 2 .* λ(t) .* F .* Et .+ (η(t)/(K-1)) .* (sum(F) .- F))
 end
 
-function forward_prob(model::SSEconstant)
+function forward_prob(model::BDSconstant)
     return(forward_ode)
 end
 
-function forward_prob(model::SSEtimevarying)
+function forward_prob(model::BDStimevarying)
     return(forward_ode_tv)
 end
 
@@ -129,19 +129,19 @@ function number_of_shifts_tv!(dN, N, p, t)
     end
 end
 
-function shift_problem(model::SSEconstant)
+function shift_problem(model::BDSconstant)
     return(number_of_shifts!)
 end
 
-function shift_problem(model::SSEtimevarying)
+function shift_problem(model::BDStimevarying)
     return(number_of_shifts_tv!)
 end
 
-function shift_problem_simple(model::SSEconstant)
+function shift_problem_simple(model::BDSconstant)
     return(number_of_shifts_simple!)
 end
 
 
-function shift_problem_simple(model::SSEtimevarying)
+function shift_problem_simple(model::BDStimevarying)
     return(number_of_shifts_simple_tv!)
 end

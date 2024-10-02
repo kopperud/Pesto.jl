@@ -1,6 +1,6 @@
 export preorder
 
-function preorder(model::SSE, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5())
+function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5())
     ## Precompute ancestor edges
     ancestors = make_ancestors(data)
     descendants = make_descendants(data)

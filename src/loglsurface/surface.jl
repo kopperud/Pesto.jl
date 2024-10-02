@@ -8,7 +8,7 @@ function lognormal_pairwise(λmean, μmean, η; n = 6, sd = 0.587)
 
     λ, μ = allpairwise(λq, μq)
 
-    model = SSEconstant(λ, μ, η)
+    model = BDSconstant(λ, μ, η)
 
     return(model)
 end
