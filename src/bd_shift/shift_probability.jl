@@ -129,43 +129,6 @@ function no_shifts_problem(model::BDStimevarying)
 end
 
 isneg(u,p,t) = any(x->x>0,u)
-
-#=
-function posterior_shift_prob(model::Model, data::SSEdata)
-    alg = OrdinaryDiffEq.Tsit5()
-    ## there is no point in factoring this out, because the rest of the function is much slower
-    Ds, Fs = backwards_forwards_pass(model, data); 
-    #Ss = ancestral_state_probabilities(data, Ds, Fs);
-
-    n_edges = length(data.branch_lengths)
-    K = number_of_states(model)
-    lnX = zeros(n_edges)
-    ode = no_shifts_problem(model)
-    
-    Threads.@threads for edge_index in 1:n_edges
-        D = Ds[edge_index];
-        F = Fs[edge_index];
-        t0 = Ds[edge_index].t[1]
-        t1 = Ds[edge_index].t[end]
-        tspan = (t1, t0)
-
-        p = (D, F, model.η, K);
-        #u0 = zeros(1)
-        u0 = Float64[0.0]
-        prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p);
-
-        sol = OrdinaryDiffEq.solve(
-            prob, 
-            alg, 
-            isoutofdomain = isneg, ## log probabilities must be negative
-            save_everystep = false);
-        lnX[edge_index] = sol.u[end][1]
-    end
-    prob_atleast_one_shift = 1.0 .- exp.(lnX)
-    return(prob_atleast_one_shift)
-end
-=#
-
 #notneg(u,p,t) = any(x->x<0,u)
 between0and1(u,p,t) = any(x -> (x < 0.0) || (x > 1.0), u)
 
