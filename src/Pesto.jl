@@ -54,6 +54,10 @@ include("io/writenewick.jl")
 include("io/readnewick.jl")
 include("io/readtree.jl")
 
+## pointer based tree
+include("tree/types.jl")
+include("tree/show.jl")
+
 ## rcall
 include("rcall/rconvert.jl")
 
