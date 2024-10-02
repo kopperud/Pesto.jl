@@ -19,7 +19,7 @@ function empirical_bayes(data::SSEdata; n = 6, sd = 0.587)
 end
 
 function pesto_twostep(data::SSEdata; n = 6, sd = 0.587)
-    model = empirical_bayes(data)
+    model = empirical_bayes(data; n = n)
 
     rates = birth_death_shift(model, data);
     return(model, rates)
