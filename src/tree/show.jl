@@ -15,5 +15,5 @@ function Base.Multimedia.display(branch::Branch)
 end
 
 function Base.Multimedia.display(branches::Vector{Branch})
-    println("$(length(branches)) branch structs.") 
+    println("A vector of $(length(branches)) branches.") 
 end
