@@ -21,23 +21,23 @@ end
 mutable struct Tip <: AbstractNode
     index::Int64
     inbounds::Branch
-    species_name::String
+    label::String
+    sampling_probability::Float64
     is_fossil::Bool
 
     Tip() = new()
 end
 
+
 mutable struct Node <: InternalNode
     index::Int64
     inbounds::Branch
-    left::Branch
-    right::Branch
+    children::Vector{Branch}
     Node() = new()
 end
 
 mutable struct Root <: InternalNode
     index::Int64
-    left::Branch
-    right::Branch
+    children::Vector{Branch}
     Root() = new()
 end

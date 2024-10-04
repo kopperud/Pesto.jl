@@ -18,6 +18,15 @@ include("treechecks.jl")
 include("shiftbins.jl")
 include("display.jl")
 
+## pointer based tree
+include("tree/types.jl")
+include("tree/show.jl")
+include("tree/construct.jl")
+include("tree/print_indices.jl")
+include("tree/height.jl")
+include("tree/utils.jl")
+
+
 ## utils
 include("utils/utils.jl")
 include("utils/logistic.jl")
@@ -53,10 +62,6 @@ include("bd_shift/shifts_along_branch.jl")
 include("io/writenewick.jl")
 include("io/readnewick.jl")
 include("io/readtree.jl")
-
-## pointer based tree
-include("tree/types.jl")
-include("tree/show.jl")
 
 ## rcall
 include("rcall/rconvert.jl")
