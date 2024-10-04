@@ -48,7 +48,8 @@ function postorder_async(model::Model, data::SSEdata, E)
     elt = eltype(model)
 
     ## Storing the scaling factors
-    pD = (model.λ, model.μ, model.η, K, E)
+    pD = (model, K, E)
+
     u0 = ones(elt, K)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)

@@ -7,7 +7,8 @@ above_one(u,p,t) = any(x -> x >= 1, u)
 function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE}
     alg = OrdinaryDiffEq.Tsit5()
     K = number_of_states(model)
-    pE = (model.λ, model.μ, model.η, K)
+    #pE = (model.λ, model.μ, model.η, K)
+    pE = (model, K)
 
     tree_height = maximum(data.node_depth)
     tspan = (0.0, tree_height)

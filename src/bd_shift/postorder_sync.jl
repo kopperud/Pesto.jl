@@ -47,8 +47,7 @@ function postorder_sync(model::Model, data::SSEdata, E)
     ## Storing the solution at the end of the branch
     elt = eltype(model)
 
-    ## Storing the scaling factors
-    pD = (model.λ, model.μ, model.η, K, E)
+    pD = (model, K, E)
     u0 = ones(elt, K)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)

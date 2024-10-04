@@ -23,6 +23,7 @@ end
 function get_speciation_rates(model::BDStimevarying, t::Float64)
     return(model.λ(t)) 
 end
+
 function get_speciation_rates(model::FBDSconstant, t::Float64)
     return(model.λ)
 end
@@ -43,8 +44,8 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
 
     left_edge, right_edge = findall(data.edges[:,1] .== root_index)
 
-    n = number_of_states(model)
-    freqs = repeat([1.0 / n], n)
+    K = number_of_states(model)
+    freqs = repeat([1.0 / K], K) ## prior on the root state
 
     # we condition the likelihood by
     #
@@ -63,17 +64,11 @@ end
 
 function logL_root(model::Model, tree::Root)
     E = extinction_probability(model, tree)
-
     D, sf = postorder_async(model, tree, E)
 
-    #root_index = length(data.tiplab)+1
-    #root_age = data.node_depth[root_index]
-
-    #left_edge, right_edge = findall(data.edges[:,1] .== root_index)
     root_age = treeheight(tree)
-
-    n = number_of_states(model)
-    freqs = repeat([1.0 / n], n)
+    K = number_of_states(model)
+    freqs = repeat([1.0 / K], K) ## prior on the root state
 
     # we condition the likelihood by
     #

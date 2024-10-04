@@ -19,7 +19,8 @@ function postorder(model::Model, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     ## Storing the scaling factors
     sf = zeros(elt, nrows)
 
-    pD = (model.λ, model.μ, model.η, n, E)
+    #pD = (model.λ, model.μ, model.η, n, E)
+    pD = (model, n, E)
     u0 = ones(elt, n)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)
