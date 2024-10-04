@@ -59,3 +59,113 @@ function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5
 end
 
 
+######################################################
+##
+##   compute it with the other tree format
+##
+######################################################
+
+## the root
+function preorder(
+        model::Model,
+        root::Root,
+        E::OrdinaryDiffEq.ODESolution,
+       )
+   
+    E = extinction_probability(model, root);
+
+    elt = eltype(model)
+    K = number_of_states(model)
+    ode = forward_prob(model)
+    pF = (model, K, E)
+    tspan = (0.0, 1.0)
+    u0 = ones(elt, K)
+
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pF)
+
+    height = treeheight(root);
+
+    x = preorder(model, root, prob, height)
+    return(x)
+end
+
+## internal node
+function preorder(
+        model::Model, 
+        node::T, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64, 
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution}
+        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution}
+        )  where {T <: InternalNode}
+
+    branch_left, branch_right = node.children
+    
+
+    #Threads.@sync begin
+        #Threads.@spawn D_left, sf_left = preorder(model, branch_left, prob, time, E)
+        preorder(model, branch_left, prob, time)
+        preorder(model, branch_right, prob, time)
+    #end 
+   
+
+    return(D, sf)
+end
+
+## along a branch
+function preorder(
+        model::Model, 
+        branch::Branch, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+        E,
+    )
+    child_node = branch.outbounds
+    t_old = time 
+    t_young = time - branch.time
+
+    preorder(model, child_node, prob, t_young)
+
+    F0 = Sm ./ Dm
+
+    tspan = (t_old, t_young)
+    prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
+    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
+                                   save_everystep = false, reltol = 1e-3)
+
+      
+
+    D = sol.u[end]
+    c = sum(D) 
+    D = D ./ c
+
+    if c > 0.0
+        sf += log(c)
+    else
+        sf -= Inf
+    end
+
+    if !(sol.retcode == OrdinaryDiffEq.ReturnCode.Success)
+        sf -= Inf
+    end
+
+
+    return(D, sf)
+end
+
+function get_fossilization_rate(model::FBDSconstant, time::Float64)
+    return(model.ψ)
+end
+
+## for a tip
+function preorder(
+        model::Model, 
+        tip::Tip, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+    )
+    nothing
+end
+
+
+
