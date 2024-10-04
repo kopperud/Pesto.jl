@@ -154,7 +154,7 @@ function postorder_async(
     elt = eltype(model)
     K = number_of_states(model)
     ode = backward_prob(model)
-    pD = (model.λ, model.μ, model.η, K, E)
+    pD = (model, K, E)
     tspan = (0.0, 1.0)
     u0 = ones(elt, K)
 
@@ -162,7 +162,7 @@ function postorder_async(
 
     height = treeheight(root);
 
-    x = postorder_async(model, root, prob, height)
+    x = postorder_async(model, root, prob, height, E)
     return(x)
 end
 
@@ -172,6 +172,7 @@ function postorder_async(
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64, 
+        E,
         )  where {T <: InternalNode}
 
     branch_left, branch_right = node.children
@@ -180,8 +181,8 @@ function postorder_async(
     local sf_left, sf_right
 
     Threads.@sync begin
-        Threads.@spawn D_left, sf_left = postorder_async(model, branch_left, prob, time)
-        D_right, sf_right  = postorder_async(model, branch_right, prob, time)
+        Threads.@spawn D_left, sf_left = postorder_async(model, branch_left, prob, time, E)
+        D_right, sf_right = postorder_async(model, branch_right, prob, time, E)
 end
 
     D = D_left .* D_right .* model.λ
@@ -198,12 +199,13 @@ function postorder_async(
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
+        E,
     )
     child_node = branch.outbounds
     t_old = time 
     t_young = time - branch.time
 
-    D0, sf = postorder_async(model, child_node, prob, t_young)
+    D0, sf = postorder_async(model, child_node, prob, t_young, E)
 
     tspan = (t_young, t_old)
     prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
@@ -228,23 +230,32 @@ function postorder_async(
     return(D, sf)
 end
 
+function get_fossilization_rate(model::FBDSconstant, time::Float64)
+    return(model.ψ)
+end
+
 ## for a tip
 function postorder_async(
         model::Model, 
         tip::Tip, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
+        E,
     )
     elt = eltype(model)
     K = number_of_states(model)
 
     D = ones(elt, K) .* tip.sampling_probability
+
+    if tip.is_fossil
+        ψ = get_fossilization_rate(model, time)
+        Et = E(time)
+        D[:] .= ψ .* Et 
+    end
     sf = 0.0
-    time = 0.0
-    return(D, sf, time)
+
+    return(D, sf)
 end
-
-
 
 
 

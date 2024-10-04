@@ -1,13 +1,33 @@
 ## Probability that a lineage at time `t` is not represented in the reconstructed tree
 ## * This equation does not depend on the topology, so we solve for it first
 function extinction_ode(dE, E, p, t)
-    λ, μ, η, K = p
+    model, K = p
+    λ = model.λ
+    μ = model.μ
+    η = model.η
+
     dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
 end
 
-function extinction_ode_tv(dE, E, p, t)
+function extinction_ode_tv(dE, E, t)
+    model, K = p
+    λ = model.λ
+    μ = model.μ
+    η = model.η
+
     λ, μ, η, K = p
     dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E .* E .+ (η(t)/(K-1)) .* (sum(E) .- E) 
+end
+
+function extinction_fossil_ode(dE, E, p, t)
+    model, K = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+    η = model.η
+    K = number_of_states(model)
+
+    dE[:] .= μ .- (λ .+ μ .+ η .+ ψ) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
 end
 
 function extinction_prob(model::BDSconstant)
@@ -18,11 +38,18 @@ function extinction_prob(model::BDStimevarying)
     return(extinction_ode_tv)
 end
 
+function extinction_prob(model::FBDSconstant)
+    return(extinction_fossil_ode)
+end
+
 
 ## Probability of of observing the branch at time `t`
 ## * We solve this equation in the postorder traversal
 function backward_ode(dD, D, p, t)
-    λ, μ, η, K, E = p
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    η = model.η
 
     Et = E(t)
     dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
@@ -35,12 +62,27 @@ function backward_ode_tv(dD, D, p, t)
     dD[:] .= - (λ(t) .+ μ(t) .+ η(t)) .* D .+ 2 .* λ(t) .* D .* Et .+ (η(t)/(K-1)) .* (sum(D) .- D)
 end
 
+function backward_fossil_ode(dD, D, p, t)
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+    η = model.η
+
+    Et = E(t)
+    dD[:] .= - (λ .+ μ .+ ψ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
+end
+
 function backward_prob(model::BDSconstant)
     return(backward_ode)
 end
 
 function backward_prob(model::BDStimevarying)
     return(backward_ode_tv)
+end
+
+function backward_prob(model::FBDSconstant)
+    return(backward_fossil_ode)
 end
 
 

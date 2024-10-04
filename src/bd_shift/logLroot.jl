@@ -11,6 +11,11 @@ function number_of_states(model::BDSconstant)
     return(n)
 end
 
+function number_of_states(model::FBDSconstant)
+    n = length(model.λ)
+    return(n)
+end
+
 function get_speciation_rates(model::BDSconstant, t::Float64)
     return(model.λ)
 end
@@ -18,6 +23,10 @@ end
 function get_speciation_rates(model::BDStimevarying, t::Float64)
     return(model.λ(t)) 
 end
+function get_speciation_rates(model::FBDSconstant, t::Float64)
+    return(model.λ)
+end
+
 
 
 function logL_root(model::Model, data::SSEdata; multithread = true)
@@ -51,6 +60,37 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
     logL = log(prob) + sum(sf)
     return(logL)
 end
+
+function logL_root(model::Model, tree::Root)
+    E = extinction_probability(model, tree)
+
+    D, sf = postorder_async(model, tree, E)
+
+    #root_index = length(data.tiplab)+1
+    #root_age = data.node_depth[root_index]
+
+    #left_edge, right_edge = findall(data.edges[:,1] .== root_index)
+    root_age = treeheight(tree)
+
+    n = number_of_states(model)
+    freqs = repeat([1.0 / n], n)
+
+    # we condition the likelihood by
+    #
+    # * that there was a speciation event at the MRCA
+    # * that the two lineages subtending from the MRCA 
+    #        must have survived until the present
+    λroot = get_speciation_rates(model, root_age)
+    nonextinct = (1.0 .- E(root_age)).^2
+    condition = λroot .* nonextinct
+
+    D = D ./ condition
+    prob = sum(freqs .* D)
+    logL = log(prob) + sum(sf)
+    return(logL)
+end
+
+
 
 function sselp(η, λ, μ, data)
     model = BDSconstant(λ, μ, η)

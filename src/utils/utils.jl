@@ -334,5 +334,7 @@ end
 function eltype(model::BDStimevarying)
     return(typeof(model.η(0.0)))
 end
-
+function eltype(model::FBDSconstant)
+    return(typeof(model.η))
+end
 

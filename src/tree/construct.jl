@@ -1,15 +1,8 @@
 ## construct a pointer based tree from an APE style tree
 
 function construct_tree(phy::phylo, sampling_probability::Float64)
-    
-
     root_index = length(phy.tip_label) + 1
 
-    #tip_counter = Int64[0]
-    #node_counter = Int64[root_index]
-    #branch_counter = Int64[0]
-
-    
     root = Root()
     root.children = Vector{Branch}()
     root.index = root_index
@@ -102,3 +95,37 @@ function construct_tree_tip(phy, parent_node, branch_index, sampling_probability
 
     nothing
 end
+
+
+function assign_fossils!(
+        root::Root,
+        threshold::Float64,
+    )
+    time = treeheight(root)
+
+    assign_fossils!(root, threshold, time)
+end
+
+function assign_fossils!(
+        node::T,
+        threshold::Float64,
+        time::Float64,
+    ) where {T <: InternalNode}
+    for branch in node.children  
+        child_node = branch.outbounds
+        assign_fossils!(child_node, threshold, time - branch.time)
+    end
+end
+
+function assign_fossils!(
+        tip::Tip,
+        threshold::Float64,
+        time::Float64,
+    )
+    if !(time < threshold)
+        tip.is_fossil = true
+        println("assigned fossil")
+    end
+end
+
+

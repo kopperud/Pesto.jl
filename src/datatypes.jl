@@ -25,7 +25,7 @@ end
 struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real, T4 <: Real} <: Model
     λ::Vector{T1}
     μ::Vector{T2}
-    ψ::T3
+    ψ::Vector{T3}
     η::T4
 end
 
