@@ -54,12 +54,14 @@ function postorder_sync(model::Model, data::SSEdata, E)
     prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
 
     root_index = Ntip+1
+    root_age = data.node_depth[root_index]
     left_edge, right_edge = descendants[root_index]
 
     D_left, sf_left = subtree_sync(left_edge, prob, model, data, descendants, Ntip, K, elt)
     D_right, sf_right =  subtree_sync(right_edge, prob, model, data, descendants, Ntip, K, elt)
 
-    D = D_left .* D_right
+    λroot = get_speciation_rates(model, root_age)
+    D = D_left .* D_right .* λroot
     sf = sf_left + sf_right
 
     c = sum(D)
