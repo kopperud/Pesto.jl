@@ -32,13 +32,13 @@ function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5
             left_edge, right_edge = descendants[root_node]
             root_age = maximum(data.node_depth)
             λroot = get_speciation_rates(model, root_age)
-            D_parent = Ds[left_edge][end] .* Ds[right_edge][end] .* λroot
+            D_parent = Ds[left_edge].u[end] .* Ds[right_edge].u[end] .* λroot
         else
             parent_edge = ancestors[anc]
-            F_parent = Fs[parent_edge][end]
-            D_parent = Ds[parent_edge][1]
+            F_parent = Fs[parent_edge].u[end]
+            D_parent = Ds[parent_edge].u[1]
         end
-        Dm = Ds[m][end]
+        Dm = Ds[m].u[end]
 
         F_start = D_parent .* F_parent ./ Dm
         F_start = F_start ./ sum(F_start) ## Normalize, because these numbers can get very tiny (1E-10)
