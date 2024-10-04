@@ -18,8 +18,8 @@ data = make_SSEdata(phy, sampling_probability)
 η = 0.01
 
 model = BDSconstant(λ, μ, η)
-E = extinction_probability(model, data)
 
+E = extinction_probability(model, data);
 D, sf = postorder_async(model, data, E)
 ```
 The `D` is the partial likelihood at the root node. `D` is re-scaled by a factor such that it sums to one. The rescaling factor is `sf`, which is given on a log scale
@@ -55,6 +55,8 @@ function postorder_async(model::Model, data::SSEdata, E)
     prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
 
     root_index = Ntip+1
+    root_age = data.node_depth[root_index]
+
     left_edge, right_edge = descendants[root_index]
 
     local sf_left, sf_right
@@ -64,7 +66,8 @@ function postorder_async(model::Model, data::SSEdata, E)
         D_right, sf_right =  subtree(right_edge, prob, model, data, descendants, Ntip, K, elt)
     end
 
-    D = D_left .* D_right
+    λroot = get_speciation_rates(model, root_age)
+    D = D_left .* D_right .* λroot
     sf = sf_left + sf_right
 
     c = sum(D)
@@ -133,4 +136,115 @@ function subtree(edge_index, prob, model, data, descendants, Ntip, K, elt)
     return(D, sf)
 end
 
-###
+######################################################
+##
+##   compute it with the other tree format
+##
+######################################################
+
+## the root
+function postorder_async(
+        model::Model,
+        root::Root,
+        E::OrdinaryDiffEq.ODESolution,
+       )
+   
+    E = extinction_probability(model, root);
+
+    elt = eltype(model)
+    K = number_of_states(model)
+    ode = backward_prob(model)
+    pD = (model.λ, model.μ, model.η, K, E)
+    tspan = (0.0, 1.0)
+    u0 = ones(elt, K)
+
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
+
+    height = treeheight(root);
+
+    x = postorder_async(model, root, prob, height)
+    return(x)
+end
+
+## internal node
+function postorder_async(
+        model::Model, 
+        node::T, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64, 
+        )  where {T <: InternalNode}
+
+    branch_left, branch_right = node.children
+
+    local D_left, D_right
+    local sf_left, sf_right
+
+    Threads.@sync begin
+        Threads.@spawn D_left, sf_left = postorder_async(model, branch_left, prob, time)
+        D_right, sf_right  = postorder_async(model, branch_right, prob, time)
+end
+
+    D = D_left .* D_right .* model.λ
+    c = sum(D)
+    sf = sf_left + sf_right + log(c)
+    D = D ./ c
+
+    return(D, sf)
+end
+
+## along a branch
+function postorder_async(
+        model::Model, 
+        branch::Branch, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+    )
+    child_node = branch.outbounds
+    t_old = time 
+    t_young = time - branch.time
+
+    D0, sf = postorder_async(model, child_node, prob, t_young)
+
+    tspan = (t_young, t_old)
+    prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
+    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
+                                   save_everystep = false, reltol = 1e-3)
+
+    D = sol.u[end]
+    c = sum(D) 
+    D = D ./ c
+
+    if c > 0.0
+        sf += log(c)
+    else
+        sf -= Inf
+    end
+
+    if !(sol.retcode == OrdinaryDiffEq.ReturnCode.Success)
+        sf -= Inf
+    end
+
+
+    return(D, sf)
+end
+
+## for a tip
+function postorder_async(
+        model::Model, 
+        tip::Tip, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+    )
+    elt = eltype(model)
+    K = number_of_states(model)
+
+    D = ones(elt, K) .* tip.sampling_probability
+    sf = 0.0
+    time = 0.0
+    return(D, sf, time)
+end
+
+
+
+
+

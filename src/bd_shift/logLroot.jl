@@ -33,17 +33,20 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
     root_age = data.node_depth[root_index]
 
     left_edge, right_edge = findall(data.edges[:,1] .== root_index)
-#    λroot = get_speciation_rates(model, root_age)
 
     n = number_of_states(model)
     freqs = repeat([1.0 / n], n)
 
-    # we divide by this to condition the probability density 
-    # on that in order to have a tree in the first place, at 
-    # least two lineages must have survived to the present.
+    # we condition the likelihood by
+    #
+    # * that there was a speciation event at the MRCA
+    # * that the two lineages subtending from the MRCA 
+    #        must have survived until the present
+    λroot = get_speciation_rates(model, root_age)
     nonextinct = (1.0 .- E(root_age)).^2
+    condition = λroot .* nonextinct
 
-    D = D ./ nonextinct
+    D = D ./ condition
     prob = sum(freqs .* D)
     logL = log(prob) + sum(sf)
     return(logL)

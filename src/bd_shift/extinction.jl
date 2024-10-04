@@ -20,3 +20,24 @@ function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE
     E = OrdinaryDiffEq.solve(pr, alg, abstol = 1e-10, reltol = 1e-10, isoutofdomain = above_one)#, isoutofdomain = ispositive)
     return(E)
 end
+
+function extinction_probability(model::Model, tree::Root)
+    alg = OrdinaryDiffEq.Tsit5()
+    K = number_of_states(model)
+    pE = (model.λ, model.μ, model.η, K)
+
+    tree_height = treeheight(tree)
+    tspan = (0.0, tree_height)
+
+    tip1 = find_one_tip(tree)
+    sampling_probability = tip1.sampling_probability
+
+    E0 = repeat([1.0 - sampling_probability], K)
+    
+    ode = extinction_prob(model)
+    pr = OrdinaryDiffEq.ODEProblem{true}(ode, E0, tspan, pE);
+    
+    ## use low tolerance because we only solve E once, so we can afford it
+    E = OrdinaryDiffEq.solve(pr, alg, abstol = 1e-10, reltol = 1e-10, isoutofdomain = above_one)#, isoutofdomain = ispositive)
+    
+end
