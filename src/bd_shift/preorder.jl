@@ -70,6 +70,7 @@ function preorder(
         model::Model,
         root::Root,
         E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
        )
    
     E = extinction_probability(model, root);
@@ -95,8 +96,8 @@ function preorder(
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64, 
-        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution}
-        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution}
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
         )  where {T <: InternalNode}
 
     branch_left, branch_right = node.children
@@ -133,7 +134,7 @@ function preorder(
     sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
                                    save_everystep = false, reltol = 1e-3)
 
-      
+     
 
     D = sol.u[end]
     c = sum(D) 
@@ -151,10 +152,6 @@ function preorder(
 
 
     return(D, sf)
-end
-
-function get_fossilization_rate(model::FBDSconstant, time::Float64)
-    return(model.ψ)
 end
 
 ## for a tip

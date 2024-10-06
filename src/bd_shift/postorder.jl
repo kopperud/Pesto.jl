@@ -93,3 +93,132 @@ function postorder(model::Model, data::SSEdata, E; alg = OrdinaryDiffEq.Tsit5())
     end
     return(Ds, sf)
 end
+
+
+######################################################
+##
+##   compute it with the other tree format
+##
+######################################################
+
+## the root
+function postorder(
+        model::Model,
+        root::Root,
+        E::OrdinaryDiffEq.ODESolution,
+       )
+   
+    E = extinction_probability(model, root);
+
+    elt = eltype(model)
+    K = number_of_states(model)
+    ode = backward_prob(model)
+    pD = (model, K, E)
+    tspan = (0.0, 1.0)
+    u0 = ones(elt, K)
+
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
+
+    height = treeheight(root);
+
+    Ds = Dict{Int64, OrdinaryDiffEq.ODESolution}()
+
+    _, sf = postorder(model, root, prob, height, E, Ds)
+    return((Ds, sf))
+end
+
+## internal node
+function postorder(
+        model::Model, 
+        node::T, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64, 
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        )  where {T <: InternalNode}
+
+    branch_left, branch_right = node.children
+
+    local D_left, D_right
+    local sf_left, sf_right
+
+    Threads.@sync begin
+        Threads.@spawn D_left, sf_left = postorder(model, branch_left, prob, time, E, Ds)
+        D_right, sf_right = postorder(model, branch_right, prob, time, E, Ds)
+end
+
+    D = D_left .* D_right .* model.λ
+    c = sum(D)
+    sf = sf_left + sf_right + log(c)
+    D = D ./ c
+
+    return(D, sf)
+end
+
+## along a branch
+function postorder(
+        model::Model, 
+        branch::Branch, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+    )
+    child_node = branch.outbounds
+    t_old = time 
+    t_young = time - branch.time
+
+    D0, sf = postorder(model, child_node, prob, t_young, E, Ds)
+
+    tspan = (t_young, t_old)
+    prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
+    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
+                                   save_everystep = true, reltol = 1e-3)
+
+    D = sol.u[end]
+    c = sum(D) 
+    D = D ./ c
+
+    Ds[branch.index] = sol
+
+    if c > 0.0
+        sf += log(c)
+    else
+        sf -= Inf
+    end
+
+    if !(sol.retcode == OrdinaryDiffEq.ReturnCode.Success)
+        sf -= Inf
+    end
+
+
+    return(D, sf)
+end
+
+
+## for a tip
+function postorder(
+        model::Model, 
+        tip::Tip, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+    )
+    elt = eltype(model)
+    K = number_of_states(model)
+
+    D = ones(elt, K) .* tip.sampling_probability
+
+    if tip.is_fossil
+        ψ = get_fossilization_rate(model, time)
+        Et = E(time)
+        D[:] .= ψ .* Et 
+    end
+    sf = 0.0
+
+    return(D, sf)
+end
+
+
+

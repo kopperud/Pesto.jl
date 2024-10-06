@@ -231,9 +231,6 @@ function postorder_async(
     return(D, sf)
 end
 
-function get_fossilization_rate(model::FBDSconstant, time::Float64)
-    return(model.ψ)
-end
 
 ## for a tip
 function postorder_async(

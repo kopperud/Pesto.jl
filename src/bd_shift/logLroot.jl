@@ -28,6 +28,10 @@ function get_speciation_rates(model::FBDSconstant, t::Float64)
     return(model.λ)
 end
 
+function get_fossilization_rate(model::FBDSconstant, time::Float64)
+    return(model.ψ)
+end
+
 
 
 function logL_root(model::Model, data::SSEdata; multithread = true)
