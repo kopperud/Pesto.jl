@@ -290,7 +290,9 @@ function allpairwise(xs, ys)
     return(λ, μ)
 end
 
-function allpairwise(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Real}
+export alltriples
+
+function alltriples(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Real}
     n1 = length(x1)
     n2 = length(x2)
     n3 = length(x3)
@@ -310,44 +312,49 @@ function allpairwise(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Re
     return(λ, μ, ψ)
 end
 
-function Qmatrix(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Real}
-    A = collect(eachindex(x1))
-    B = collect(eachindex(x2))
-    C = collect(eachindex(x3))
+function Qmatrix(λ::Vector{T}, μ::Vector{T}, ψ::Vector{T}, α, β, γ) where {T <: Real}
+    k = reduce(*, map(length, (λ, μ, ψ)))
 
-    k = reduce(*, map(length, (x1, x2, x3)))
+    ## empty flat vectors
+    A = zeros(T, k)
+    B = zeros(T, k)
+    C = zeros(T, k)
 
-    α = zeros(Int64, k)
-    β = zeros(Int64, k)
-    γ = zeros(Int64, k)
-
-    for (i, (a, b, c)) in enumerate(Iterators.product(A, B, C))
-        α[i] = a
-        β[i] = b
-        γ[i] = c
+    ## compute all triplets, populate in vectors
+    for (i, (a, b, c)) in enumerate(Iterators.product(λ, μ, ψ))
+        A[i] = a
+        B[i] = b
+        C[i] = c
     end
-    
-    Q = zeros(Int64, k, k)
+   
+    ## Q matrix
+    Q = zeros(T, k, k)
     
     for i in 1:k
         for j in 1:k
-            vi = [α[i], β[i], γ[i]]
-            vj = [α[j], β[j], γ[j]]
+            
+            ## only one of λ, μ or ψ is permitted to change
+            ## otherwise is it not assigned (default to zero)
+            n_changes = (A[i] != A[j]) + (B[i] != B[j]) + (C[i] != C[j])
 
-            n_unique = sum(abs.((vi .- vj)))
-
-            if n_unique == 1
-                if α[i] != α[j]
-                    Q[i,j] = 1
-                elseif β[i] != β[j]
-                    Q[i,j] = 2
+            if n_changes == 1
+                if A[i] != A[j]
+                    Q[i,j] = α
+                elseif B[i] != B[j]
+                    Q[i,j] = β
                 else
-                    Q[i,j] = 3
+                    Q[i,j] = γ
                 end
             end
         end
     end
-    return(Q) 
+
+    for i in 1:k
+        Q[i,i] = -sum(Q[:,i])
+    end
+
+    Qs = SparseArrays.sparse(Q)
+    return(Qs)
 end
 
 @doc raw"""
@@ -396,5 +403,8 @@ function eltype(model::BDStimevarying)
 end
 function eltype(model::FBDSconstant)
     return(typeof(model.η))
+end
+function eltype(model::FBDS2constant)
+    return(typeof(model.α))
 end
 
