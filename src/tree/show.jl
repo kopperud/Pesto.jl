@@ -1,5 +1,21 @@
 function Base.Multimedia.display(root::Root)
-    println("A phylogenetic root node (i.e. a tree) with $(length(root.children)) children.")
+    tl = tip_labels(root)
+    too_long = length(tl) > 10
+
+    if too_long 
+        tl = tl[1:10]
+        #tl_short = tl_short[1:50]
+    end
+
+    tl_short = join(tl, ", ")
+
+    if too_long
+        tl_short = tl_short * "..."
+    end
+
+    height = round(treeheight(root); digits = 2)
+
+    println("A phylogenetic root node (i.e. a tree) with $(length(root.children)) children, height $height and tip labels $tl_short")
 end
 
 function Base.Multimedia.display(node::Node)
