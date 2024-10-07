@@ -21,3 +21,28 @@ end
 function tip_labels!(node::Tip, labels::Vector{String})
     push!(labels, node.label)
 end
+
+export get_branches
+
+function get_branches(root::Root)
+    branches = Branch[];
+
+    get_branches!(root, branches)
+    return(branches)
+end
+
+function get_branches!(node::T, branches) where {T <: InternalNode}
+    for branch in node.children
+        #push!(branches, branch)
+        get_branches!(branch, branches)
+    end
+end
+
+function get_branches!(branch::Branch, branches::Vector{Branch})
+    push!(branches, branch)
+    get_branches!(branch.outbounds, branches)
+end
+
+function get_branches!(node::Tip, branches)
+    nothing
+end
