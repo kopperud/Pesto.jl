@@ -24,6 +24,7 @@ include("tree/show.jl")
 include("tree/construct.jl")
 include("tree/print_indices.jl")
 include("tree/height.jl")
+include("tree/length.jl")
 include("tree/utils.jl")
 
 
