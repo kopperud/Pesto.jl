@@ -11,6 +11,8 @@ import FastGaussQuadrature
 import LoopVectorization
 import ForwardDiff
 import ProgressMeter
+import SparseArrays
+
 
 ## the rest
 include("datatypes.jl")
