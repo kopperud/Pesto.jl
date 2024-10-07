@@ -110,12 +110,11 @@ function postorder(
    
     E = extinction_probability(model, root);
 
-    elt = eltype(model)
     K = number_of_states(model)
     ode = backward_prob(model)
     pD = (model, K, E)
     tspan = (0.0, 1.0)
-    u0 = ones(elt, K)
+    u0 = ones(K)
 
     prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
 
@@ -123,12 +122,13 @@ function postorder(
 
     Ds = Dict{Int64, OrdinaryDiffEq.ODESolution}()
 
-    _, sf = postorder(model, root, prob, height, E, Ds)
-    return((Ds, sf))
+    D_root = postorder!(model, root, prob, height, E, Ds)
+
+    return(Ds)
 end
 
 ## internal node
-function postorder(
+function postorder!(
         model::Model, 
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
@@ -140,23 +140,20 @@ function postorder(
     branch_left, branch_right = node.children
 
     local D_left, D_right
-    local sf_left, sf_right
 
-    Threads.@sync begin
-        Threads.@spawn D_left, sf_left = postorder(model, branch_left, prob, time, E, Ds)
-        D_right, sf_right = postorder(model, branch_right, prob, time, E, Ds)
-end
+    ## note this is not thread safe
+    D_left = postorder!(model, branch_left, prob, time, E, Ds)
+    D_right = postorder!(model, branch_right, prob, time, E, Ds)
 
     D = D_left .* D_right .* model.λ
     c = sum(D)
-    sf = sf_left + sf_right + log(c)
     D = D ./ c
 
-    return(D, sf)
+    return(D)
 end
 
 ## along a branch
-function postorder(
+function postorder!(
         model::Model, 
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
@@ -168,7 +165,7 @@ function postorder(
     t_old = time 
     t_young = time - branch.time
 
-    D0, sf = postorder(model, child_node, prob, t_young, E, Ds)
+    D0 = postorder!(model, child_node, prob, t_young, E, Ds)
 
     tspan = (t_young, t_old)
     prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
@@ -181,23 +178,12 @@ function postorder(
 
     Ds[branch.index] = sol
 
-    if c > 0.0
-        sf += log(c)
-    else
-        sf -= Inf
-    end
-
-    if !(sol.retcode == OrdinaryDiffEq.ReturnCode.Success)
-        sf -= Inf
-    end
-
-
-    return(D, sf)
+    return(D)
 end
 
 
 ## for a tip
-function postorder(
+function postorder!(
         model::Model, 
         tip::Tip, 
         prob::OrdinaryDiffEq.ODEProblem,
@@ -217,7 +203,7 @@ function postorder(
     end
     sf = 0.0
 
-    return(D, sf)
+    return(D)
 end
 
 

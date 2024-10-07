@@ -89,7 +89,10 @@ end
 ## This ODE is the previous one times minus one
 ## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
 function forward_ode(dF, F, p, t)
-    λ, μ, η, K, E = p
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    η = model.η
 
     Et = E(t)
     dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))

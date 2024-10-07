@@ -15,7 +15,8 @@ function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5
     ## Store the whole `F(t)` per branch
     Fs = Dict()
 
-    pF = (model.λ, model.μ, model.η, K, E)
+    #pF = (model.λ, model.μ, model.η, K, E)
+    pF = (model, K, E)
     ode = forward_prob(model)
     tspan = [0.0, 1.0]
     u0 = [1.0, 1.0]
@@ -86,80 +87,94 @@ function preorder(
 
     height = treeheight(root);
 
-    x = preorder(model, root, prob, height)
-    return(x)
+    ## 
+
+    Fs = Dict{Int64, OrdinaryDiffEq.ODESolution}()
+
+    F_root = ones(K) 
+    preorder!(model, root, prob, height, E, Ds, Fs, F_root)
+
+    return(Fs)
 end
 
 ## internal node
-function preorder(
+function preorder!(
         model::Model, 
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64, 
         E::OrdinaryDiffEq.ODESolution,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        F_node::Vector{Float64}
         )  where {T <: InternalNode}
 
+    # calculate D(t) at this node (or the parent edge of this node)
+    left_branch_index = node.children[1].index
+    right_branch_index = node.children[2].index
+
+    D_left = Ds[left_branch_index](time)
+    D_right = Ds[right_branch_index](time)
+    λt = get_speciation_rates(model, time)
+    D_node = D_left .* D_right .* λt
+
+    # calculate S(t)
+    S_node = F_node .* D_node
+    S_node = S_node ./ sum(S_node) ## normalize
+
     branch_left, branch_right = node.children
-    
 
-    #Threads.@sync begin
-        #Threads.@spawn D_left, sf_left = preorder(model, branch_left, prob, time, E)
-        preorder(model, branch_left, prob, time)
-        preorder(model, branch_right, prob, time)
-    #end 
-   
-
-    return(D, sf)
+    # not thread safe because Dict is not thread safe
+    preorder!(model, branch_left, prob, time, E, Ds, Fs, S_node)
+    preorder!(model, branch_right, prob, time, E, Ds, Fs, S_node)
 end
 
 ## along a branch
-function preorder(
+function preorder!(
         model::Model, 
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
-        E,
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        S_parent::Vector{Float64},
     )
     child_node = branch.outbounds
     t_old = time 
     t_young = time - branch.time
 
-    preorder(model, child_node, prob, t_young)
-
-    F0 = Sm ./ Dm
+    
+    F0 = S_parent ./ Ds[branch.index](t_old)
+    F0 = F0 ./ sum(F0)
 
     tspan = (t_old, t_young)
-    prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
+    prob = OrdinaryDiffEq.remake(prob, u0 = F0, tspan = tspan)
+
     sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
-                                   save_everystep = false, reltol = 1e-3)
+                               save_everystep = true, reltol = 1e-3)
+    #sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5())
 
-     
+    #Fs[branch.index] = sol
+    push!(Fs, branch.index => sol)
 
-    D = sol.u[end]
-    c = sum(D) 
-    D = D ./ c
+    F_young = sol.u[end]
+    c = sum(F_young) 
+    F_young = F_young ./ c
 
-    if c > 0.0
-        sf += log(c)
-    else
-        sf -= Inf
-    end
-
-    if !(sol.retcode == OrdinaryDiffEq.ReturnCode.Success)
-        sf -= Inf
-    end
-
-
-    return(D, sf)
+    preorder!(model, child_node, prob, t_young, E, Ds, Fs, F_young)
 end
 
 ## for a tip
-function preorder(
+function preorder!(
         model::Model, 
         tip::Tip, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        S_parent::Vector{Float64},
     )
     nothing
 end
