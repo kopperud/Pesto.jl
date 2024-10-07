@@ -46,3 +46,27 @@ function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = tru
 
     return(rates)
 end
+
+
+function birth_death_shift(model::Model, tree::Root; nshifts = true, shift_bayes_factor = true) 
+    Ds, Fs = backwards_forwards_pass(model, tree)
+    Ss = ancestral_state_probabilities(tree, Ds, Fs)
+    rates = tree_rates(tree, model, Fs, Ss)
+
+    if nshifts
+        #nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
+        nshift = state_shifts_simple(model, tree, Ds, Fs)
+        append!(nshift, 0.0)
+        rates[!,:nshift] = nshift
+    end
+
+    if shift_bayes_factor
+        bf = posterior_prior_shift_odds(model,tree)
+        append!(bf, NaN)
+        rates[!,"shift_bf"] = bf
+        rates[!,"shift_bf_log"] = log10.(bf)
+    end
+
+    return(rates)
+end
+

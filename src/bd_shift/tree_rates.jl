@@ -33,7 +33,9 @@ function posterior_variance(rate_categories::Vector{Float64}, St::Vector{Float64
     return(var)
 end
 
-function tree_rates(data::SSEdata, model::BDSconstant, Fs, Ss; n = 10)
+
+
+function tree_rates(data::SSEdata, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
     rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
     
@@ -67,6 +69,53 @@ function tree_rates(data::SSEdata, model::BDSconstant, Fs, Ss; n = 10)
     push!(df, vcat(repeat([NaN], length(names)), root_index, 0))
     return(df)
 end
+
+function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
+    branches = get_branches(tree);
+    n_branches = length(branches)
+
+    rates = zeros(n_branches, 8)
+    x, w = FastGaussQuadrature.gausslegendre(n)
+
+    node_indices = Int64[]
+    
+    #Threads.@threads for i = 1:size(data.edges)[1]
+    for branch in branches
+        i = branch.index
+        node_index = branch.outbounds.index
+        push!(node_indices, node_index)
+    #for i = 1:size(data.edges)[1]
+        t0, t1 = extrema(Fs[i].t)
+        ## t0 is youngest, t1 is oldest
+
+        ## posterior mean rate
+        rates[i,1] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+        rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
+        rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
+        rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+
+        ## difference from oldest to youngest point on branch
+        rates[i,5] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+        rates[i,6] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+        rates[i,7] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+        rates[i,8] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+    end
+    #node = data.edges[:,2]
+    #edge = 1:size(data.edges)[1]
+   
+    names = [
+         "mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
+         "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext"
+        ]
+    df = DataFrames.DataFrame(rates, names)
+    df[!, "node"] = node_indices
+    df[!, "edge"] = collect(1:n_branches)
+    #root_index = length(data.tiplab)+1
+    root_index = tree.index
+    push!(df, vcat(repeat([NaN], length(names)), root_index, 0))
+    return(df)
+end
+
 
 function tree_rates(data::SSEdata, model::BDStimevarying, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 8)
@@ -111,12 +160,26 @@ function ancestral_state_probabilities(data::SSEdata, Ds, Fs)
     return (Ss)
 end
 
+function ancestral_state_probabilities(tree::Root, Ds, Fs)    
+    branches = get_branches(tree)
+
+    Ss = Dict{Int64,Function}()
+    #for edge_idx in 1:(maximum(data.edges)-1)
+    for branch in branches
+        edge_idx = branch.index
+
+        Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+    end
+
+    return (Ss)
+end
+
+
+
 ## problem: this function is not type stable, or atleast S(t) is not 
 function ancestral_state_probabilities(Ds, Fs)    
     Ss = Dict()
-    #for edge_idx in 1:(maximum(data.edges)-1)
     for edge_idx in collect(keys(Ds))
-#       Ss[edge_idx] = t -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
        Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 

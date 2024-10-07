@@ -35,6 +35,34 @@ function state_shifts_simple(model::Model, data::SSEdata, Ds, Fs; alg = Ordinary
     return(nshifts)
 end
 
+function state_shifts_simple(model::Model, tree::Root, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
+    branches = get_branches(tree)
+    n_branches = length(branches) 
+
+    K = number_of_states(model)    
+    nshifts = zeros(n_branches)
+    ode = shift_problem_simple(model)
+
+    Threads.@threads for branch in branches
+        edge_idx = branch.index
+
+        a = Ds[edge_idx].t[end]
+        b = Ds[edge_idx].t[1]
+        tspan = (a,b)
+
+        N0 = [0.0]
+
+        p = (model.η, K, Ds[edge_idx], Fs[edge_idx]);
+
+        prob = OrdinaryDiffEq.ODEProblem(ode, N0, tspan, p);
+        sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
+
+        nshifts[edge_idx] = sol[end][1]
+    end
+
+    return(nshifts)
+end
+
 
 function reorder_ape(nshifts::Array{Float64, 1}, data::SSEdata)
     ancestors = make_ancestors(data)

@@ -98,6 +98,17 @@ function forward_ode(dF, F, p, t)
     dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
 end
 
+function forward_fossil_ode(dF, F, p, t)
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+    η = model.η
+
+    Et = E(t)
+    dF[:] .= (-1) .* ( - (λ .+ μ .+ ψ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
+end
+
 function forward_ode_tv(dF, F, p, t)
     λ, μ, η, K, E = p
 
@@ -111,6 +122,10 @@ end
 
 function forward_prob(model::BDStimevarying)
     return(forward_ode_tv)
+end
+
+function forward_prob(model::FBDSconstant)
+    return(forward_fossil_ode)
 end
 
 ## this doesn't output a matrix but rather a scalar
@@ -174,19 +189,19 @@ function number_of_shifts_tv!(dN, N, p, t)
     end
 end
 
-function shift_problem(model::BDSconstant)
+function shift_problem(model::ConstantModel)
     return(number_of_shifts!)
 end
 
-function shift_problem(model::BDStimevarying)
+function shift_problem(model::TimevaryingModel)
     return(number_of_shifts_tv!)
 end
 
-function shift_problem_simple(model::BDSconstant)
+function shift_problem_simple(model::ConstantModel)
     return(number_of_shifts_simple!)
 end
 
 
-function shift_problem_simple(model::BDStimevarying)
+function shift_problem_simple(model::TimevaryingModel)
     return(number_of_shifts_simple_tv!)
 end
