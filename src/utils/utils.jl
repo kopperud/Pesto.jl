@@ -290,6 +290,66 @@ function allpairwise(xs, ys)
     return(λ, μ)
 end
 
+function allpairwise(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Real}
+    n1 = length(x1)
+    n2 = length(x2)
+    n3 = length(x3)
+
+    k = n1 * n2 * n3 
+
+    λ = zeros(T, k)
+    μ = zeros(T, k)
+    ψ = zeros(T, k)
+
+    for (i, (x, y, z)) in enumerate(Iterators.product(x1, x2, x3))
+        λ[i] = x
+        μ[i] = y
+        ψ[i] = z
+    end
+
+    return(λ, μ, ψ)
+end
+
+function Qmatrix(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Real}
+    A = collect(eachindex(x1))
+    B = collect(eachindex(x2))
+    C = collect(eachindex(x3))
+
+    k = reduce(*, map(length, (x1, x2, x3)))
+
+    α = zeros(Int64, k)
+    β = zeros(Int64, k)
+    γ = zeros(Int64, k)
+
+    for (i, (a, b, c)) in enumerate(Iterators.product(A, B, C))
+        α[i] = a
+        β[i] = b
+        γ[i] = c
+    end
+    
+    Q = zeros(Int64, k, k)
+    
+    for i in 1:k
+        for j in 1:k
+            vi = [α[i], β[i], γ[i]]
+            vj = [α[j], β[j], γ[j]]
+
+            n_unique = sum(abs.((vi .- vj)))
+
+            if n_unique == 1
+                if α[i] != α[j]
+                    Q[i,j] = 1
+                elseif β[i] != β[j]
+                    Q[i,j] = 2
+                else
+                    Q[i,j] = 3
+                end
+            end
+        end
+    end
+    return(Q) 
+end
+
 @doc raw"""
     lrange(from, to, length)
 
