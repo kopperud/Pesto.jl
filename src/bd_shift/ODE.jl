@@ -30,6 +30,19 @@ function extinction_fossil_ode(dE, E, p, t)
     dE[:] .= μ .- (λ .+ μ .+ η .+ ψ) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
 end
 
+function extinction_fossil2_ode(dE, E, p, t)
+    model, K = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+    Q = model.Q
+    K = number_of_states(model)
+
+    dE[:] = μ .- (λ .+ μ .+ ψ) .* E .+ λ .* E .* E .+ Q * E 
+end
+
+
+
 function extinction_prob(model::BDSconstant)
     return(extinction_ode)
 end
@@ -42,6 +55,9 @@ function extinction_prob(model::FBDSconstant)
     return(extinction_fossil_ode)
 end
 
+function extinction_prob(model::FBDS2constant)
+    return(extinction_fossil2_ode)
+end
 
 ## Probability of of observing the branch at time `t`
 ## * We solve this equation in the postorder traversal
@@ -73,6 +89,20 @@ function backward_fossil_ode(dD, D, p, t)
     dD[:] .= - (λ .+ μ .+ ψ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
 end
 
+function backward_fossil2_ode(dD, D, p, t)
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+    Q = model.Q
+
+    Et = E(t)
+    dD[:] = - (λ .+ μ .+ ψ) .* D .+ 2 .* λ .* D .* Et .+ Q * D 
+end
+
+
+
+
 function backward_prob(model::BDSconstant)
     return(backward_ode)
 end
@@ -83,6 +113,10 @@ end
 
 function backward_prob(model::FBDSconstant)
     return(backward_fossil_ode)
+end
+
+function backward_prob(model::FBDS2constant)
+    return(backward_fossil2_ode)
 end
 
 
@@ -108,6 +142,8 @@ function forward_fossil_ode(dF, F, p, t)
     Et = E(t)
     dF[:] .= (-1) .* ( - (λ .+ μ .+ ψ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
 end
+
+
 
 function forward_ode_tv(dF, F, p, t)
     λ, μ, η, K, E = p

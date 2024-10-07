@@ -1,17 +1,12 @@
 export logL_root
 
-function number_of_states(model::BDStimevarying)
+function number_of_states(model::TimevaryingModel)
     x = model.λ(0.0)
     n = length(x)
     return(n)
 end
 
-function number_of_states(model::BDSconstant)
-    n = length(model.λ)
-    return(n)
-end
-
-function number_of_states(model::FBDSconstant)
+function number_of_states(model::ConstantModel)
     n = length(model.λ)
     return(n)
 end
@@ -27,8 +22,17 @@ end
 function get_speciation_rates(model::FBDSconstant, t::Float64)
     return(model.λ)
 end
+function get_speciation_rates(model::FBDS2constant, t::Float64)
+    return(model.λ)
+end
+
+
 
 function get_fossilization_rate(model::FBDSconstant, time::Float64)
+    return(model.ψ)
+end
+
+function get_fossilization_rate(model::FBDS2constant, time::Float64)
     return(model.ψ)
 end
 

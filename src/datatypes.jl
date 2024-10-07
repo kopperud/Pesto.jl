@@ -32,6 +32,33 @@ struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real, T4 <: Real} <: ConstantM
     η::T4
 end
 
+struct FBDS2constant{T1 <: Real, T2 <: Real} <: ConstantModel
+    λ::Vector{T1}
+    μ::Vector{T1}
+    ψ::Vector{T1}
+    α::T2
+    β::T2
+    γ::T2
+    Q::SparseArrays.SparseMatrixCSC{T2, Int64}
+end
+
+function FBDS2constant(
+        λ::Vector{Float64},
+        μ::Vector{Float64},
+        ψ::Vector{Float64},
+        α::Float64,
+        β::Float64,
+        γ::Float64,
+    )
+    λv, μv, ψv = alltriples(λ, μ, ψ)
+
+    Q = Qmatrix(λ, μ, ψ, α, β, γ)
+
+    model = FBDS2constant(λv, μv, ψv, α, β, γ, Q)
+
+    return(model)
+end
+
 ## type aliases to work with the old names
 const SSE = Model
 const SSEconstant = BDSconstant
