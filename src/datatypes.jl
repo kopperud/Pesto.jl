@@ -4,25 +4,28 @@ export BDSconstant, FBDSconstant
 #abstract type SSE <: Distributions.ContinuousUnivariateDistribution end
 abstract type Model end
 
+abstract type ConstantModel <: Model end
+abstract type TimevaryingModel <: Model end
+
 #struct BDconstant{T <: Real}#<: Distributions.ContinuousUnivariateDistribution
-struct BDconstant{T <: Real} <: Model
+struct BDconstant{T <: Real} <: ConstantModel
     λ::T
     μ::T
 end
 
-struct BDSconstant{T1 <: Real, T2 <: Real} <: Model
+struct BDSconstant{T1 <: Real, T2 <: Real} <: ConstantModel
     λ::Vector{T1}
     μ::Vector{T1}
     η::T2
 end
 
-struct BDStimevarying <: Model
+struct BDStimevarying <: TimevaryingModel
     λ::Function
     μ::Function
     η::Function
 end
 
-struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real, T4 <: Real} <: Model
+struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real, T4 <: Real} <: ConstantModel
     λ::Vector{T1}
     μ::Vector{T2}
     ψ::Vector{T3}
