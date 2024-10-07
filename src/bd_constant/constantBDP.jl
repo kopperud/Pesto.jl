@@ -1,4 +1,4 @@
-export lp, ψ, Econstant, estimate_constant_bdp
+export lp, psi, Econstant, estimate_constant_bdp
 
 function printlambda(λ::Float64)
     println(λ)
@@ -44,17 +44,17 @@ function lp(λ, μ, data::SSEdata)
     ts = data.branching_times
     n = length(ts)
 
-    logL = (n+1) * log(sampling_probability) + log(ψ(ts[1], λ, μ, sampling_probability))
+    logL = (n+1) * log(sampling_probability) + log(psi(ts[1], λ, μ, sampling_probability))
     logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, sampling_probability))
 
 #    res = zeros(typeof(λ), n)
     #Threads.@threads for i in 1:n
     for i in 1:n
-        logL += log(λ) + log(ψ(ts[i], λ, μ, sampling_probability))
-#        res[i] = log(λ) + log(ψ(ts[i], λ, μ, sampling_probability))
+        logL += log(λ) + log(psi(ts[i], λ, μ, sampling_probability))
+#        res[i] = log(λ) + log(psi(ts[i], λ, μ, sampling_probability))
     end
 #   logL = sum(res)
-#   logL += (n+1) * log(sampling_probability) + log(ψ(ts[1], λ, μ, sampling_probability))
+#   logL += (n+1) * log(sampling_probability) + log(psi(ts[1], λ, μ, sampling_probability))
 #   logL += - log(λ) - 2*log(1 - Econstant(ts[1], λ, μ, sampling_probability))
 
     return(logL)
@@ -81,10 +81,10 @@ sampling_probability = 1.0
 μ = 0.5
 t = 0.1
 
-ψ(t, λ, μ, sampling_probability)
+psi(t, λ, μ, sampling_probability)
 ```
 """
-function ψ(t, λ, μ, sampling_probability)
+function psi(t, λ, μ, sampling_probability)
     nom = exp(t * (λ - μ))
     denom = 1 + ((sampling_probability * λ) /(λ - μ)) * (exp(t * (λ - μ)) - 1)
     res = nom / (denom*denom)
