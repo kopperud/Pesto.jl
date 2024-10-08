@@ -22,17 +22,9 @@ end
 function get_speciation_rates(model::FBDSconstant, t::Float64)
     return(model.λ)
 end
-function get_speciation_rates(model::FBDS2constant, t::Float64)
-    return(model.λ)
-end
-
 
 
 function get_fossilization_rate(model::FBDSconstant, time::Float64)
-    return(model.ψ)
-end
-
-function get_fossilization_rate(model::FBDS2constant, time::Float64)
     return(model.ψ)
 end
 

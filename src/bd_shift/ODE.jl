@@ -24,23 +24,13 @@ function extinction_fossil_ode(dE, E, p, t)
     λ = model.λ
     μ = model.μ
     ψ = model.ψ
-    η = model.η
-    K = number_of_states(model)
-
-    dE[:] .= μ .- (λ .+ μ .+ η .+ ψ) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
-end
-
-function extinction_fossil2_ode(dE, E, p, t)
-    model, K = p
-    λ = model.λ
-    μ = model.μ
-    ψ = model.ψ
     Q = model.Q
+    #η = model.η
     K = number_of_states(model)
 
+    #dE[:] .= μ .- (λ .+ μ .+ η .+ ψ) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
     dE[:] = μ .- (λ .+ μ .+ ψ) .* E .+ λ .* E .* E .+ Q * E 
 end
-
 
 
 function extinction_prob(model::BDSconstant)
@@ -53,10 +43,6 @@ end
 
 function extinction_prob(model::FBDSconstant)
     return(extinction_fossil_ode)
-end
-
-function extinction_prob(model::FBDS2constant)
-    return(extinction_fossil2_ode)
 end
 
 ## Probability of of observing the branch at time `t`
@@ -83,10 +69,12 @@ function backward_fossil_ode(dD, D, p, t)
     λ = model.λ
     μ = model.μ
     ψ = model.ψ
-    η = model.η
+    #η = model.η
+    Q = model.Q
 
     Et = E(t)
-    dD[:] .= - (λ .+ μ .+ ψ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
+    #dD[:] .= - (λ .+ μ .+ ψ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
+    dD[:] .= - (λ .+ μ .+ ψ) .* D .+ 2 .* λ .* D .* Et .+ Q * D
 end
 
 function backward_fossil2_ode(dD, D, p, t)
@@ -115,9 +103,6 @@ function backward_prob(model::FBDSconstant)
     return(backward_fossil_ode)
 end
 
-function backward_prob(model::FBDS2constant)
-    return(backward_fossil2_ode)
-end
 
 
 ## This ODE is the previous one times minus one
@@ -137,10 +122,12 @@ function forward_fossil_ode(dF, F, p, t)
     λ = model.λ
     μ = model.μ
     ψ = model.ψ
-    η = model.η
+    #η = model.η
+    Q = model.Q
 
     Et = E(t)
-    dF[:] .= (-1) .* ( - (λ .+ μ .+ ψ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
+    #dF[:] .= (-1) .* ( - (λ .+ μ .+ ψ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
+    dF[:] = (-1) .* ( - (λ .+ μ .+ ψ) .* F .+ 2 .* λ .* F .* Et .+ Q * F )
 end
 
 
@@ -236,7 +223,6 @@ end
 function shift_problem_simple(model::ConstantModel)
     return(number_of_shifts_simple!)
 end
-
 
 function shift_problem_simple(model::TimevaryingModel)
     return(number_of_shifts_simple_tv!)

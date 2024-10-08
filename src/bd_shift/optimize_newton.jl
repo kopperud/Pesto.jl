@@ -125,8 +125,8 @@ function optimize_hyperparameters2(
     n = 6, 
     sd = 0.587, 
     n_attempts = 10,
-    lower = [1e-08, 1e-04, 1e-04, 1e-6],
-    upper = [0.3, 1.0, 1.0, 1.0],
+    lower = [1e-04, 1e-04, 1e-04, 1e-6, 1e-6, 1e-6],
+    upper = [1.0, 1.0, 1.0, 0.3, 0.3, 0.3],
     xinit = missing
     )
 
@@ -177,18 +177,24 @@ function optimize_hyperparameters2(
     #rml, μml = estimate_constant_netdiv_mu(data)
     rml, μml = (0.1, 0.05)
 
-    dη = Distributions.LogNormal(log(0.01), 0.5)
     dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
     dr = Distributions.LogNormal(log(0.5*rml), 0.5)
-    dψ = Distributions.LogNormal(log(0.01), 0.5)
+    dψ = Distributions.LogNormal(log(0.05), 0.5)
+
+    dα = Distributions.LogNormal(log(0.01), 0.5)
+    dβ = Distributions.LogNormal(log(0.01), 0.5)
+    dγ = Distributions.LogNormal(log(0.01), 0.5)
 
     ## truncate the distribution
     ϵ = 1e-8
-    dη = Distributions.Truncated(dη, lower[1] + ϵ, upper[1] - ϵ)
-    dμ = Distributions.Truncated(dμ, lower[2] + ϵ, upper[2] - ϵ)
-    dr = Distributions.Truncated(dr, lower[3] + ϵ, upper[3] - ϵ)
-    dr = Distributions.Truncated(dψ, lower[4] + ϵ, upper[4] - ϵ)
+    dμ = Distributions.Truncated(dμ, lower[1] + ϵ, upper[1] - ϵ)
+    dr = Distributions.Truncated(dr, lower[2] + ϵ, upper[2] - ϵ)
+    dψ = Distributions.Truncated(dψ, lower[3] + ϵ, upper[3] - ϵ)
     
+    dα = Distributions.Truncated(dα, lower[4] + ϵ, upper[4] - ϵ)
+    dβ = Distributions.Truncated(dβ, lower[5] + ϵ, upper[5] - ϵ)
+    dγ = Distributions.Truncated(dγ, lower[6] + ϵ, upper[6] - ϵ)
+
     inner_optimizer = Optim.Newton()
 
     opts = Optim.Options(
@@ -200,16 +206,19 @@ function optimize_hyperparameters2(
     use_random_inits = ismissing(xinit)
 
     if use_random_inits
-        xinit = zeros(4)
+        xinit = zeros(6)
     end
     
     while !converged && i <= n_attempts
 
         if use_random_inits
-            xinit[1] = rand(dη)
-            xinit[2] = rand(dμ)
-            xinit[3] = rand(dr)
-            xinit[4] = rand(dψ)
+            xinit[1] = rand(dμ)
+            xinit[2] = rand(dr)
+            xinit[3] = rand(dψ)
+
+            xinit[4] = rand(dα)
+            xinit[5] = rand(dβ)
+            xinit[6] = rand(dγ)
         end
             
         xinit_tilde = h(xinit)

@@ -24,37 +24,47 @@ struct BDStimevarying <: TimevaryingModel
     μ::Function
     η::Function
 end
-
+#=
 struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real, T4 <: Real} <: ConstantModel
     λ::Vector{T1}
     μ::Vector{T2}
     ψ::Vector{T3}
     η::T4
 end
+=#
 
-struct FBDS2constant{T1 <: Real, T2 <: Real} <: ConstantModel
-    λ::Vector{T1}
-    μ::Vector{T1}
-    ψ::Vector{T1}
-    α::T2
-    β::T2
-    γ::T2
-    Q::SparseArrays.SparseMatrixCSC{T2, Int64}
+struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real} <: ConstantModel
+    λmean::T1
+    μmean::T1
+    ψmean::T1
+    λ::Vector{T2}
+    μ::Vector{T2}
+    ψ::Vector{T2}
+    α::T3
+    β::T3
+    γ::T3
+    Q::SparseArrays.SparseMatrixCSC{T3, Int64}
+    Qα::SparseArrays.SparseMatrixCSC{Int64, Int64}
+    Qβ::SparseArrays.SparseMatrixCSC{Int64, Int64}
+    Qγ::SparseArrays.SparseMatrixCSC{Int64, Int64}
 end
 
-function FBDS2constant(
-        λ::Vector{Float64},
-        μ::Vector{Float64},
-        ψ::Vector{Float64},
-        α::Float64,
-        β::Float64,
-        γ::Float64,
-    )
+function FBDSconstant(
+        λmean::T1,
+        μmean::T1,
+        ψmean::T1,
+        λ::Vector{T2},
+        μ::Vector{T2},
+        ψ::Vector{T2},
+        α::T3,
+        β::T3,
+        γ::T3,
+    ) where {T1 <: Real, T2 <: Real, T3 <: Real}
     λv, μv, ψv = alltriples(λ, μ, ψ)
 
-    Q = Qmatrix(λ, μ, ψ, α, β, γ)
+    Q, Qα, Qβ, Qγ = Qmatrix(λ, μ, ψ, α, β, γ)
 
-    model = FBDS2constant(λv, μv, ψv, α, β, γ, Q)
+    model = FBDSconstant(λmean, μmean, ψmean, λv, μv, ψv, α, β, γ, Q, Qα, Qβ, Qγ)
 
     return(model)
 end
