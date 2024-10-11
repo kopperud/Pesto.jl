@@ -125,8 +125,8 @@ function optimize_hyperparameters2(
     n = 6, 
     sd = 0.587, 
     n_attempts = 10,
-    lower = [1e-04, 1e-04, 1e-04, 1e-6, 1e-6, 1e-6],
-    upper = [1.0, 1.0, 1.0, 0.3, 0.3, 0.3],
+    lower = [1e-04, 1e-04, 1e-04, 1e-6, 1e-6],
+    upper = [1.0, 1.0, 1.0, 0.3, 0.3],
     xinit = missing
     )
 
@@ -176,6 +176,8 @@ function optimize_hyperparameters2(
 
     #rml, μml = estimate_constant_netdiv_mu(data)
     rml, μml = (0.1, 0.05)
+    #λml = rml .+ μml
+    #μml = λml .- rml
 
     dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
     dr = Distributions.LogNormal(log(0.5*rml), 0.5)
@@ -183,7 +185,7 @@ function optimize_hyperparameters2(
 
     dα = Distributions.LogNormal(log(0.01), 0.5)
     dβ = Distributions.LogNormal(log(0.01), 0.5)
-    dγ = Distributions.LogNormal(log(0.01), 0.5)
+    #dγ = Distributions.LogNormal(log(0.01), 0.5)
 
     ## truncate the distribution
     ϵ = 1e-8
@@ -193,7 +195,7 @@ function optimize_hyperparameters2(
     
     dα = Distributions.Truncated(dα, lower[4] + ϵ, upper[4] - ϵ)
     dβ = Distributions.Truncated(dβ, lower[5] + ϵ, upper[5] - ϵ)
-    dγ = Distributions.Truncated(dγ, lower[6] + ϵ, upper[6] - ϵ)
+    #dγ = Distributions.Truncated(dγ, lower[6] + ϵ, upper[6] - ϵ)
 
     inner_optimizer = Optim.Newton()
 
@@ -206,7 +208,7 @@ function optimize_hyperparameters2(
     use_random_inits = ismissing(xinit)
 
     if use_random_inits
-        xinit = zeros(6)
+        xinit = zeros(5)
     end
     
     while !converged && i <= n_attempts
@@ -218,7 +220,7 @@ function optimize_hyperparameters2(
 
             xinit[4] = rand(dα)
             xinit[5] = rand(dβ)
-            xinit[6] = rand(dγ)
+            #xinit[6] = rand(dγ)
         end
             
         xinit_tilde = h(xinit)

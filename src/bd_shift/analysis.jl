@@ -31,3 +31,11 @@ function pesto(data::SSEdata; n = 6, sd = 0.587)
     rates = birth_death_shift(model, data);
     return(model, rates)
 end
+
+function pesto_fossil(tree::Root; n = 6, sd = 0.587)
+    optres, model, i = optimize_hyperparameters2(tree; n = n, sd = sd, n_attempts = 5)
+
+    #rates = birth_death_shift(model, data);
+    rates = tree_rates(tree, model); 
+    return(model, rates)
+end

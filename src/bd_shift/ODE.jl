@@ -6,7 +6,9 @@ function extinction_ode(dE, E, p, t)
     μ = model.μ
     η = model.η
 
-    dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
+    sumE = sum(E)
+
+    dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sumE .- E) 
 end
 
 function extinction_ode_tv(dE, E, t)

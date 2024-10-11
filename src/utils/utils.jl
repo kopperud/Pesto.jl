@@ -312,67 +312,73 @@ function alltriples(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Rea
     return(λ, μ, ψ)
 end
 
-function Qmatrix(λ::Vector{T}, μ::Vector{T}, ψ::Vector{T}, α, β, γ) where {T <: Real}
-    k = reduce(*, map(length, (λ, μ, ψ)))
-    nλ = length(λ)
-    nμ = length(μ)
+#function Qmatrix(λ::Vector{T}, μ::Vector{T}, ψ::Vector{T}, α, β, γ) where {T <: Real}
+function Qmatrix(r::Vector{T}, ψ::Vector{T}, α::T, β::T) where {T <: Real}
+    ## backtransform
+    #λ = r ./ (1.0 - ϵ)
+    #μ = λ .- r
+    
+    k = reduce(*, map(length, (r, ψ)))
+
+    nr = length(r)
     nψ = length(ψ)
 
-    small_α = α / (nλ - 1)
-    small_β = β / (nμ - 1)
-    small_γ = γ / (nψ - 1)
+    small_α = α / (nr - 1)
+    small_β = β / (nψ - 1)
 
     ## empty flat vectors
     A = zeros(T, k)
     B = zeros(T, k)
-    C = zeros(T, k)
+    #C = zeros(T, k)
 
-    ## compute all triplets, populate in vectors
-    for (i, (a, b, c)) in enumerate(Iterators.product(λ, μ, ψ))
+    ## compute all pairs, populate in vectors
+    for (i, (a, b)) in enumerate(Iterators.product(r, ψ))
         A[i] = a
         B[i] = b
-        C[i] = c
+        #C[i] = c
     end
    
     ## Q matrix
     Q = zeros(T, k, k)
     Qα = zeros(Int64, k, k)
     Qβ = zeros(Int64, k, k)
-    Qγ = zeros(Int64, k, k)
+    #Qγ = zeros(Int64, k, k)
     
     for i in 1:k
         for j in 1:k
             
-            ## only one of λ, μ or ψ is permitted to change
+            ## only one of r or ψ is permitted to change
             ## otherwise is it not assigned (default to zero)
-            n_changes = (A[i] != A[j]) + (B[i] != B[j]) + (C[i] != C[j])
+            n_changes = (A[i] != A[j]) + (B[i] != B[j])# + (C[i] != C[j])
 
             if n_changes == 1
                 if A[i] != A[j]
                     Q[i,j] = small_α
                     Qα[i,j] = 1
-                elseif B[i] != B[j]
+                else
+                #elseif B[i] != B[j]
                     Q[i,j] = small_β
                     Qβ[i,j] = 1
-                else
-                    Q[i,j] = small_γ
-                    Qγ[i,j] = 1
                 end
+                #else
+                #    Q[i,j] = small_γ
+                #    Qγ[i,j] = 1
+                #end
             end
         end
     end
 
     for i in 1:k
         #Q[i,i] = -sum(Q[:,i])
-        Q[i,i] = -(α+β+γ)
+        Q[i,i] = -(α+β)
     end
 
     Qs = SparseArrays.sparse(Q)
     Qαs = SparseArrays.sparse(Qα)
     Qβs = SparseArrays.sparse(Qβ)
-    Qγs = SparseArrays.sparse(Qγ)
+    #Qγs = SparseArrays.sparse(Qγ)
 
-    return(Qs, Qαs, Qβs, Qγs)
+    return(Qs, Qαs, Qβs) #, Qγs)
 end
 
 @doc raw"""

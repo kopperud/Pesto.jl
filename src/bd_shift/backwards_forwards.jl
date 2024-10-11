@@ -11,7 +11,10 @@ function backwards_forwards_pass(
     return(Ds, Fs)
 end
 
-function backwards_forwards_pass(model::Model, tree::Root) 
+function backwards_forwards_pass(
+        model::Model, 
+        tree::Root
+    )
 
     E = extinction_probability(model, tree)
     Ds = postorder(model, tree, E)
