@@ -107,7 +107,7 @@ function preorder!(
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
         Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
         F_node::Vector{Float64}
-        )  where {T <: InternalNode}
+        )  where {T <: BranchingEvent}
 
     # calculate D(t) at this node (or the parent edge of this node)
     left_branch_index = node.children[1].index
@@ -168,14 +168,14 @@ end
 ## for a tip
 function preorder!(
         model::Model, 
-        tip::Tip, 
+        tip::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
         E::OrdinaryDiffEq.ODESolution,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
         Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
         S_parent::Vector{Float64},
-    )
+    ) where {T <: AbstractTip}
     nothing
 end
 

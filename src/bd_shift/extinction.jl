@@ -30,7 +30,7 @@ function extinction_probability(model::Model, tree::Root)
     tree_height = treeheight(tree)
     tspan = (0.0, tree_height)
 
-    tip1 = find_one_tip(tree)
+    tip1 = find_one_extant_tip(tree)
     sampling_probability = tip1.sampling_probability
 
     E0 = repeat([1.0 - sampling_probability], K)
@@ -50,7 +50,7 @@ function extinction_probability(model::Model, sampling_probability::Float64, tim
 
     tspan = (0.0, time)
 
-    tip1 = find_one_tip(tree)
+    tip1 = find_one_extant_tip(tree)
     sampling_probability = tip1.sampling_probability
 
     E0 = repeat([1.0 - sampling_probability], K)

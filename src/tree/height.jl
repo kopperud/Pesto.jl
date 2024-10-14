@@ -18,7 +18,12 @@ function node_depths(tree::Root)
     return(nd)
 end
 
-function depths!(nd::Vector{Float64}, node::T, time::Float64) where {T <: InternalNode}
+function depths!(
+        nd::Vector{Float64}, 
+        node::T, 
+        time::Float64
+    ) where {T <: BranchingEvent}
+
     push!(nd, time)
 
     for branch in node.children
@@ -27,7 +32,7 @@ function depths!(nd::Vector{Float64}, node::T, time::Float64) where {T <: Intern
     end
 end
 
-function depths!(nd::Vector{Float64}, node::Tip, time::Float64) 
+function depths!(nd::Vector{Float64}, node::T, time::Float64) where {T <: AbstractTip}
     push!(nd, time)
 end
 
@@ -45,7 +50,7 @@ function branch_times(tree::Root)
     return(times)
 end
 
-function branch_times!(node::T, times::Matrix{Float64}, t_old::Float64) where {T <: InternalNode}
+function branch_times!(node::T, times::Matrix{Float64}, t_old::Float64) where {T <: BranchingEvent}
     for branch in node.children 
         t_young = t_old - branch.time
         times[branch.index,1] = t_old
@@ -55,7 +60,7 @@ function branch_times!(node::T, times::Matrix{Float64}, t_old::Float64) where {T
     end
 end
 
-function branch_times!(tip::Tip, times::Matrix{Float64}, t_old::Float64)
+function branch_times!(tip::T, times::Matrix{Float64}, t_old::Float64) where {T <: AbstractTip}
     nothing
 end
 

@@ -11,7 +11,7 @@ function treelength(tree::Root)
     return(tl)
 end
 
-function lengths!(node::T, branch_lengths::Vector{Float64}) where {T <: InternalNode}
+function lengths!(node::T, branch_lengths::Vector{Float64}) where {T <: BranchingEvent}
     for branch in node.children
         child_node = branch.outbounds
         push!(branch_lengths, branch.time)
@@ -20,6 +20,6 @@ function lengths!(node::T, branch_lengths::Vector{Float64}) where {T <: Internal
     end
 end
 
-function lengths!(node::Tip, branch_lengths::Vector{Float64})
+function lengths!(node::T, branch_lengths::Vector{Float64}) where {T <: AbstractTip}
     nothing
 end

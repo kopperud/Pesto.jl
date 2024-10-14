@@ -135,7 +135,7 @@ function postorder!(
         time::Float64, 
         E::OrdinaryDiffEq.ODESolution,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        )  where {T <: InternalNode}
+        )  where {T <: BranchingEvent}
 
     branch_left, branch_right = node.children
 
@@ -185,7 +185,7 @@ end
 ## for a tip
 function postorder!(
         model::Model, 
-        tip::Tip, 
+        tip::ExtantTip, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
         E::OrdinaryDiffEq.ODESolution,
@@ -195,16 +195,33 @@ function postorder!(
     K = number_of_states(model)
 
     D = ones(elt, K) .* tip.sampling_probability
-
-    if tip.is_fossil
-        ψ = get_fossilization_rate(model, time)
-        Et = E(time)
-        D[:] .= ψ .* Et 
-    end
     sf = 0.0
 
     return(D)
 end
+
+
+## for a tip
+function postorder!(
+        model::Model, 
+        tip::FossilTip, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+        E::OrdinaryDiffEq.ODESolution,
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+    )
+    elt = eltype(model)
+    K = number_of_states(model)
+
+    ψ = get_fossilization_rate(model, time)
+    Et = E(time)
+
+    D = ψ .* Et 
+    sf = 0.0
+
+    return(D)
+end
+
 
 
 

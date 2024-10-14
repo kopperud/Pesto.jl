@@ -1,10 +1,31 @@
-function find_one_tip(node::T) where {T <: InternalNode}
-    find_one_tip(node.children[1].outbounds)
+function find_one_extant_tip(root::Root)
+    tips = ExtantTip[]
+
+    find_one_extant_tip!(root, tips)
+
+    return(tips[1])
 end
 
-function find_one_tip(node::Tip)
-    return(node)
+function find_one_extant_tip!(
+        node::T, 
+        tips::Vector{ExtantTip}
+    ) where {T <: BranchingEvent}
+
+    for branch in node.children
+        if length(tips) == 0
+            find_one_extant_tip!(branch.outbounds, tips)
+        end
+    end
 end
+
+function find_one_extant_tip!(node::ExtantTip, tips::Vector{ExtantTip})
+    push!(tips, node)
+end
+
+function find_one_extant_tip!(node::FossilTip, tips::Vector{ExtantTip})
+    nothing
+end
+
 
 function tip_labels(node::Root)
     labels = String[]
@@ -12,13 +33,13 @@ function tip_labels(node::Root)
     return(labels)
 end
 
-function tip_labels!(node::T, labels::Vector{String}) where {T <: InternalNode}
+function tip_labels!(node::T, labels::Vector{String}) where {T <: BranchingEvent}
     for branch in node.children
         tip_labels!(branch.outbounds, labels)
     end
 end
 
-function tip_labels!(node::Tip, labels::Vector{String})
+function tip_labels!(node::T, labels::Vector{String}) where {T <: AbstractTip}
     push!(labels, node.label)
 end
 
@@ -31,14 +52,14 @@ function get_branches(root::Root)
     return(branches)
 end
 
-function get_branches!(node::T, branches) where {T <: InternalNode}
+function get_branches!(node::T, branches) where {T <: BranchingEvent}
     for branch in node.children
         push!(branches, branch)
         get_branches!(branch.outbounds, branches)
     end
 end
 
-function get_branches!(node::Tip, branches)
+function get_branches!(node::T, branches) where {T <: AbstractTip}
     nothing
 end
 
@@ -51,14 +72,14 @@ function number_of_branches(root::Root)
     return(n[1])
 end
 
-function number_of_branches!(node::T, n::Vector{Int64}) where {T <: InternalNode}
+function number_of_branches!(node::T, n::Vector{Int64}) where {T <: BranchingEvent}
     for branch in node.children
         n[1] += 1
         number_of_branches!(branch.outbounds, n)
     end
 end
 
-function number_of_branches!(tip::Tip, n::Vector{Int64})
+function number_of_branches!(tip::T, n::Vector{Int64}) where {T <: AbstractTip}
     nothing
 end
 

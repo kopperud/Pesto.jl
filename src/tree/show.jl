@@ -22,8 +22,12 @@ function Base.Multimedia.display(node::Node)
     println("An internal node, with an incoming branch, and $(length(node.children)) children.")
 end
 
-function Base.Multimedia.display(tip::Tip)
-    println("A tip node with one incoming branch, representing \"$(tip.label)\", with sampling probability $(tip.sampling_probability).") 
+function Base.Multimedia.display(tip::ExtantTip)
+    println("An extant tip node with one incoming branch, representing \"$(tip.label)\", with sampling probability $(tip.sampling_probability).") 
+end
+
+function Base.Multimedia.display(ft::FossilTip)
+    println("A fossil tip node with one incoming branch, representing \"$(ft.label)\".")
 end
 
 function Base.Multimedia.display(branch::Branch)

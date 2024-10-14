@@ -163,8 +163,8 @@ function postorder_async(
 
     height = treeheight(root);
 
-    x = postorder_async(model, root, prob, height, E)
-    return(x)
+    D, sf = postorder_async(model, root, prob, height, E)
+    return(D, sf)
 end
 
 ## internal node
@@ -174,7 +174,7 @@ function postorder_async(
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64, 
         E,
-        )  where {T <: InternalNode}
+        )  where {T <: BranchingEvent}
 
     branch_left, branch_right = node.children
 
@@ -184,7 +184,7 @@ function postorder_async(
     Threads.@sync begin
         Threads.@spawn D_left, sf_left = postorder_async(model, branch_left, prob, time, E)
         D_right, sf_right = postorder_async(model, branch_right, prob, time, E)
-end
+    end
 
     D = D_left .* D_right .* model.λ
     c = sum(D)
@@ -235,7 +235,7 @@ end
 ## for a tip
 function postorder_async(
         model::Model, 
-        tip::Tip, 
+        tip::ExtantTip, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
         E,
@@ -244,16 +244,31 @@ function postorder_async(
     K = number_of_states(model)
 
     D = ones(elt, K) .* tip.sampling_probability
-
-    if tip.is_fossil
-        ψ = get_fossilization_rate(model, time)
-        Et = E(time)
-        D[:] .= ψ .* Et 
-    end
     sf = 0.0
 
     return(D, sf)
 end
+
+## for a tip
+function postorder_async(
+        model::Model, 
+        tip::FossilTip, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64,
+        E,
+    )
+    elt = eltype(model)
+    K = number_of_states(model)
+
+    ψ = get_fossilization_rate(model, time)
+    Et = E(time)
+
+    D = ψ .* Et 
+    sf = 0.0
+
+    return(D, sf)
+end
+
 
 
 

@@ -28,6 +28,10 @@ function get_fossilization_rate(model::FBDSconstant, time::Float64)
     return(model.ψ)
 end
 
+function get_fossilization_rate(model::BDSconstant, time::Float64)
+    error("can not get fossilization rate for a birth-death-shift model. either use an FBD model or don't include fossils in the tree.")
+    #return(model.ψ)
+end
 
 
 function logL_root(model::Model, data::SSEdata; multithread = true)
