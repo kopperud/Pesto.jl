@@ -24,7 +24,7 @@ model = BDSconstant(λ, μ, η)
 rates = birth_death_shift(model, bears)
 ```
 """
-function birth_death_shift(model, data; nshifts = true, shift_bayes_factor = true) 
+function birth_death_shift(model::Model, data::SSEdata; nshifts = true, shift_bayes_factor = true) 
     Ds, Fs = backwards_forwards_pass(model, data)
 
     Ss = ancestral_state_probabilities(data, Ds, Fs)
