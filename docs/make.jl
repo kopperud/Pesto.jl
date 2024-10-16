@@ -1,15 +1,17 @@
-using Documenter, Pesto, Makie, CairoMakie, ColorSchemes, DataFrames
+using Documenter, Pesto, Makie, CairoMakie, ColorSchemes, DataFrames 
 
 CairoMakie.activate!(type="svg")
+
+modules = Module[Pesto]
+y = Base.get_extension(Pesto, :PestoMakieExt)
+if !isnothing(y)
+    push!(modules, y)
+end
 
 makedocs(
      sitename="Pesto.jl",
      authors = "Bjørn Tore Kopperud and Sebastian Höhna",
-     modules = [
-      Pesto,
-      isdefined(Base, :get_extension) ? Base.get_extension(Pesto, :PestoMakieExt) :
-      Pesto.PestoMakieExt
-      ],
+     modules = modules,
      pages = [
           "Home" => "index.md",
           "Installation" => "install.md",

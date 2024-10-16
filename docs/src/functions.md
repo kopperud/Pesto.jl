@@ -3,7 +3,11 @@
 List of available functions
 
 ```@docs
-birth_death_shift(model, data)
+birth_death_shift(model::Model, data::SSEdata)
+```
+
+```@docs
+birth_death_shift(model::Model, tree::Root)
 ```
 
 ```@docs
@@ -68,4 +72,16 @@ postorder_sync(model::SSEconstant, data::SSEdata, E)
 
 ```@docs
 magnitude(model::SSEconstant, data::SSEdata)
+```
+
+```@docs
+pesto_twostep(tree::SSEdata)
+```
+
+```@docs
+pesto_fossil(tree::Root)
+```
+
+```@docs
+pesto(tree::SSEdata)
 ```

@@ -1,5 +1,6 @@
 export SSEconstant, SSEdata, BDconstant
 export BDSconstant, FBDSconstant
+export Model
 
 #abstract type SSE <: Distributions.ContinuousUnivariateDistribution end
 abstract type Model end

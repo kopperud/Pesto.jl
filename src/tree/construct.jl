@@ -1,5 +1,7 @@
 ## construct a pointer based tree from an APE style tree
 
+export construct_tree
+
 function construct_tree(phy::phylo, sampling_probability::Float64)
     root_index = length(phy.tip_label) + 1
 
