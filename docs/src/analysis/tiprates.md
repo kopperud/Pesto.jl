@@ -10,7 +10,7 @@ First, we load the necessary modules and read in the tree file. We assume that w
 using Pesto
 using CairoMakie
 
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 
 include("../../src/primates.jl")
 ```
@@ -19,7 +19,7 @@ using Pesto
 using CairoMakie
 
 phy = readtree(Pesto.path("primates.tre"))
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 primates = SSEdata(phy, sampling_fraction)
 ```
 

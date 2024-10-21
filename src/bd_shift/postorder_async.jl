@@ -260,10 +260,14 @@ function postorder_async(
     elt = eltype(model)
     K = number_of_states(model)
 
+    ## probability that sampled lineages immediately go extinct
+    r = 0.0
+
     ψ = get_fossilization_rate(model, time)
     Et = E(time)
 
-    D = ψ .* Et 
+    ## MacPherson et al. (2022) Sys Bio
+    D = r .* ψ .+ (1.0 - r) .* ψ .* Et
     sf = 0.0
 
     return(D, sf)

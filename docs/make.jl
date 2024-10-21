@@ -17,7 +17,7 @@ makedocs(
           "Installation" => "install.md",
           "Analyses" => [
             "Simple analysis" => "analysis/simple.md", 
-            "Extended analysis" => "analysis/extended.md",
+            "Two-step analysis" => "analysis/twostep.md",
             "Number of shifts" => "analysis/shifts.md",
             "Significant shifts" => "analysis/bayes_factors.md",
             "Tip rates" => "analysis/tiprates.md",

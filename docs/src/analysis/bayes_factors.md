@@ -9,7 +9,7 @@ First, we load the necessary modules and read in the tree file.
 ```@setup bayes
 using Pesto
 
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 
 include("../../src/primates.jl")
 ```
@@ -17,7 +17,7 @@ include("../../src/primates.jl")
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 primates = SSEdata(phy, sampling_fraction)
 ```
 

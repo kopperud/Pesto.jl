@@ -1,6 +1,6 @@
 # [Simple analysis](@id simple)
 
-Here is an example of an analysis of branch-specific rates under the birth-death-shift model.
+Here is an example of an analysis of branch-specific rates under the birth-death-shift model. 
 
 ## Tree file
 
@@ -9,7 +9,7 @@ First, we load the necessary modules and read in the tree file. We assume that w
 ```@setup simple
 using Pesto
 
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 
 include("../../src/primates.jl")
 ```
@@ -17,17 +17,25 @@ include("../../src/primates.jl")
 using Pesto
 
 phy = readtree(Pesto.path("primates.tre"))
-sampling_fraction = 0.635
+sampling_fraction = 0.62
 primates = SSEdata(phy, sampling_fraction)
 ```
 
-## Analysis
-A simple analysis can be done like so:
+## Two-step analysis
+A two-step analysis can be done like so:
+```@example simple
+model, rates = pesto_twostep(primates)
+nothing # hide
+```
+To see how this analysis is set up, see the next section ([Two-step analysis](@ref twostep)).
+
+## Joint analysis
+A joint analysis, meaning that we estimate i) the parameters of the base distribution ($\hat{\lambda},\hat{\mu}$) and ii) the shift rate ($\eta$) jointly using maximum likelihood.
 ```@example simple
 model, rates = pesto(primates)
 nothing # hide
 ```
-To see how this analysis is set up, see the next section ([Extended analysis](@ref extended)).
+We think that the joint estimation procedure is more statistically robust than the two-step analysis, however there are also a few disadvantages. First, as we use Newton's method to find the maximum-likelihood estimates, it can be a bit slower than the two step method. Second, the joint estimation procedure can sometimes diverge (i.e. it may get stuck in local likelihood optima and return different parameter estimates). We therefore recommend to run the inference a few times, to inspect the parameters and the likelihood score. If the parameter estimates (and the tree plots) look reasonable, but two or more models have different likelihoods, we recommend to pick the model that has the highest likelihood score.
 
 ## Tree plots
 If we want to plot the results immediately, we will need to use the `Makie` dependency. `Makie` has several backends, but we will use `CairoMakie` for now, as it is designed to plot high-quality 2-dimensional figures.
