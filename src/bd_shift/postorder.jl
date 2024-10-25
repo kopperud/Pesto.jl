@@ -213,10 +213,15 @@ function postorder!(
     elt = eltype(model)
     K = number_of_states(model)
 
+    r = 0.0 ## fixed
+
+
     ψ = get_fossilization_rate(model, time)
     Et = E(time)
 
-    D = ψ .* Et 
+    D = ψ .* Et .* (1 - r)
+    D += (r .* ψ)
+
     sf = 0.0
 
     return(D)

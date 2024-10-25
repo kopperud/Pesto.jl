@@ -29,6 +29,7 @@ function newmodel_fbd(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     # * lambda hat is bigger than mu
     # * speciation rate is bigger than shift rate in speciation
     λmean = μ + x[1] + α  
+    #λmean = x[1] + α
 
 
 
