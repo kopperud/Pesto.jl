@@ -9,6 +9,10 @@ function extinction_ode(dE, E, p, t)
     sumE = sum(E)
 
     dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sumE .- E) 
+    LoopVectorization.@turbo for i in 1:K
+        dE[i] = μ[i] - (λ[i] + μ[i] + η) * E[i] + λ[i] * E[i] * E[i] + (η/(K-1)) * (sumE - E[i]) 
+    end
+    nothing
 end
 
 function extinction_ode_tv(dE, E, t)
@@ -56,7 +60,13 @@ function backward_ode(dD, D, p, t)
     η = model.η
 
     Et = E(t)
-    dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
+    sumD = sum(D)
+
+    #dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sumD .- D)
+    LoopVectorization.@turbo warn_check_args=false for i in eachindex(dD)
+        dD[i] = -(λ[i]+μ[i]+η)*D[i] + 2*λ[i]*D[i]*Et[i] + (η/(K-1.0))*(sumD - D[i])
+    end
+    nothing
 end
 
 
