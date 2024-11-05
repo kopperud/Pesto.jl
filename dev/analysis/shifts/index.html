@@ -13,26 +13,26 @@ rates[1:5,:]</code></pre><div><div style = "float: left;"><span>5×13 DataFrame<
 
 cmap = Makie.cgrad([:black, :red])
 treeplot(primates, rates, &quot;nshift&quot;; cmap = cmap)</code></pre><img src="1dab755b.svg" alt="Example block output"/><h2 id="Number-of-rate-shifts"><a class="docs-heading-anchor" href="#Number-of-rate-shifts">Number of rate shifts</a><a id="Number-of-rate-shifts-1"></a><a class="docs-heading-anchor-permalink" href="#Number-of-rate-shifts" title="Permalink"></a></h2><p>The total number of rate shifts, as shown above, is a reduction or simplification of the number of rate shifts that can be inferred by <code>Pesto</code>. The number of rate shifts from state <code>j</code> to state <code>i</code> accumulated over the branch length (from old to young) is described by the following differential equation</p><p class="math-container">\[\frac{d\hat{N}_{M,ij}}{dt} = S_{M,j}(t) \frac{-\eta}{K-1} \frac{D_{M,i}(t)}{D_{M,j}(t)} \text{ if } j \neq i\]</p><p>with initial condition <span>$\hat{N}_{ij}(t_0) = 0$</span>. In Pesto, we would compute this using</p><pre><code class="language-julia hljs">nshift = state_shifts(model, primates)</code></pre><p>The object returned <code>nshift</code> is a three-dimensional array. The first dimension corresponds to the branch index (what was <code>M</code>). The second dimension represents the arrival state (<code>i</code>), and the third dimension represents the departure state (<code>j</code>). The order of the first index (<code>M</code>) is the same order as the edge indices in a standard <code>ape</code>-style tree in R.</p><p>If we sum over second and third dimension, we get the number of rate shifts per branch:</p><pre><code class="language-julia hljs">sum(nshift, dims = 2:3)[:,1,1]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">464-element Vector{Float64}:
- 8.454252537063944e-5
- 0.0013656986995131738
- 0.025474003366029938
- 0.0034049591324448823
- 0.002100860942813689
- 0.0014621018275061631
- 0.000834120294586152
- 0.000834120294586152
- 0.002283147237482269
- 0.0021950091408750034
+ 8.454252536881993e-5
+ 0.0013656986996802946
+ 0.025474003365846102
+ 0.0034049591324594947
+ 0.0021008609428215244
+ 0.0014621018275099088
+ 0.0008341202945861797
+ 0.0008341202945861797
+ 0.0022831472374663323
+ 0.0021950091408832425
  ⋮
- 0.0003272696126845134
- 0.0004382649456816517
- 0.0004382649456816517
- 0.0004833775197805186
- 0.0005587196660506854
- 0.0005587196660506854
- 0.0006336182297653658
- 0.0007282135953863175
- 0.0007282135953863175</code></pre><p>If instead we sum over the first dimension, we get a breakdown over which rate transitions were more frequent:</p><pre><code class="language-julia hljs">Nmatrix = sum(nshift, dims = 1)[1,:,:]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5×5 Matrix{Float64}:
+ 0.00032726961268457944
+ 0.00043826494568155266
+ 0.00043826494568155266
+ 0.0004833775197806846
+ 0.0005587196660506001
+ 0.0005587196660506001
+ 0.0006336182297663676
+ 0.0007282135953863311
+ 0.0007282135953863311</code></pre><p>If instead we sum over the first dimension, we get a breakdown over which rate transitions were more frequent:</p><pre><code class="language-julia hljs">Nmatrix = sum(nshift, dims = 1)[1,:,:]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5×5 Matrix{Float64}:
  0.0          0.235923  0.00980883  0.0329926  0.000304083
  0.00072929   0.0       0.00856945  0.0280923  0.000243659
  0.00160255   0.552613  0.0         0.0388902  0.00073274
@@ -48,4 +48,4 @@ ax = Makie.Axis(f[1,1],
         ygridvisible = false)
 Makie.barplot!(ax, mids, bins[:,1], color = :maroon)
 f</code></pre><img src="ce6be884.svg" alt="Example block output"/><p>Most of the rate shift events represent a shift from a smaller to a larger speciation rate (i.e. <span>$\lambda_i - \lambda_j &gt; 0$</span>), however some rate shifts are in the other direction (<span>$\lambda_i - \lambda_j &lt; 0$</span>). There are also a few rate shift events where the speciation rate does not change (<span>$\lambda_i - \lambda_j = 0$</span>). In these events, it is the extinction rate that changes, and not the speciation rate. If we are interested in the question, &quot;what is the overall magnitude of shifts?&quot;, we can calculate the mean shift magnitude (weighted by their frequencies):</p><p class="math-container">\[\frac{1}{\sum_{i,j}\hat{N}_{ij}} \sum_{i,j} \hat{N}_{ij} (\lambda_i - \lambda_j).\]</p><p>In Julia we can calculate it like so</p><pre><code class="language-julia hljs">shifts_weighted = Nmatrix .* (λ .- λ&#39;)
-mean_magnitude = sum(shifts_weighted) / sum(Nmatrix)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.09797607541196275</code></pre><p>meaning that the overall shift magnitude for the primates tree under this model was an increase of 0.098 speciation rate units.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../twostep/">« Two-step analysis</a><a class="docs-footer-nextpage" href="../bayes_factors/">Significant shifts »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Friday 25 October 2024 15:31">Friday 25 October 2024</span>. Using Julia version 1.11.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+mean_magnitude = sum(shifts_weighted) / sum(Nmatrix)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.09797607541849711</code></pre><p>meaning that the overall shift magnitude for the primates tree under this model was an increase of 0.098 speciation rate units.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../twostep/">« Two-step analysis</a><a class="docs-footer-nextpage" href="../bayes_factors/">Significant shifts »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Tuesday 5 November 2024 16:25">Tuesday 5 November 2024</span>. Using Julia version 1.11.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
