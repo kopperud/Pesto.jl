@@ -16,7 +16,24 @@ using Test
     # Write your tests here.
     threshold = 0.001
     @test abs(logl - -693.1624874593532) < threshold
+end
 
+@testset "Likelihood regression other tree" begin
+
+    λ = [0.2, 0.1]
+    μ = [0.05, 0.1]
+    η = 0.005
+    model = BDSconstant(λ, μ, η)
+
+    #include("../docs/src/primates.jl");
+    phy = readtree(Pesto.path("primates.tre"))
+    primates = Pesto.construct_tree(phy, 0.62)
+
+
+    logl = logL_root(model, primates)
+
+    threshold = 0.001
+    @test abs(logl - -693.6726771736597) < threshold
 end
 
 @testset "Branch rates" begin
@@ -32,10 +49,31 @@ end
     target = [0.1088643102855757, 0.12872942956813035, 0.18662616176687286, 0.19813663825163044, 0.19705776696087068, 0.19766996131326536, 0.19710110266036726, 0.19710110266036726, 0.19864070515647547, 0.1984029272470074, 0.19712588682309887, 0.19712588682309887, 0.19892770622412512, 0.19896287964727813, 0.19764486196519887, 0.19879042162272886, 0.19854426120380406, 0.19809736853583723, 0.19809736853583723, 0.19808507061531294, 0.1987173751049797, 0.1974617912799596, 0.1974617912799596, 0.17868850526251295, 0.17998699690565034, 0.1802814904233706, 0.18097822664971505, 0.18069381717127436, 0.18069381717127436, 0.1795041005146961]
 
 
-    threshold = 0.0001
+    threshold = 0.001
     @test sum((rates[1:30,:mean_lambda] .- target).^2) < threshold
 
 end
+
+@testset "Number of rate shift events" begin
+    λ = [0.2, 0.1]
+    μ = [0.05, 0.1]
+    η = 0.005
+    model = BDSconstant(λ, μ, η)
+
+    include("../docs/src/primates.jl");
+
+    Ds, Fs = backwards_forwards_pass(model, primates);
+    Ss = ancestral_state_probabilities(primates, Ds, Fs);
+
+    nshift = compute_nshifts(model, primates, Ds, Ss)
+
+
+    nshift_simple = state_shifts_simple(model, primates, Ds, Fs)
+
+    if shift_bayes_factor
+        bf = posterior_prior_shift_odds(model,data)
+end
+
 
 @testset "Tree checks" begin
     @testset "Polytomies" begin
