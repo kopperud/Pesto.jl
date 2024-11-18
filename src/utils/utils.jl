@@ -422,6 +422,9 @@ notneg(u,p,t) = any(x->x<0,u)
 function eltype(model::BDSconstant)
     return(typeof(model.η))
 end
+function eltype(model::BDSconstantQ)
+    return(typeof(model.Q[1,1]))
+end
 function eltype(model::BDStimevarying)
     return(typeof(model.η(0.0)))
 end

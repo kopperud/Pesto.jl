@@ -15,6 +15,10 @@ function get_speciation_rates(model::BDSconstant, t::Float64)
     return(model.λ)
 end
 
+function get_speciation_rates(model::BDSconstantQ, t::Float64)
+    return(model.λ)
+end
+
 function get_speciation_rates(model::BDStimevarying, t::Float64)
     return(model.λ(t)) 
 end
@@ -35,13 +39,15 @@ end
 
 
 function logL_root(model::Model, data::SSEdata; multithread = true)
-    E = extinction_probability(model, data)
 
     if multithread
-        D, sf = postorder_async(model, data, E)
+        u, sf = postorder_async(model, data)
     else
-        D, sf = postorder_sync(model, data, E)
+        u, sf = postorder_sync(model, data)
     end
+
+    E = u[:,1]
+    D = u[:,2]
 
     root_index = length(data.tiplab)+1
     root_age = data.node_depth[root_index]
@@ -57,7 +63,7 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
     # * that the two lineages subtending from the MRCA 
     #        must have survived until the present
     λroot = get_speciation_rates(model, root_age)
-    nonextinct = (1.0 .- E(root_age)).^2
+    nonextinct = (1.0 .- E).^2
     condition = λroot .* nonextinct
 
     D = D ./ condition
@@ -67,8 +73,9 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
 end
 
 function logL_root(model::Model, tree::Root)
-    E = extinction_probability(model, tree)
-    D, sf = postorder_async(model, tree, E)
+    u, sf = postorder_async(model, tree)
+
+    E, D = eachcol(u)
 
     root_age = treeheight(tree)
     K = number_of_states(model)
@@ -80,7 +87,7 @@ function logL_root(model::Model, tree::Root)
     # * that the two lineages subtending from the MRCA 
     #        must have survived until the present
     λroot = get_speciation_rates(model, root_age)
-    nonextinct = (1.0 .- E(root_age)).^2
+    nonextinct = (1.0 .- E).^2
     condition = λroot .* nonextinct
 
     D = D ./ condition

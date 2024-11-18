@@ -31,7 +31,7 @@ function birth_death_shift(model::Model, data::SSEdata; nshifts = true, shift_ba
     rates = tree_rates(data, model, Fs, Ss)
 
     if nshifts
-        #nshift = compute_nshifts(model, data, Ds, Ss; ape_order = false)
+        #nshift = compute_nshifts(model, data, Ds, Fs; ape_order = false)
         nshift = state_shifts_simple(model, data, Ds, Fs)
         append!(nshift, 0.0)
         rates[!,:nshift] = nshift

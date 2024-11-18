@@ -59,7 +59,12 @@ function get_branching_times(node_depths, n_tips)
     return(branching_times)
 end
 
-function postorder!(po, edges, n_tips, descendants, edge_index)
+function postorder!(
+        po::Vector{Int64}, 
+        edges::Matrix{Int64}, 
+        n_tips, 
+        descendants, 
+        edge_index)
     dec = edges[edge_index,2]
     
     if dec > n_tips

@@ -7,7 +7,7 @@ function no_shifts_prob(dlogX, logX, p, t)
     η, K, D = p
 
     r = η / (K-1.0)
-    Dt = D(t)
+    Dt = @view D(t)[:,2]
     Dsum = sum(Dt)
 
     # u[j] is the log probability that there were no shifts 
@@ -79,12 +79,14 @@ function posterior_shift_prob(model::Model, data::SSEdata)
         t1 = D.t[end]
     
         Xt0 = posterior_shift_prob_categories(model, D, K, alg)
-        St = ancestral_state_probability(D(t1), F(t1), t1)
+
+        Dt = D(t1)[:,2]
+        Ft = F(t1)[:,2]
+        St = ancestral_state_probability(Dt, Ft, t1)
 
         X[edge_index] = sum(Xt0 .* St)
     end
     prob_atleast_one_shift = 1.0 .- X
-    
 end
 
 function posterior_shift_prob(model::Model, tree::Root)

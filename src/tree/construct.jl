@@ -90,7 +90,6 @@ function construct_tree_tip(phy, parent_node, branch_index, sampling_probability
     tip_index = phy.edge[branch_index,2]
     tip.index = tip_index
     tip.label = phy.tip_label[tip_index]
-    tip.is_fossil = false
     tip.inbounds = branch
     tip.sampling_probability = sampling_probability
     branch.outbounds = tip
@@ -113,10 +112,12 @@ function assign_fossils!(
         threshold::Float64,
         time::Float64,
     ) where {T <: BranchingEvent}
+
     for branch in node.children  
         child_node = branch.outbounds
         assign_fossils!(child_node, threshold, time - branch.time)
     end
+    println()
 end
 
 function assign_fossils!(
@@ -130,12 +131,10 @@ function assign_fossils!(
         ft.index = tip.index
         ft.inbounds = tip.inbounds 
         ft.label = tip.label
-        #ft = FossilTip(tip.index, tip.inbounds, tip.label)
         parent_branch = tip.inbounds
         parent_branch.outbounds = ft
 
-        #tip.is_fossil = true
-        println("assigned fossil")
+        print(".")
     end
 end
 

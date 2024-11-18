@@ -16,8 +16,8 @@ function state_shifts_simple(model::Model, data::SSEdata, Ds, Fs; alg = Ordinary
     nshifts = zeros(nbranches)
     ode = shift_problem_simple(model)
 
-    Threads.@threads for edge_idx in 1:nbranches
-    #for edge_idx in 1:nbranches
+    #Threads.@threads for edge_idx in 1:nbranches
+    for edge_idx in 1:nbranches
         a = Ds[edge_idx].t[end]
         b = Ds[edge_idx].t[1]
         tspan = (a,b)

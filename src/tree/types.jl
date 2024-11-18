@@ -34,7 +34,6 @@ mutable struct ExtantTip <: AbstractTip
     inbounds::Branch
     label::String
     sampling_probability::Float64
-    is_fossil::Bool
 
     ExtantTip() = new()
 end

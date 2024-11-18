@@ -1,6 +1,11 @@
 export preorder
 
-function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5())
+function preorder(
+        model::Model, 
+        data::SSEdata, 
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution}; 
+        alg = OrdinaryDiffEq.Tsit5()
+    )
     ## Precompute ancestor edges
     ancestors = make_ancestors(data)
     descendants = make_descendants(data)
@@ -10,17 +15,16 @@ function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5
     elt = eltype(model)
     
     root_node = length(data.tiplab)+1  
-
     nrows = size(data.edges, 1)
-    ## Store the whole `F(t)` per branch
-    Fs = Dict()
 
-    #pF = (model.λ, model.μ, model.η, K, E)
-    pF = (model, K, E)
+    ## Store the whole `F(t)` per branch
+    pre = Dict{Int64, OrdinaryDiffEq.ODESolution}()
+
+    p = (model, K)
     ode = forward_prob(model)
     tspan = [0.0, 1.0]
-    u0 = [1.0, 1.0]
-    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, pF)
+    u0 = zeros(Float64, K, 2) 
+    prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p)
 
     for m in reverse(data.po)
         anc = data.edges[m,1]
@@ -28,35 +32,44 @@ function preorder(model::Model, data::SSEdata, E, Ds; alg = OrdinaryDiffEq.Tsit5
        
         ## if root
         if anc == root_node
+            ## initialize F as the prior probability
+            ## of the base distribution
             F_parent = ones(elt, K) ./ K
 
             left_edge, right_edge = descendants[root_node]
             root_age = maximum(data.node_depth)
             λroot = get_speciation_rates(model, root_age)
-            D_parent = Ds[left_edge].u[end] .* Ds[right_edge].u[end] .* λroot
+            D_parent = post[left_edge].u[end][:,2] .* post[right_edge].u[end][:,2] .* λroot
+            E_parent = post[left_edge].u[end][:,1]
         else
             parent_edge = ancestors[anc]
-            F_parent = Fs[parent_edge].u[end]
-            D_parent = Ds[parent_edge].u[1]
+            F_parent = pre[parent_edge].u[end][:,2]
+            D_parent = post[parent_edge].u[1][:,2]
+            E_parent = post[parent_edge].u[1][:,1]
         end
-        Dm = Ds[m].u[end]
+        ## D(t) on this branch
+        Dm = post[m].u[end][:,2]
 
         F_start = D_parent .* F_parent ./ Dm
-        F_start = F_start ./ sum(F_start) ## Normalize, because these numbers can get very tiny (1E-10)
+        ## Normalize for numerical stability 
+        F_start = F_start ./ sum(F_start) 
+
 
         parent_node = parental_node(dec, data) 
 
-        node_age = data.node_depth[dec] ## node age (youngest) 
-        parent_node_age = data.node_depth[parent_node] ## parent node age (oldest)
+        ## node age (youngest) 
+        node_age = data.node_depth[dec] 
+        ## parent node age (oldest)
+        parent_node_age = data.node_depth[parent_node] 
         tspan = (parent_node_age, node_age)
 
-        u0 = F_start
+        u0 = hcat(E_parent, F_start)
         prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
-        Fs[m] = sol
+        pre[m] = sol
     end
 
-    return(Fs)
+    return(pre)
 end
 
 
@@ -70,31 +83,38 @@ end
 function preorder(
         model::Model,
         root::Root,
-        E::OrdinaryDiffEq.ODESolution,
-        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
        )
    
-    E = extinction_probability(model, root);
+    #E = extinction_probability(model, root);
 
     elt = eltype(model)
     K = number_of_states(model)
     ode = forward_prob(model)
-    pF = (model, K, E)
+    p = (model, K)
     tspan = (0.0, 1.0)
-    u0 = ones(elt, K)
+    u0 = ones(elt, K, 2)
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pF)
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
 
     height = treeheight(root);
 
-    ## 
+    pre = Dict{Int64, OrdinaryDiffEq.ODESolution}()
 
-    Fs = Dict{Int64, OrdinaryDiffEq.ODESolution}()
+    left_index = root.children[1].index
+    right_index = root.children[2].index
 
-    F_root = ones(K) 
-    preorder!(model, root, prob, height, E, Ds, Fs, F_root)
+    F_root = ones(K) ./ K
+    D_left = post[left_index].u[end][:,2] 
+    D_right = post[right_index].u[end][:,2] 
+    λroot = get_speciation_rates(model, height)
+    D_root = D_left .* D_right .* λroot
+    S_root = F_root .* D_root
+    S_root = S_root ./ sum(S_root)
 
-    return(Fs)
+    preorder!(model, root, prob, height, post, pre, S_root)
+
+    return(pre)
 end
 
 ## internal node
@@ -103,30 +123,19 @@ function preorder!(
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64, 
-        E::OrdinaryDiffEq.ODESolution,
-        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        F_node::Vector{Float64}
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        S_node::Vector{Float64}
         )  where {T <: BranchingEvent}
 
-    # calculate D(t) at this node (or the parent edge of this node)
     left_branch_index = node.children[1].index
     right_branch_index = node.children[2].index
-
-    D_left = Ds[left_branch_index](time)
-    D_right = Ds[right_branch_index](time)
-    λt = get_speciation_rates(model, time)
-    D_node = D_left .* D_right .* λt
-
-    # calculate S(t)
-    S_node = F_node .* D_node
-    S_node = S_node ./ sum(S_node) ## normalize
 
     branch_left, branch_right = node.children
 
     # not thread safe because Dict is not thread safe
-    preorder!(model, branch_left, prob, time, E, Ds, Fs, S_node)
-    preorder!(model, branch_right, prob, time, E, Ds, Fs, S_node)
+    preorder!(model, branch_left, prob, time, post, pre, S_node)
+    preorder!(model, branch_right, prob, time, post, pre, S_node)
 end
 
 ## along a branch
@@ -135,34 +144,38 @@ function preorder!(
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
-        E::OrdinaryDiffEq.ODESolution,
-        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution},
         S_parent::Vector{Float64},
     )
     child_node = branch.outbounds
     t_old = time 
     t_young = time - branch.time
 
-    
-    F0 = S_parent ./ Ds[branch.index](t_old)
+   
+    D0 = post[branch.index].u[end][:,2]
+    F0 = S_parent ./ D0
     F0 = F0 ./ sum(F0)
+    E0 = post[branch.index].u[end][:,1]
+
+    u0 = hcat(E0, F0)
 
     tspan = (t_old, t_young)
-    prob = OrdinaryDiffEq.remake(prob, u0 = F0, tspan = tspan)
+    prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
 
-    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
-                               save_everystep = true, reltol = 1e-3)
-    #sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5())
+    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, save_everystep = true, reltol = 1e-3)
 
-    #Fs[branch.index] = sol
-    push!(Fs, branch.index => sol)
+    push!(pre, branch.index => sol)
 
-    F_young = sol.u[end]
-    c = sum(F_young) 
-    F_young = F_young ./ c
+    u = sol.u[end]
+    F_young = u[:,2]
+    D_young = post[branch.index].u[1][:,2]
 
-    preorder!(model, child_node, prob, t_young, E, Ds, Fs, F_young)
+    S_young = F_young .* D_young
+    c = sum(S_young) 
+    S_young = S_young ./ c
+
+    preorder!(model, child_node, prob, t_young, post, pre, S_young)
 end
 
 ## for a tip
@@ -171,13 +184,10 @@ function preorder!(
         tip::T, 
         prob::OrdinaryDiffEq.ODEProblem,
         time::Float64,
-        E::OrdinaryDiffEq.ODESolution,
-        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        Fs::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution},
         S_parent::Vector{Float64},
     ) where {T <: AbstractTip}
     nothing
 end
-
-
 

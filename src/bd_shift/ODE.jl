@@ -8,11 +8,33 @@ function extinction_ode(dE, E, p, t)
 
     sumE = sum(E)
 
-    dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sumE .- E) 
-    LoopVectorization.@turbo for i in 1:K
+    #dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sumE .- E) 
+    LoopVectorization.@turbo warn_check_args=false for i in 1:K
         dE[i] = μ[i] - (λ[i] + μ[i] + η) * E[i] + λ[i] * E[i] * E[i] + (η/(K-1)) * (sumE - E[i]) 
     end
     nothing
+end
+
+function extinction_ode_matrix(dE, E, p, t)
+    model, K = p
+    λ = model.λ
+    μ = model.μ
+    Q = model.Q
+
+    #dE[:] .= μ .- (λ .+ μ .+ η) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sumE .- E) 
+    LoopVectorization.@turbo warn_check_args=false for i in eachindex(E)
+        x = μ[i] - (λ[i] + μ[i]) * E[i] + λ[i] * E[i] * E[i]
+
+        for j in eachindex(E)
+            ## note this is Q transpose
+            ## not Q[i,j] because we are 
+            ## going from young to old
+            x += Q[j,i] * E[j] 
+        end
+        dE[i] = x
+    end
+    nothing
+
 end
 
 function extinction_ode_tv(dE, E, t)
@@ -42,6 +64,10 @@ end
 function extinction_prob(model::BDSconstant)
     return(extinction_ode)
 end
+
+function extinction_prob(model::BDSconstantQ)
+    return(extinction_ode_matrix)
+end
     
 function extinction_prob(model::BDStimevarying)
     return(extinction_ode_tv)
@@ -51,20 +77,64 @@ function extinction_prob(model::FBDSconstant)
     return(extinction_fossil_ode)
 end
 
+function column_sum!(acc::Vector{Float64}, m::Matrix{Float64})
+	cols = eachcol(m)
+	
+	for i in eachindex(acc, cols)
+		acc[i] = sum(cols[i])
+	end
+	nothing
+end
+
+
 ## Probability of of observing the branch at time `t`
 ## * We solve this equation in the postorder traversal
-function backward_ode(dD, D, p, t)
-    model, K, E = p
+function backward_ode(
+        du::Matrix{T}, 
+        u::Matrix{T}, 
+        p, 
+        t::Float64
+    ) where {T <: Real}
+
+    model, K = p
+    E, D = eachcol(u)
+    sumE = sum(E)
+    sumD = sum(D)
+
     λ = model.λ
     μ = model.μ
     η = model.η
 
-    Et = E(t)
-    sumD = sum(D)
+    r = η / (K-1)
 
-    #dD[:] .= - (λ .+ μ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sumD .- D)
+    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
+        du[i,1] = μ[i] -(λ[i]+μ[i]+η)*u[i,1] + λ[i]*u[i,1]*u[i,1] + r*(sumE-u[i,1]) 
+        du[i,2] = -(λ[i]+μ[i]+η)*u[i,2] + 2*λ[i]*u[i,2]*u[i,1] + r*(sumD-u[i,2])
+    end
+
+    #for (i, (ui, λi, μi)) in enumerate(zip(eachrow(u), λ, μ))
+    #    Ei, Di = ui
+    #    du[i,1] = μi - (λi + μi + η)*Ei + λi*Ei*Ei + r*(sum_u[1] - Ei)
+    #    du[i,2] = -(λi+μi+η)*Di + 2*λi*Di*Ei + r*(sum_u[2]-Di)
+    #end
+
+    nothing
+end
+
+function backward_ode_matrix(dD, D, p, t)
+    model, K, E = p
+    λ = model.λ
+    μ = model.μ
+    Q = model.Q
+
+    Et = E(t)
+
     LoopVectorization.@turbo warn_check_args=false for i in eachindex(dD)
-        dD[i] = -(λ[i]+μ[i]+η)*D[i] + 2*λ[i]*D[i]*Et[i] + (η/(K-1.0))*(sumD - D[i])
+        dD[i] = -(λ[i]+μ[i])*D[i] + 2*λ[i]*D[i]*Et[i]
+        for j in eachindex(D)
+            # Q is transpose because we go backwards in time
+            dD[i] += Q[j,i] * D[j]
+        end
     end
     nothing
 end
@@ -107,6 +177,10 @@ function backward_prob(model::BDSconstant)
     return(backward_ode)
 end
 
+function backward_prob(model::BDSconstantQ)
+    return(backward_ode_matrix)
+end
+
 function backward_prob(model::BDStimevarying)
     return(backward_ode_tv)
 end
@@ -119,14 +193,29 @@ end
 
 ## This ODE is the previous one times minus one
 ## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
-function forward_ode(dF, F, p, t)
-    model, K, E = p
+function forward_ode(
+        du::Matrix{T}, 
+        u::Matrix{T}, 
+        p, 
+        t::Float64) where {T <: Real}
+
+    model, K = p
     λ = model.λ
     μ = model.μ
     η = model.η
 
-    Et = E(t)
-    dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
+    sumE, sumF = sum(u, dims = 1)
+    r = η / (K-1)
+
+    for i in axes(du, 1)
+    #LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
+        ## E
+        du[i,1] = - μ[i] + (λ[i] + μ[i] + η) * u[i,1] - λ[i] * u[i,1] * u[i,1] - r * (sumE - u[i,1]) 
+        ## F
+        du[i,2] = +(λ[i]+μ[i]+η)*u[i,2] - 2*λ[i]*u[i,2]*u[i,1] - r *(sumF - u[i,2])
+    end
+    #dF[:] .= (-1) .* ( - (λ .+ μ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
+    nothing
 end
 
 function forward_fossil_ode(dF, F, p, t)
@@ -167,20 +256,23 @@ end
 function number_of_shifts_simple!(dN, N, p, t)
     η, K, D, F = p
 
-    Dt = D(t)
-    Ft = F(t)
+    Dt = D(t)[:,2]
+    Ft = F(t)[:,2]
+
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))
 
     ## [1] is the number of rate shifts, dN(t)/dt
     dN[1] = r * (sum(Dt .* sum(St ./ Dt)) - 1.0)
+    nothing
 end
 
 function number_of_shifts_simple_tv!(dN, N, p, t)
     η, K, D, F = p
 
-    Dt = D(t)
-    Ft = F(t)
+    Dt = D(t)[:,2]
+    Ft = F(t)[:,2]
+
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η(t)/(K-1.0))
  
@@ -193,8 +285,8 @@ end
 function number_of_shifts!(dN, N, p, t)
     η, K, D, F = p
 
-    Dt = D(t)
-    Ft = F(t)
+    Dt = D(t)[:,2]
+    Ft = F(t)[:,2]
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))
 
@@ -211,8 +303,8 @@ end
 function number_of_shifts_tv!(dN, N, p, t)
     η, K, D, F = p
 
-    Dt = D(t)
-    Ft = F(t)
+    Dt = D(t)[:,2]
+    Ft = F(t)[:,2]
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η(t)/(K-1.0))
 

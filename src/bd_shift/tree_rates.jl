@@ -26,15 +26,6 @@ function tree_rates(data, model; n = 10)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function posterior_variance(rate_categories::Vector{Float64}, St::Vector{Float64})
-    m = LinearAlgebra.dot(rate_categories, St) 
-
-    var = sum((rate_categories .- m) .^2 .* St)
-    return(var)
-end
-
-
-
 function tree_rates(data::SSEdata, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
     rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
@@ -78,13 +69,16 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantMo
     x, w = FastGaussQuadrature.gausslegendre(n)
 
     node_indices = Int64[]
+
+    items = Vector{Float64}[]
+    names = String[]
     
-    #Threads.@threads for i = 1:size(data.edges)[1]
+    #Threads.@threads for row in 1:size(data.edges)[1]
     for branch in branches
+    #for branch in branches
         i = branch.index
         node_index = branch.outbounds.index
         push!(node_indices, node_index)
-    #for i = 1:size(data.edges)[1]
         t0, t1 = extrema(Fs[i].t)
         ## t0 is youngest, t1 is oldest
 
@@ -112,7 +106,6 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantMo
     df = DataFrames.DataFrame(rates, names)
     df[!, "node"] = node_indices
     df[!, "edge"] = collect(1:n_branches)
-    #root_index = length(data.tiplab)+1
     root_index = tree.index
     push!(df, vcat(repeat([NaN], length(names)), root_index, 0))
     return(df)
@@ -153,16 +146,25 @@ end
 
 
 
-function ancestral_state_probabilities(data::SSEdata, Ds, Fs)    
-    Ss = Dict()
+function ancestral_state_probabilities(
+        data::SSEdata, 
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+    )
+    Ss = Dict{Int64, Function}()
     for edge_idx in 1:(maximum(data.edges)-1)
-       Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
+       #Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
     return (Ss)
 end
 
-function ancestral_state_probabilities(tree::Root, Ds, Fs)    
+function ancestral_state_probabilities(
+        tree::Root, 
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+    )
     branches = get_branches(tree)
 
     Ss = Dict{Int64,Function}()
@@ -170,7 +172,8 @@ function ancestral_state_probabilities(tree::Root, Ds, Fs)
     for branch in branches
         edge_idx = branch.index
 
-        Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+        #Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)
@@ -179,10 +182,13 @@ end
 
 
 ## problem: this function is not type stable, or atleast S(t) is not 
-function ancestral_state_probabilities(Ds, Fs)    
-    Ss = Dict()
-    for edge_idx in collect(keys(Ds))
-       Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
+function ancestral_state_probabilities(
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution}, 
+    )
+    Ss = Dict{Int64,Function}()
+    for edge_idx in collect(keys(post))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)

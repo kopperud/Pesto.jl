@@ -20,6 +20,12 @@ struct BDSconstant{T1 <: Real, T2 <: Real} <: ConstantModel
     η::T2
 end
 
+struct BDSconstantQ{T1 <: Real, T2 <: Real} <: ConstantModel
+    λ::Vector{T1}
+    μ::Vector{T1}
+    Q::Matrix{T2}
+end
+
 struct BDStimevarying <: TimevaryingModel
     λ::Function
     μ::Function

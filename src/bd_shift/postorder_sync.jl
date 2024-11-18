@@ -34,7 +34,7 @@ julia> sf
 -705.9668193580866
 ```
 """
-function postorder_sync(model::Model, data::SSEdata, E)
+function postorder_sync(model::Model, data::SSEdata)
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 
@@ -47,18 +47,22 @@ function postorder_sync(model::Model, data::SSEdata, E)
     ## Storing the solution at the end of the branch
     elt = eltype(model)
 
-    pD = (model, K, E)
-    u0 = ones(elt, K)
+    p = (model, K)
+    u0 = ones(elt, K, 2)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)
-    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
 
     root_index = Ntip+1
     root_age = data.node_depth[root_index]
     left_edge, right_edge = descendants[root_index]
 
-    D_left, sf_left = subtree_sync(left_edge, prob, model, data, descendants, Ntip, K, elt)
-    D_right, sf_right =  subtree_sync(right_edge, prob, model, data, descendants, Ntip, K, elt)
+    u_left, sf_left = subtree_sync(left_edge, prob, model, data, descendants, Ntip, K, elt)
+    u_right, sf_right =  subtree_sync(right_edge, prob, model, data, descendants, Ntip, K, elt)
+
+    D_left = u_left[:,2]
+    D_right = u_right[:,2]
+    E_left = u_left[:,1]
 
     λroot = get_speciation_rates(model, root_age)
     D = D_left .* D_right .* λroot
@@ -74,7 +78,9 @@ function postorder_sync(model::Model, data::SSEdata, E)
         sf -= Inf 
     end
 
-    return(D, sf)
+    u = hcat(E_left, D)
+
+    return(u, sf)
 end
 
 function subtree_sync(edge_index, prob, model, data, descendants, Ntip, K, elt)
@@ -92,12 +98,17 @@ function subtree_sync(edge_index, prob, model, data, descendants, Ntip, K, elt)
     else
         left_edge, right_edge = descendants[dec]
         
-        D_left, sf_left = subtree_sync(left_edge, prob, model, data, descendants, Ntip, K, elt)
-        D_right, sf_right = subtree_sync(right_edge, prob, model, data, descendants, Ntip, K, elt)
+        u_left, sf_left = subtree_sync(left_edge, prob, model, data, descendants, Ntip, K, elt)
+        u_right, sf_right = subtree_sync(right_edge, prob, model, data, descendants, Ntip, K, elt)
+
+        D_left = u_left[:,2]
+        D_right = u_right[:,2]
+        E_left = u_left[:,1]
 
        
         λt = get_speciation_rates(model, node_age) 
-        u0 = D_left .* D_right .* λt
+        D0 = D_left .* D_right .* λt
+        u0 = hcat(E_left, D0)
     end
 
     sf = sf_left + sf_right
@@ -108,6 +119,7 @@ function subtree_sync(edge_index, prob, model, data, descendants, Ntip, K, elt)
         prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, 
                                    save_everystep = false, reltol = 1e-3)
+
         D = sol.u[end]
         c = sum(D)
         D = D ./ c

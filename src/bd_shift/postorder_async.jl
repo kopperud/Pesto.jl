@@ -34,7 +34,7 @@ julia> sf
 -705.9668193580866
 ```
 """
-function postorder_async(model::Model, data::SSEdata, E)
+function postorder_async(model::Model, data::SSEdata)
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
 
@@ -48,12 +48,12 @@ function postorder_async(model::Model, data::SSEdata, E)
     elt = eltype(model)
 
     ## Storing the scaling factors
-    pD = (model, K, E)
+    p = (model, K)
 
-    u0 = ones(elt, K)
+    u0 = ones(elt, K, 2)
     tspan = (0.0, 1.0)
     ode = backward_prob(model)
-    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
 
     root_index = Ntip+1
     root_age = data.node_depth[root_index]
@@ -61,11 +61,15 @@ function postorder_async(model::Model, data::SSEdata, E)
     left_edge, right_edge = descendants[root_index]
 
     local sf_left, sf_right
-    local D_left, D_right
+    local u_left, u_right
     Threads.@sync begin
-        Threads.@spawn D_left, sf_left = subtree(left_edge, prob, model, data, descendants, Ntip, K, elt)
-        D_right, sf_right =  subtree(right_edge, prob, model, data, descendants, Ntip, K, elt)
+        Threads.@spawn u_left, sf_left = subtree(left_edge, prob, model, data, descendants, Ntip, K, elt)
+        u_right, sf_right =  subtree(right_edge, prob, model, data, descendants, Ntip, K, elt)
     end
+
+    D_left = u_left[:,2]
+    D_right = u_right[:,2]
+    E_left = u_left[:,1]
 
     λroot = get_speciation_rates(model, root_age)
     D = D_left .* D_right .* λroot
@@ -81,7 +85,9 @@ function postorder_async(model::Model, data::SSEdata, E)
         sf -= Inf 
     end
 
-    return(D, sf)
+    u = hcat(E_left, D)
+
+    return(u, sf)
 end
 
 function subtree(edge_index, prob, model, data, descendants, Ntip, K, elt)
@@ -93,35 +99,43 @@ function subtree(edge_index, prob, model, data, descendants, Ntip, K, elt)
 
     local sf_left, sf_right
     if dec <= Ntip
-        u0 = ones(elt, K) .* data.sampling_probability
+        u0 = zeros(elt, K, 2) 
+        u0[:,1] .= 1 - data.sampling_probability
+        u0[:,2] .= data.sampling_probability
+
         sf_left = 0.0
         sf_right = 0.0
     else
         left_edge, right_edge = descendants[dec]
         
-        local D_left, D_right
+        local u_left, u_right
         Threads.@sync begin ## wait for both subtrees to finish before proceeding
             ## spawn a new task for the left subtree, so that it can be computed in parallel
-            Threads.@spawn D_left, sf_left = subtree(left_edge, prob, model, data, descendants, Ntip, K, elt)
-            D_right, sf_right = subtree(right_edge, prob, model, data, descendants, Ntip, K, elt)
+            Threads.@spawn u_left, sf_left = subtree(left_edge, prob, model, data, descendants, Ntip, K, elt)
+            u_right, sf_right = subtree(right_edge, prob, model, data, descendants, Ntip, K, elt)
         end
 
-       
+        D_left = u_left[:,2]
+        D_right = u_right[:,2]
+        E_left = u_left[:,1]
+         
         λt = get_speciation_rates(model, node_age) 
-        u0 = D_left .* D_right .* λt
+        D0 = D_left .* D_right .* λt
+        E0 = E_left
+        u0 = hcat(E0, D0)
     end
 
     sf = sf_left + sf_right
     if isinf(sf) | isnan(sf) | in(u0, NaN)
-        D = ones(elt, K)
+        u = ones(elt, K, 2)
         sf -= Inf
     else
         prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg, 
                                    save_everystep = false, reltol = 1e-3)
-        D = sol.u[end]
-        c = sum(D)
-        D = D ./ c
+        u = sol.u[end]
+        c = sum(u[:,2])
+        u[:,2] = u[:,2] ./ c
 
         if c > 0.0
             sf += log(c)
@@ -134,7 +148,7 @@ function subtree(edge_index, prob, model, data, descendants, Ntip, K, elt)
         end
     end
 
-    return(D, sf)
+    return(u, sf)
 end
 
 ######################################################
@@ -147,75 +161,86 @@ end
 function postorder_async(
         model::Model,
         root::Root,
-        E::OrdinaryDiffEq.ODESolution,
-       )
+    )
    
-    E = extinction_probability(model, root);
+    #E = extinction_probability(model, root);
 
     elt = eltype(model)
     K = number_of_states(model)
     ode = backward_prob(model)
-    pD = (model, K, E)
+    p = (model, K)
     tspan = (0.0, 1.0)
-    u0 = ones(elt, K)
+    u0 = ones(elt, K, 2)
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, pD)
+    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
 
     height = treeheight(root);
 
-    D, sf = postorder_async(model, root, prob, height, E)
-    return(D, sf)
+    ## find sampling probability
+    ## assume it is equal in all the species
+    leftmost_tip = find_one_extant_tip(root)
+    sampling_probability = leftmost_tip.sampling_probability
+
+    u, sf = postorder_async(model, root, prob, sampling_probability, height)
+    return(u, sf)
 end
 
 ## internal node
 function postorder_async(
         model::Model, 
-        node::T, 
+        node::N, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64, 
-        E,
-        )  where {T <: BranchingEvent}
+        ) where {N <: BranchingEvent}
 
     branch_left, branch_right = node.children
 
-    local D_left, D_right
+    local u_left, u_right
     local sf_left, sf_right
 
     Threads.@sync begin
-        Threads.@spawn D_left, sf_left = postorder_async(model, branch_left, prob, time, E)
-        D_right, sf_right = postorder_async(model, branch_right, prob, time, E)
+        Threads.@spawn u_left, sf_left = postorder_async(model, branch_left, prob,sampling_probability,  time)
+        u_right, sf_right = postorder_async(model, branch_right, prob,sampling_probability,  time)
     end
+
+    D_left = u_left[:,2]
+    D_right = u_right[:,2]
+    E_left = u_left[:,1]
 
     D = D_left .* D_right .* model.λ
     c = sum(D)
     sf = sf_left + sf_right + log(c)
     D = D ./ c
 
-    return(D, sf)
+    u = hcat(E_left, D)
+
+    return(u, sf)
 end
+
 
 ## along a branch
 function postorder_async(
         model::Model, 
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
-        E,
     )
     child_node = branch.outbounds
+
     t_old = time 
     t_young = time - branch.time
 
-    D0, sf = postorder_async(model, child_node, prob, t_young, E)
+    u0, sf = postorder_async(model, child_node, prob, sampling_probability, t_young)
 
     tspan = (t_young, t_old)
-    prob = OrdinaryDiffEq.remake(prob, u0 = D0, tspan = tspan)
-    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, 
-                                   save_everystep = false, reltol = 1e-3)
+    prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
+    sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, save_everystep = false, reltol = 1e-3)
 
-    D = sol.u[end]
-    c = sum(D) 
-    D = D ./ c
+    u = sol.u[end]
+    c = sum(u, dims = 1)[2]
+    u[:,2] = u[:,2] ./ c
 
     if c > 0.0
         sf += log(c)
@@ -228,7 +253,7 @@ function postorder_async(
     end
 
 
-    return(D, sf)
+    return(u, sf)
 end
 
 
@@ -237,16 +262,21 @@ function postorder_async(
         model::Model, 
         tip::ExtantTip, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
-        E,
     )
+
+    @assert abs(time .- 0) < 0.001
     elt = eltype(model)
     K = number_of_states(model)
 
-    D = ones(elt, K) .* tip.sampling_probability
+    E = ones(elt, K) .- tip.sampling_probability
+    D = zeros(elt, K) .+ tip.sampling_probability
     sf = 0.0
 
-    return(D, sf)
+    u = hcat(E, D)
+
+    return(u, sf)
 end
 
 ## for a tip
@@ -254,9 +284,10 @@ function postorder_async(
         model::Model, 
         tip::FossilTip, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
-        E,
     )
+
     elt = eltype(model)
     K = number_of_states(model)
 
@@ -264,13 +295,20 @@ function postorder_async(
     r = 0.0
 
     ψ = get_fossilization_rate(model, time)
-    Et = E(time)
+    ## Problem:
+    ## How do we know the extinction probability E(t) for this 
+    ## fossil tip, if we don't know the extant sampling fraction, 
+    ## or if we assume that the extant sampling probability 
+    ## is unequal across species?
+    E = extinction_probability(model, sampling_probability, time)
 
     ## MacPherson et al. (2022) Sys Bio
     D = r .* ψ .+ (1.0 - r) .* ψ .* Et
     sf = 0.0
 
-    return(D, sf)
+    u = hcat(E, D)
+
+    return(u, sf)
 end
 
 

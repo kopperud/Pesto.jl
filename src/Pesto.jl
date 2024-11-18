@@ -75,6 +75,9 @@ include("plot/plot_tree.jl")
 ## custom exceptions
 include("errors.jl")
 
+## try some new interface
+include("interface.jl")
+
 # Path into package
 export path
 path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
