@@ -41,7 +41,7 @@ function birth_death_shift(model::Model, data::SSEdata; nshifts = true, shift_ba
         bf = posterior_prior_shift_odds(model,data)
         append!(bf, NaN)
         rates[!,"shift_bf"] = bf
-        rates[!,"shift_bf_log"] = log10.(bf)
+        #rates[!,"shift_bf_log"] = log10.(bf)
     end
 
     return(rates)
@@ -85,7 +85,7 @@ function birth_death_shift(model::Model, tree::Root; nshifts = true, shift_bayes
         bf = posterior_prior_shift_odds(model,tree)
         append!(bf, NaN)
         rates[!,"shift_bf"] = bf
-        rates[!,"shift_bf_log"] = log10.(bf)
+        #rates[!,"shift_bf_log"] = log10.(bf)
     end
 
     return(rates)
