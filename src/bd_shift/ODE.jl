@@ -121,23 +121,26 @@ function backward_ode(
     nothing
 end
 
-function backward_ode_matrix(dD, D, p, t)
-    model, K, E = p
+function backward_ode_matrix(du, u, p, t)
+    model, K = p
     λ = model.λ
     μ = model.μ
     Q = model.Q
 
-    Et = E(t)
-
-    LoopVectorization.@turbo warn_check_args=false for i in eachindex(dD)
-        dD[i] = -(λ[i]+μ[i])*D[i] + 2*λ[i]*D[i]*Et[i]
-        for j in eachindex(D)
-            # Q is transpose because we go backwards in time
-            dD[i] += Q[j,i] * D[j]
-        end
+    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
+        du[i,1] = μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1]
+        du[i,2] = -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
     end
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1), j in axes(du, 2)
+        du[i,1] += Q[i,j] * u[j,1]
+        du[i,2] += Q[i,j] * u[j,2]
+    end
+
     nothing
 end
+
+
 
 
 function backward_ode_tv(dD, D, p, t)
