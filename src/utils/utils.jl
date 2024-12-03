@@ -313,18 +313,12 @@ function alltriples(x1::Vector{T}, x2::Vector{T}, x3::Vector{T}) where {T <: Rea
 end
 
 #function Qmatrix(λ::Vector{T}, μ::Vector{T}, ψ::Vector{T}, α, β, γ) where {T <: Real}
-function Qmatrix(r::Vector{T}, ψ::Vector{T}, α::T, β::T) where {T <: Real}
+function Qmatrix(α::T, β::T, n::Int64) where {T <: Real}
     ## backtransform
-    #λ = r ./ (1.0 - ϵ)
-    #μ = λ .- r
-    
-    k = reduce(*, map(length, (r, ψ)))
+    k = n*n;
 
-    nr = length(r)
-    nψ = length(ψ)
-
-    small_α = α / (nr - 1)
-    small_β = β / (nψ - 1)
+    small_α = α / (n - 1)
+    small_β = β / (n - 1)
 
     ## empty flat vectors
     A = zeros(T, k)
@@ -332,17 +326,15 @@ function Qmatrix(r::Vector{T}, ψ::Vector{T}, α::T, β::T) where {T <: Real}
     #C = zeros(T, k)
 
     ## compute all pairs, populate in vectors
-    for (i, (a, b)) in enumerate(Iterators.product(r, ψ))
+    for (i, (a, b)) in enumerate(Iterators.product(1:n, 1:n))
         A[i] = a
         B[i] = b
-        #C[i] = c
     end
    
     ## Q matrix
     Q = zeros(T, k, k)
     Qα = zeros(Int64, k, k)
     Qβ = zeros(Int64, k, k)
-    #Qγ = zeros(Int64, k, k)
     
     for i in 1:k
         for j in 1:k
@@ -356,7 +348,6 @@ function Qmatrix(r::Vector{T}, ψ::Vector{T}, α::T, β::T) where {T <: Real}
                     Q[i,j] = small_α
                     Qα[i,j] = 1
                 else
-                #elseif B[i] != B[j]
                     Q[i,j] = small_β
                     Qβ[i,j] = 1
                 end
@@ -369,16 +360,10 @@ function Qmatrix(r::Vector{T}, ψ::Vector{T}, α::T, β::T) where {T <: Real}
     end
 
     for i in 1:k
-        #Q[i,i] = -sum(Q[:,i])
         Q[i,i] = -(α+β)
     end
 
-    Qs = SparseArrays.sparse(Q)
-    Qαs = SparseArrays.sparse(Qα)
-    Qβs = SparseArrays.sparse(Qβ)
-    #Qγs = SparseArrays.sparse(Qγ)
-
-    return(Qs, Qαs, Qβs) #, Qγs)
+    return(Q, Qα, Qβ) #, Qγs)
 end
 
 @doc raw"""
@@ -430,5 +415,8 @@ function eltype(model::BDStimevarying)
 end
 function eltype(model::FBDSconstant)
     return(typeof(model.α))
+end
+function eltype(model::BDconstant)
+    return(typeof(model.λ))
 end
 
