@@ -87,14 +87,14 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantMo
         rates[i,2] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,3] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
         rates[i,4] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
-        rates[i,5] = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
+        #rates[i,5] = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
 
         ## difference from oldest to youngest point on branch
         rates[i,6] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
         rates[i,7] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
         rates[i,8] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
         rates[i,9] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
-        rates[i,10] = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
+        #rates[i,10] = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
     end
     #node = data.edges[:,2]
     #edge = 1:size(data.edges)[1]
