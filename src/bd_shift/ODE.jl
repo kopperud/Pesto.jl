@@ -38,13 +38,12 @@ function extinction_ode_matrix(dE, E, p, t)
 
 end
 
-function extinction_ode_tv(dE, E, t)
+function extinction_ode_tv(dE, E, p, t)
     model, K = p
     λ = model.λ
     μ = model.μ
     η = model.η
 
-    λ, μ, η, K = p
     dE[:] .= μ(t) .- (λ(t) .+ μ(t) .+ η(t)) .* E .+ λ(t) .* E .* E .+ (η(t)/(K-1)) .* (sum(E) .- E) 
 end
 
@@ -56,7 +55,7 @@ function extinction_fossil_ode(dE, E, p, t)
     Q = model.Q
     K = number_of_states(model)
 
-    dE[:] = μ .- (λ .+ μ .+ ψ) .* E .+ λ .* E .* E .+ Q * E 
+    dE[:] = μ .- (λ.+μ.+ψ).*E .+ λ.*E.*E .+ Q * E 
 end
 
 
@@ -123,13 +122,13 @@ function backward_ode_matrix(du, u, p, t)
     E, D = eachcol(u)
     dE, dD = eachcol(du)
 
-    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] = μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
-        du[i,2] = -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
-    end
-
     fastmv!(dE, Q, E)
     fastmv!(dD, Q, D)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] += μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+        du[i,2] += -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
+    end
 
     nothing
 end
@@ -179,13 +178,15 @@ function backward_fossil_ode(du::Matrix{T}, u::Matrix{T}, p, t) where {T <: Real
     E, D = eachcol(u)
     dE, dD = eachcol(du)
 
-    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] = μ[i] -(λ[i]+μ[i]+ψ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
-        du[i,2] = -(λ[i]+μ[i]+ψ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
-    end
-
     fastmv!(dE, Q, E)
     fastmv!(dD, Q, D)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] += μ[i] -(λ[i]+μ[i]+ψ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+        du[i,2] += -(λ[i]+μ[i]+ψ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
+    end
+    
+    nothing
 end
 
 function backward_fossil2_ode(dD, D, p, t)
@@ -261,13 +262,15 @@ function forward_fossil_ode(du, u, p, t)
     E, F = eachcol(u)
     dE, dF = eachcol(du)
 
-    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] = - μ[i] +(λ[i]+μ[i]+ψ[i])*u[i,1] - λ[i]*u[i,1]*u[i,1] 
-        du[i,2] = +(λ[i]+μ[i]+ψ[i])*u[i,2] - 2*λ[i]*u[i,2]*u[i,1]
-    end
-
     fastmv!(dE, Q, .- E)
     fastmv!(dF, Q, .- F)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] += - μ[i] +(λ[i]+μ[i]+ψ[i])*u[i,1] - λ[i]*u[i,1]*u[i,1] 
+        du[i,2] += +(λ[i]+μ[i]+ψ[i])*u[i,2] - 2*λ[i]*u[i,2]*u[i,1]
+    end
+
+    nothing
 end
 
 
