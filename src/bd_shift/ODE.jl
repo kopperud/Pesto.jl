@@ -26,10 +26,11 @@ function extinction_ode_matrix(dE, E, p, t)
         x = μ[i] - (λ[i] + μ[i]) * E[i] + λ[i] * E[i] * E[i]
 
         for j in eachindex(E)
-            ## note this is Q transpose
-            ## not Q[i,j] because we are 
-            ## going from young to old
-            x += Q[j,i] * E[j] 
+            ## this Q maybe it should be Q[j,i] 
+            ## because we are going from young 
+            ## to old, but since it is symmetric
+            ## might be quicker to to Q[i,j]
+            x += Q[i,j] * E[j] 
         end
         dE[i] = x
     end
@@ -53,10 +54,8 @@ function extinction_fossil_ode(dE, E, p, t)
     μ = model.μ
     ψ = model.ψ
     Q = model.Q
-    #η = model.η
     K = number_of_states(model)
 
-    #dE[:] .= μ .- (λ .+ μ .+ η .+ ψ) .* E .+ λ .* E .* E .+ (η/(K-1)) .* (sum(E) .- E) 
     dE[:] = μ .- (λ .+ μ .+ ψ) .* E .+ λ .* E .* E .+ Q * E 
 end
 
@@ -107,17 +106,10 @@ function backward_ode(
 
     r = η / (K-1)
 
-    #LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
-    for i in axes(du, 1)
+    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
         du[i,1] = μ[i] -(λ[i]+μ[i]+η)*u[i,1] + λ[i]*u[i,1]*u[i,1] + r*(sumE-u[i,1]) 
         du[i,2] = -(λ[i]+μ[i]+η)*u[i,2] + 2*λ[i]*u[i,2]*u[i,1] + r*(sumD-u[i,2])
     end
-
-    #for (i, (ui, λi, μi)) in enumerate(zip(eachrow(u), λ, μ))
-    #    Ei, Di = ui
-    #    du[i,1] = μi - (λi + μi + η)*Ei + λi*Ei*Ei + r*(sum_u[1] - Ei)
-    #    du[i,2] = -(λi+μi+η)*Di + 2*λi*Di*Ei + r*(sum_u[2]-Di)
-    #end
 
     nothing
 end
@@ -128,35 +120,16 @@ function backward_ode_matrix(du, u, p, t)
     μ = model.μ
     Q = model.Q
 
-    #=
-    if false
-        a = 1.0
-        b = 0.0
-        c = 'N'
-
-        E, D = eachcol(u)
-        dE, dD = eachcol(du)
-
-        LinearAlgebra.BLAS.gemv!(c, a, Q, D, b, dD)
-        LinearAlgebra.BLAS.gemv!(c, a, Q, E, b, dE)
-
-        LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-            du[i,1] += μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
-            du[i,2] += -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
-        end
-    else
-    =#
-
     E, D = eachcol(u)
     dE, dD = eachcol(du)
 
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] = μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+        du[i,2] = -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
+    end
+
     fastmv!(dE, Q, E)
     fastmv!(dD, Q, D)
-
-    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] += μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
-        du[i,2] += -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
-    end
 
     nothing
 end
@@ -180,6 +153,8 @@ function fastmv!(y, A, x)
     end
     nothing
 end
+
+
 
 function backward_ode_tv(dD, D, p, t)
     λ, μ, η, K, E = p
