@@ -127,9 +127,14 @@ function postorder(
 
     height = treeheight(root);
 
+    ## find sampling probability
+    ## assume it is equal in all the species
+    leftmost_tip = find_one_extant_tip(root)
+    sampling_probability = leftmost_tip.sampling_probability
+
     Ds = Dict{Int64, OrdinaryDiffEq.ODESolution}()
 
-    D_root = postorder!(model, root, prob, height, Ds)
+    D_root = postorder!(model, root, prob, sampling_probability, height, Ds)
 
     return(Ds)
 end
@@ -139,6 +144,7 @@ function postorder!(
         model::Model, 
         node::T, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64, 
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
         )  where {T <: BranchingEvent}
@@ -148,8 +154,8 @@ function postorder!(
     local D_left, D_right
 
     ## note this is not thread safe
-    u_left = postorder!(model, branch_left, prob, time, Ds)
-    u_right = postorder!(model, branch_right, prob, time, Ds)
+    u_left = postorder!(model, branch_left, prob, sampling_probability, time, Ds)
+    u_right = postorder!(model, branch_right, prob, sampling_probability, time, Ds)
 
     D_left = u_left[:,2]
     D_right = u_right[:,2]
@@ -169,6 +175,7 @@ function postorder!(
         model::Model, 
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
     )
@@ -176,7 +183,7 @@ function postorder!(
     t_old = time 
     t_young = time - branch.time
 
-    u0 = postorder!(model, child_node, prob, t_young, Ds)
+    u0 = postorder!(model, child_node, prob, sampling_probability, t_young, Ds)
 
     tspan = (t_young, t_old)
     prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
@@ -198,6 +205,7 @@ function postorder!(
         model::Model, 
         tip::ExtantTip, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
     )
@@ -219,6 +227,7 @@ function postorder!(
         model::Model, 
         tip::FossilTip, 
         prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
         time::Float64,
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
     )

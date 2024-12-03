@@ -65,13 +65,14 @@ end
     Ds, Fs = backwards_forwards_pass(model, primates);
     Ss = ancestral_state_probabilities(primates, Ds, Fs);
 
-    nshift = compute_nshifts(model, primates, Ds, Ss)
+    nshift = compute_nshifts(model, primates, Ds, Fs)
 
 
     nshift_simple = state_shifts_simple(model, primates, Ds, Fs)
 
-    if shift_bayes_factor
-        bf = posterior_prior_shift_odds(model,data)
+    #if shift_bayes_factor
+    bf = posterior_prior_shift_odds(model, primates)
+    #end
 end
 
 
