@@ -12,6 +12,7 @@ import LoopVectorization
 import ForwardDiff
 import ProgressMeter
 import SparseArrays
+import SciMLBase
 
 
 ## the rest
@@ -53,9 +54,10 @@ include("bd_shift/birth_death_shift.jl")
 include("bd_shift/extinction.jl")
 include("bd_shift/nshifts.jl")
 include("bd_shift/analysis.jl")
-include("bd_shift/optimize_eta.jl") 
-include("bd_shift/optimize_gd.jl") ## gradient descent
-include("bd_shift/optimize_newton.jl") ### Newton's method
+include("bd_shift/optimize_eta.jl")  ## optimize eta only
+include("bd_shift/optimize_bd.jl") ## birth-death
+include("bd_shift/optimize_bd_separate_shift.jl") ## birth-death with α and β, different shift rates
+include("bd_shift/optimize_fbd.jl") ### fossilized birth-death
 include("bd_shift/shift_probability.jl")
 include("bd_shift/tip_rates.jl")
 include("bd_shift/magnitude.jl")
