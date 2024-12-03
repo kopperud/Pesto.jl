@@ -107,7 +107,8 @@ function backward_ode(
 
     r = η / (K-1)
 
-    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
+    #LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
+    for i in axes(du, 1)
         du[i,1] = μ[i] -(λ[i]+μ[i]+η)*u[i,1] + λ[i]*u[i,1]*u[i,1] + r*(sumE-u[i,1]) 
         du[i,2] = -(λ[i]+μ[i]+η)*u[i,2] + 2*λ[i]*u[i,2]*u[i,1] + r*(sumD-u[i,2])
     end
@@ -121,24 +122,64 @@ function backward_ode(
     nothing
 end
 
-function backward_ode_matrix(dD, D, p, t)
-    model, K, E = p
+function backward_ode_matrix(du, u, p, t)
+    model, K = p
     λ = model.λ
     μ = model.μ
     Q = model.Q
 
-    Et = E(t)
+    #=
+    if false
+        a = 1.0
+        b = 0.0
+        c = 'N'
 
-    LoopVectorization.@turbo warn_check_args=false for i in eachindex(dD)
-        dD[i] = -(λ[i]+μ[i])*D[i] + 2*λ[i]*D[i]*Et[i]
-        for j in eachindex(D)
-            # Q is transpose because we go backwards in time
-            dD[i] += Q[j,i] * D[j]
+        E, D = eachcol(u)
+        dE, dD = eachcol(du)
+
+        LinearAlgebra.BLAS.gemv!(c, a, Q, D, b, dD)
+        LinearAlgebra.BLAS.gemv!(c, a, Q, E, b, dE)
+
+        LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+            du[i,1] += μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+            du[i,2] += -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
         end
+    else
+    =#
+
+    E, D = eachcol(u)
+    dE, dD = eachcol(du)
+
+    fastmv!(dE, Q, E)
+    fastmv!(dD, Q, D)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] += μ[i] -(λ[i]+μ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+        du[i,2] += -(λ[i]+μ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
     end
+
     nothing
 end
 
+function forward_ode_matrix(du, u, p, t)
+    backward_ode_matrix(du, u, p, t)
+
+    du[:,:] = (-1) .* du[:,:]
+    nothing
+end
+
+## computes the product A*x
+## and stores into y
+function fastmv!(y, A, x)
+    LoopVectorization.@turbo warn_check_args=false for i in axes(A, 1)
+        yi = zero(Base.eltype(x))
+        for j in axes(A, 2)
+            yi += A[i,j] * x[j]
+        end
+        y[i] = yi        
+    end
+    nothing
+end
 
 function backward_ode_tv(dD, D, p, t)
     λ, μ, η, K, E = p
@@ -188,7 +229,6 @@ end
 function backward_prob(model::FBDSconstant)
     return(backward_fossil_ode)
 end
-
 
 
 ## This ODE is the previous one times minus one
@@ -250,6 +290,10 @@ end
 
 function forward_prob(model::FBDSconstant)
     return(forward_fossil_ode)
+end
+
+function forward_prob(model::BDSconstantQ)
+    return(forward_ode_matrix)
 end
 
 ## this doesn't output a matrix but rather a scalar
