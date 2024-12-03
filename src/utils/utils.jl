@@ -323,7 +323,6 @@ function Qmatrix(α::T, β::T, n::Int64) where {T <: Real}
     ## empty flat vectors
     A = zeros(T, k)
     B = zeros(T, k)
-    #C = zeros(T, k)
 
     ## compute all pairs, populate in vectors
     for (i, (a, b)) in enumerate(Iterators.product(1:n, 1:n))
@@ -333,8 +332,8 @@ function Qmatrix(α::T, β::T, n::Int64) where {T <: Real}
    
     ## Q matrix
     Q = zeros(T, k, k)
-    Qα = zeros(Int64, k, k)
-    Qβ = zeros(Int64, k, k)
+    #Qα = zeros(Int64, k, k)
+    #Qβ = zeros(Int64, k, k)
     
     for i in 1:k
         for j in 1:k
@@ -346,15 +345,11 @@ function Qmatrix(α::T, β::T, n::Int64) where {T <: Real}
             if n_changes == 1
                 if A[i] != A[j]
                     Q[i,j] = small_α
-                    Qα[i,j] = 1
+                    #Qα[i,j] = 1
                 else
                     Q[i,j] = small_β
-                    Qβ[i,j] = 1
+                    #Qβ[i,j] = 1
                 end
-                #else
-                #    Q[i,j] = small_γ
-                #    Qγ[i,j] = 1
-                #end
             end
         end
     end
@@ -362,8 +357,8 @@ function Qmatrix(α::T, β::T, n::Int64) where {T <: Real}
     for i in 1:k
         Q[i,i] = -(α+β)
     end
-
-    return(Q, Qα, Qβ) #, Qγs)
+    
+    return(Q)
 end
 
 @doc raw"""

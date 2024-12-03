@@ -41,42 +41,34 @@ end
 =#
 
 struct FBDSconstant{T1 <: Real, T2 <: Real, T3 <: Real} <: ConstantModel
-    λmean::T1
-    ψmean::T1
-    #μmean::T1
-    λ::Vector{T2}
-    μ::Vector{T2}
-    ψ::Vector{T2}
-    α::T3
-    β::T3
-    #γ::T3
-    Q::SparseArrays.SparseMatrixCSC{T3, Int64}
-    Qα::SparseArrays.SparseMatrixCSC{Int64, Int64}
-    Qβ::SparseArrays.SparseMatrixCSC{Int64, Int64}
+    λ::Vector{T1}
+    μ::Vector{T1}
+    ψ::Vector{T1}
+    α::T2
+    β::T2
+    Q::Matrix{T3}
     #Qγ::SparseArrays.SparseMatrixCSC{Int64, Int64}
 end
 
 function FBDSconstant(
-        λmean::T1,
-        μ::T1,
-        ψmean::T1,
-        λ::Vector{T2},
-        ψ::Vector{T2},
-        α::T3,
-        β::T3,
-        #γ::T3,
-    ) where {T1 <: Real, T2 <: Real, T3 <: Real}
+        λ::Vector{T1}, ## these are of length n, not n*n or n^3
+        μ::Vector{T1},
+        ψ::Vector{T1},
+        α::T2,
+        β::T2,
+    ) where {T1 <: Real, T2 <: Real}
     
     #λ = r ./ (1 - ϵ)
     #μ = λ .- r
 
     λv, ψv = allpairwise(λ, ψ)
-    μv = repeat([μ], length(λv))
+    μv = repeat(μ, length(μ))
     #μv, _ = allpairwise(μ, ψ)
 
-    Q, Qα, Qβ = Qmatrix(λ, ψ, α, β)
+    n = length(λ)
+    Q = Qmatrix(α, β, n)
 
-    model = FBDSconstant(λmean, ψmean, λv, μv, ψv, α, β, Q, Qα, Qβ)
+    model = FBDSconstant(λv, μv, ψv, α, β, Q)
 
     return(model)
 end

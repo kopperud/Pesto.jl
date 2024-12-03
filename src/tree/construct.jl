@@ -105,6 +105,7 @@ function assign_fossils!(
     time = treeheight(root)
 
     assign_fossils!(root, threshold, time)
+    println()
 end
 
 function assign_fossils!(
@@ -117,7 +118,6 @@ function assign_fossils!(
         child_node = branch.outbounds
         assign_fossils!(child_node, threshold, time - branch.time)
     end
-    println()
 end
 
 function assign_fossils!(
@@ -136,6 +136,14 @@ function assign_fossils!(
 
         print(".")
     end
+end
+
+function assign_fossils!(
+        tip::FossilTip,
+        threshold::Float64,
+        time::Float64,
+    )
+    nothing
 end
 
 

@@ -162,17 +162,30 @@ function backward_ode_tv(dD, D, p, t)
     dD[:] .= - (λ(t) .+ μ(t) .+ η(t)) .* D .+ 2 .* λ(t) .* D .* Et .+ (η(t)/(K-1)) .* (sum(D) .- D)
 end
 
-function backward_fossil_ode(dD, D, p, t)
-    model, K, E = p
+function backward_fossil_ode(du::Matrix{T}, u::Matrix{T}, p, t) where {T <: Real}
+    model, K = p
     λ = model.λ
     μ = model.μ
     ψ = model.ψ
     #η = model.η
     Q = model.Q
 
+    #=
     Et = E(t)
     #dD[:] .= - (λ .+ μ .+ ψ .+ η) .* D .+ 2 .* λ .* D .* Et .+ (η/(K-1)) .* (sum(D) .- D)
     dD[:] .= - (λ .+ μ .+ ψ) .* D .+ 2 .* λ .* D .* Et .+ Q * D
+    =#
+
+    E, D = eachcol(u)
+    dE, dD = eachcol(du)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] = μ[i] -(λ[i]+μ[i]+ψ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
+        du[i,2] = -(λ[i]+μ[i]+ψ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
+    end
+
+    fastmv!(dE, Q, E)
+    fastmv!(dD, Q, D)
 end
 
 function backward_fossil2_ode(dD, D, p, t)

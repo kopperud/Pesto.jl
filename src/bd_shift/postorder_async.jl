@@ -300,13 +300,13 @@ function postorder_async(
     ## fossil tip, if we don't know the extant sampling fraction, 
     ## or if we assume that the extant sampling probability 
     ## is unequal across species?
-    E = extinction_probability(model, sampling_probability, time)
+    Et = extinction_probability(model, sampling_probability, time)
 
     ## MacPherson et al. (2022) Sys Bio
     D = r .* ψ .+ (1.0 - r) .* ψ .* Et
     sf = 0.0
 
-    u = hcat(E, D)
+    u = hcat(Et, D)
 
     return(u, sf)
 end
