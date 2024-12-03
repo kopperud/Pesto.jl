@@ -246,17 +246,28 @@ function forward_ode(
     nothing
 end
 
-function forward_fossil_ode(dF, F, p, t)
-    model, K, E = p
+function forward_fossil_ode(du, u, p, t)
+    model, K = p
     λ = model.λ
     μ = model.μ
     ψ = model.ψ
     #η = model.η
     Q = model.Q
 
-    Et = E(t)
+    #Et = E(t)
     #dF[:] .= (-1) .* ( - (λ .+ μ .+ ψ .+ η) .* F .+ 2 .* λ .* F .* Et .+ (η/(K-1)) .* (sum(F) .- F))
-    dF[:] = (-1) .* ( - (λ .+ μ .+ ψ) .* F .+ 2 .* λ .* F .* Et .+ Q * F )
+    #dF[:] = (-1) .* ( - (λ .+ μ .+ ψ) .* F .+ 2 .* λ .* F .* Et .+ Q * F )
+
+    E, F = eachcol(u)
+    dE, dF = eachcol(du)
+
+    LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
+        du[i,1] = - μ[i] +(λ[i]+μ[i]+ψ[i])*u[i,1] - λ[i]*u[i,1]*u[i,1] 
+        du[i,2] = +(λ[i]+μ[i]+ψ[i])*u[i,2] - 2*λ[i]*u[i,2]*u[i,1]
+    end
+
+    fastmv!(dE, Q, .- E)
+    fastmv!(dF, Q, .- F)
 end
 
 
