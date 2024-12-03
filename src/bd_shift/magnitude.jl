@@ -28,14 +28,19 @@ println(mag)
 """
 function magnitude(model::Model, data::SSEdata)
     N = state_shifts(model, data)
-    mag = magnitude(model, data, N)
+    mag = magnitude(model, N)
 
     return(mag)
 end
 
-function magnitude(model::Model, data::SSEdata, N::Array{Float64, 3})
+function magnitude(model::Model, N::Array{Float64, 3})
     N = sum(N, dims = 1)[1,:,:]
 
+    mag = magnitude(model, N)
+    return(mag)
+end
+
+function magnitude(model::Model, N::Array{Float64, 2})
     r = model.λ .- model.μ
     Δr = r .- r' 
 
@@ -45,3 +50,4 @@ function magnitude(model::Model, data::SSEdata, N::Array{Float64, 3})
 
     return(mag)
 end
+
