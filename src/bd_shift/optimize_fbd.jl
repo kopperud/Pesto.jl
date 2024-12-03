@@ -1,8 +1,16 @@
 function newmodel_fbd(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     #α, β = x[4:5]
-    rhat, ϵ, ψhat, α, β = x
+    
+    #rhat, ϵ, ψhat, α, β = x
+    
+    
+    α = x[4]
+    β = x[5]
 
-    #μ = x[2]
+    μhat = x[2] 
+    λhat = μhat + x[1] + α
+    ψhat = x[3]
+   
 
     ## enforce that fossilization rate is bigger than fossilization shift rate?
     #ψmean = x[3] + β
@@ -12,20 +20,28 @@ function newmodel_fbd(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     # * speciation rate is bigger than shift rate in speciation
 
     
-    #λmean = μ + x[1] + α  
-
-
+    #=
     dr = Distributions.LogNormal(log(rhat), sd)
     dψ = Distributions.LogNormal(log(ψhat), sd)
     
     rquantiles = Pesto.make_quantiles2(dr, n)
-    ψquantiles = Pesto.make_quantiles2(dψ, n)
+    ψ = Pesto.make_quantiles2(dψ, n)
 
     λ = rquantiles ./ (1 .- ϵ)
     μ = ϵ .* rquantiles ./ ( 1 .- ϵ )
+    =#
+
+    
+    dλ = Distributions.LogNormal(log(λhat), sd)
+    dψ = Distributions.LogNormal(log(ψhat), sd)
+
+    λ = Pesto.make_quantiles2(dλ, n)
+    μ = repeat([μhat], n)
+    ψ = Pesto.make_quantiles2(dψ, n) 
+    
 
 
-    model = FBDSconstant(λ, μ, ψquantiles, α, β)
+    model = FBDSconstant(λ, μ, ψ, α, β)
 
     return(model)
 end
@@ -35,8 +51,8 @@ function optimize_hyperparameters2(
     n = 6, 
     sd = 0.587, 
     n_attempts = 10,
-    ## parameters    [    r,     ϵ,     ψ,    α,    β]
-    lower          = [ 1e-04, 0.2, 1e-04, 1e-8, 1e-8],
+    ## parameters    [     λ,    μ,     ψ,    α,    β]
+    lower          = [ 1e-04, 1e-4, 1e-04, 1e-8, 1e-8],
     upper          = [ 0.8, 0.8, 1.0, 0.3, 0.3],
     xinit = missing
     )
@@ -53,9 +69,8 @@ function optimize_hyperparameters2(
         #λ = maximum([5*x[1], x[2]]) + x[3]
         #ps = [getpar(λ), getpar(μ), getpar(η)]
         ps = [getpar(xi) for xi in x]
-        println("r: $(ps[1]) \t\t ϵ: $(ps[2]) \t ψ: $(ps[3]) \t α: $(ps[4]) \t β: $(ps[5])")
-        #println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t η: $(ps[3])")
-        #println([getpar(e) for e in x])
+        #println("r: $(ps[1]) \t\t ϵ: $(ps[2]) \t ψ: $(ps[3]) \t α: $(ps[4]) \t β: $(ps[5])")
+        println("λ: $(ps[1]+ps[2]+ps[4]) \t\t μ: $(ps[2]) \t ψ: $(ps[3]) \t α: $(ps[4]) \t β: $(ps[5])")
 
         if any((x .- lower).^2 .< 1e-30)
             logl = -Inf
@@ -84,21 +99,40 @@ function optimize_hyperparameters2(
     global i = 1
 
     #rml, μml = estimate_constant_netdiv_mu(data)
-    rml, ϵml = (0.1, 0.6)
+    
 
-    dr = Distributions.LogNormal(log(0.5*rml), 0.5)
-    dϵ = Distributions.LogNormal(log(0.5*ϵml), 0.5)
-    dψ = Distributions.LogNormal(log(0.05), 0.5)
-    dα = Distributions.LogNormal(log(0.01), 0.2)
-    dβ = Distributions.LogNormal(log(0.01), 0.2)
+    if false 
+        rml, ϵml = (0.1, 0.6)
 
-    ## truncate the distribution
-    tol = 1e-8
-    dr = Distributions.Truncated(dr, lower[1] + tol, upper[1] - tol)
-    dϵ = Distributions.Truncated(dϵ, lower[2] + tol, upper[2] - tol)
-    dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
-    dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
-    dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
+        dr = Distributions.LogNormal(log(0.5*rml), 0.5)
+        dϵ = Distributions.LogNormal(log(0.5*ϵml), 0.5)
+        dψ = Distributions.LogNormal(log(0.05), 0.5)
+        dα = Distributions.LogNormal(log(0.01), 0.2)
+        dβ = Distributions.LogNormal(log(0.01), 0.2)
+
+        ## truncate the distribution
+        tol = 1e-8
+        dr = Distributions.Truncated(dr, lower[1] + tol, upper[1] - tol)
+        dϵ = Distributions.Truncated(dϵ, lower[2] + tol, upper[2] - tol)
+        dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
+        dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
+        dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
+    else
+        λml, μml = (0.3, 0.22)
+
+        dλ = Distributions.LogNormal(log(0.5*λml), 0.5)
+        dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
+        dψ = Distributions.LogNormal(log(0.05), 0.5)
+        dα = Distributions.LogNormal(log(0.01), 0.2)
+        dβ = Distributions.LogNormal(log(0.01), 0.2)
+
+        tol = 1e-8
+        dλ = Distributions.Truncated(dλ, lower[1] + tol, upper[1] - tol)
+        dμ = Distributions.Truncated(dμ, lower[2] + tol, upper[2] - tol)
+        dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
+        dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
+        dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
+    end
 
     inner_optimizer = Optim.Newton()
 
@@ -117,8 +151,8 @@ function optimize_hyperparameters2(
     while !converged && i <= n_attempts
 
         if use_random_inits
-            xinit[1] = rand(dr)
-            xinit[2] = rand(dϵ)
+            xinit[1] = rand(dλ)
+            xinit[2] = rand(dμ)
             xinit[3] = rand(dψ)
             xinit[4] = rand(dα)
             xinit[5] = rand(dβ)
