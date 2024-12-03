@@ -172,7 +172,7 @@ function postorder_async(
     tspan = (0.0, 1.0)
     u0 = ones(elt, K, 2)
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
+    prob = OrdinaryDiffEq.ODEProblem{true,SciMLBase.FullSpecialize}(ode, u0, tspan, p)
 
     height = treeheight(root);
 
