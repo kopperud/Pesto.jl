@@ -72,7 +72,7 @@ function logL_root(model::Model, data::SSEdata; multithread = true)
     return(logL)
 end
 
-function logL_root(model::Model, tree::Root)
+function logL_root(model::Model, tree::Root; condition = [:survival, :mrca])
     u, sf = postorder_async(model, tree)
 
     E, D = eachcol(u)
@@ -86,11 +86,16 @@ function logL_root(model::Model, tree::Root)
     # * that there was a speciation event at the MRCA
     # * that the two lineages subtending from the MRCA 
     #        must have survived until the present
-    λroot = get_speciation_rates(model, root_age)
-    nonextinct = (1.0 .- E).^2
-    condition = λroot .* nonextinct
+    if :survival in condition
+        nonextinct = (1.0 .- E).^2
+        D = D ./ nonextinct
+    end
 
-    D = D ./ condition
+    if :mrca in condition
+        λroot = get_speciation_rates(model, root_age)
+        D = D ./ λroot
+    end
+
     prob = sum(freqs .* D)
     logL = log(prob) + sum(sf)
     return(logL)
