@@ -414,4 +414,7 @@ end
 function eltype(model::BDconstant)
     return(typeof(model.λ))
 end
+function eltype(model::FBDconstant)
+    return(typeof(model.λ))
+end
 
