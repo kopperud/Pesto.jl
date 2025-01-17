@@ -1,17 +1,27 @@
-export SSEconstant, SSEdata, BDconstant
+export SSEconstant, SSEdata, BDconstant, FBDconstant
 export BDSconstant, FBDSconstant
 export Model
 
 #abstract type SSE <: Distributions.ContinuousUnivariateDistribution end
 abstract type Model end
 
-abstract type ConstantModel <: Model end
+## Meaning constant over time
+abstract type ConstantModel <: Model end 
 abstract type TimevaryingModel <: Model end
 
+## Meaning homogeneous across lineages
+abstract type HomogeneousModel <: Model end
+
 #struct BDconstant{T <: Real}#<: Distributions.ContinuousUnivariateDistribution
-struct BDconstant{T <: Real} <: ConstantModel
+struct BDconstant{T <: Real} <: HomogeneousModel
     λ::T
     μ::T
+end
+
+struct FBDconstant{T <: Real} <: HomogeneousModel
+    λ::T
+    μ::T
+    ψ::T
 end
 
 struct BDSconstant{T1 <: Real, T2 <: Real} <: ConstantModel
