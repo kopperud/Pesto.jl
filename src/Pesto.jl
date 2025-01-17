@@ -32,6 +32,7 @@ include("models/unistate/BcDc.jl")
 include("models/unistate/FcBcDc.jl")
 include("models/multistate/BhDh.jl")
 include("models/multistate/FhBhDc.jl")
+include("models/multistate/FhBcDc.jl")
 
 ## the rest
 include("treechecks.jl")
@@ -43,6 +44,7 @@ include("fit/unistate/BcDc.jl")
 include("fit/unistate/FcBcDc.jl")
 include("fit/multistate/BhDh.jl")
 include("fit/multistate/FhBhDc.jl")
+include("fit/multistate/FhBcDc.jl")
 
 
 ## utils

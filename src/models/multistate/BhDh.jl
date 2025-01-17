@@ -17,7 +17,7 @@ function get_speciation_rates(model::BhDhModel, t::Float64)
     return(model.λ)
 end
 
-function get_fossilization_rate(model::BhDhModel, time::Float64)
+function get_fossilization_rates(model::BhDhModel, time::Float64)
     error("can not get fossilization rate for a birth-death-shift model. either use an FBD model or don't include fossils in the tree.")
     #return(model.ψ)
 end

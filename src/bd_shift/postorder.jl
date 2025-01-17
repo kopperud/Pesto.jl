@@ -236,7 +236,7 @@ function postorder!(
 
     r = 0.0 ## fixed
 
-    ψ = get_fossilization_rate(model, time)
+    ψ = get_fossilization_rates(model, time)
 
     Et = extinction_probability(model, sampling_probability, time)
 
