@@ -60,3 +60,25 @@ function extinction_probability(model::Model, sampling_probability::Float64, tim
     E = sol.u[end] 
     return(E)
 end
+
+function extinction_probability(
+        model::M, 
+        sampling_probability::Float64, 
+        time::Float64,
+    ) where {M <: HomogeneousModel}
+
+    alg = OrdinaryDiffEq.Tsit5()
+    p = (model)
+    tspan = (0.0, time)
+
+    E0 = [1.0 - sampling_probability]
+    
+    ode = extinction_prob(model)
+    pr = OrdinaryDiffEq.ODEProblem{true}(ode, E0, tspan, p);
+    
+    ## use low tolerance because we only solve E once, so we can afford it
+    sol = OrdinaryDiffEq.solve(pr, alg, abstol = 1e-10, reltol = 1e-10, isoutofdomain = above_one, save_everystep = false)#, isoutofdomain = ispositive)
+    E = sol.u[end][1]
+    return(E)
+end
+
