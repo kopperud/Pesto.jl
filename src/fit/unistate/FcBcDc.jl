@@ -9,7 +9,7 @@ function fit_FcBcDc(
 
     f(x_tilde) = begin
         x = exp.(x_tilde)
-        model = FBDconstant(x[1], x[2], x[3])
+        model = FcBcDcModel(x[1], x[2], x[3])
         print("λ: ", getpar(x[1]), "\t μ: ", getpar(x[2]), "\t ψ: ", getpar(x[3]))
         lnl = logL_root(model, tree)
         println("\t logl: ", getpar(lnl))
@@ -34,7 +34,6 @@ function fit_FcBcDc(
             show_trace = false,
             iterations = 100, outer_iterations = 100)
 
-    #optres = Optim.optimize(f, g!, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
     optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer, opts)
     λ, μ, ψ = exp.(optres.minimizer)
     m = FBDconstant(λ, μ, ψ)

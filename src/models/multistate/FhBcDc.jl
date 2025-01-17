@@ -27,7 +27,7 @@ function get_fossilization_rates(model::FhBcDcModel, time::Float64)
     return(model.ψ)
 end
 
-function num_parameters(model::FhBcDcModel) return 5 end
+function num_parameters(model::FhBcDcModel) return 4 end
 
 #=
 function FhBcDcModel(
