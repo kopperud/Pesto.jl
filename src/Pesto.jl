@@ -34,6 +34,7 @@ include("tree/utils.jl")
 ## utils
 include("utils/utils.jl")
 include("utils/logistic.jl")
+include("utils/aic.jl")
 
 ## surface
 include("loglsurface/surface.jl")
@@ -49,6 +50,7 @@ include("bd_shift/preorder.jl")
 include("bd_shift/ODE.jl")
 include("bd_shift/logLroot.jl")
 include("bd_shift/tree_rates.jl")
+include("bd_shift/branch_variance.jl")
 include("bd_shift/backwards_forwards.jl")
 include("bd_shift/birth_death_shift.jl")
 include("bd_shift/extinction.jl")
