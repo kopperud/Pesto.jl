@@ -1,4 +1,4 @@
-export lp, psi, Econstant, estimate_constant_bdp
+export lp, psi, Econstant, estimate_constant_bdp, estimate_constant_fbdp
 
 function printlambda(λ::Float64)
     println(λ)
@@ -160,6 +160,41 @@ function estimate_constant_netdiv_mu(data::SSEdata; xinit = [0.05, 0.1], lower =
     return(r, μml)
 end
 
+function estimate_constant_fbdp(tree::Root; xinit = [0.1, 0.05, 0.01], lower = [0.000001, 0.000001, 0.000001], upper = [20.0, 20.0, 10.0])
+
+    f(x_tilde) = begin
+        x = exp.(x_tilde)
+        model = FBDconstant(x[1], x[2], x[3])
+        print("λ: ", getpar(x[1]), "\t μ: ", getpar(x[2]), "\t ψ: ", getpar(x[3]))
+        lnl = logL_root(model, tree)
+        println("\t logl: ", getpar(lnl))
+        return(-lnl)
+    end
+
+    g!(G, x_tilde) = begin
+        G[:] .= ForwardDiff.gradient(f, x_tilde)
+    end
+
+    ## updating the Hessian matrix
+    h!(H, x_tilde) = begin
+        H[:,:] = ForwardDiff.hessian(f, x_tilde)
+    end
+
+    inner_optimizer = Optim.Newton()
+    xinit_tilde = log.(xinit)
+
+    opts = Optim.Options(
+            #x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
+            #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
+            show_trace = false,
+            iterations = 100, outer_iterations = 100)
+
+    #optres = Optim.optimize(f, g!, lower, upper, xinit, Optim.Fminbox(inner_optimizer))
+    optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer, opts)
+    λ, μ, ψ = exp.(optres.minimizer)
+    m = FBDconstant(λ, μ, ψ)
+    return(m)
+end
 
 ## do it with tree iteration
 function ode_constant_bdp(du, u, p, t)
@@ -173,15 +208,33 @@ function ode_constant_bdp(du, u, p, t)
     nothing
 end
 
+function ode_constant_fbdp(du, u, p, t)
+    model = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+
+    du[1] = μ - (λ+μ+ψ)*u[1] + λ*u[1]*u[1] ## dE/dt
+    du[2] = -(λ+μ+ψ)*u[2] + 2*λ*u[2]*u[1] ## dD/dt
+end
+
+function backward_prob(model::FBDconstant)
+    return(ode_constant_fbdp)
+end
+
+function backward_prob(model::BDconstant)
+    return(ode_constant_bdp)
+end
+
 ## the root
 function postorder_async(
-        model::BDconstant,
+        model::M,
         root::Root,
-    )
+    ) where {M <: HomogeneousModel}
     elt = eltype(model)
     K = number_of_states(model)
     #ode = backward_prob(model)
-    ode = ode_constant_bdp
+    ode = backward_prob(model)
 
     p = (model)
     tspan = (0.0, 1.0)
@@ -202,12 +255,12 @@ end
 
 ## internal node
 function postorder_async(
-        model::BDconstant, 
+        model::M, 
         node::N, 
         prob::OrdinaryDiffEq.ODEProblem,
         sampling_probability::Float64,
         time::Float64, 
-        ) where {N <: BranchingEvent}
+        ) where {N <: BranchingEvent, M <: HomogeneousModel}
 
     branch_left, branch_right = node.children
 
@@ -236,12 +289,12 @@ end
 
 ## along a branch
 function postorder_async(
-        model::BDconstant, 
+        model::M, 
         branch::Branch, 
         prob::OrdinaryDiffEq.ODEProblem,
         sampling_probability::Float64,
         time::Float64,
-    )
+    ) where {M <: HomogeneousModel}
     child_node = branch.outbounds
 
     t_old = time 
@@ -272,14 +325,14 @@ function postorder_async(
 end
 
 
-## for a tip
+## for an extant tip
 function postorder_async(
-        model::BDconstant, 
+        model::M, 
         tip::ExtantTip, 
         prob::OrdinaryDiffEq.ODEProblem,
         sampling_probability::Float64,
         time::Float64,
-    )
+    ) where {M <: HomogeneousModel}
 
     @assert abs(time .- 0) < 0.001
     elt = eltype(model)
@@ -294,7 +347,34 @@ function postorder_async(
     return(u, sf)
 end
 
-function logL_root(model::BDconstant, tree::Root; condition = [:survival, :mrca])
+## for a fossil tip
+function postorder_async(
+        model::M,
+        tip::FossilTip,
+        prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
+        time::Float64,
+    ) where {M <: HomogeneousModel}
+    elt = eltype(model)
+
+    ## probability that sampled lineages immediately go extinct
+    r = 0.0
+    ψ = model.ψ
+
+    Et = extinction_probability(model, sampling_probability, time)
+    
+    D = r * ψ + (1.0 - r) * ψ * Et
+    sf = 0.0
+
+    u = [Et, D]
+    return(u, sf)
+end
+
+function logL_root(
+        model::M, 
+        tree::Root; 
+        condition = [:survival, :mrca]
+    ) where {M <: HomogeneousModel}
     u, sf = postorder_async(model, tree)
 
     E, D = u

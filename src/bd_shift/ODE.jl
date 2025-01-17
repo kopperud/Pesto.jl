@@ -58,6 +58,15 @@ function extinction_fossil_ode(dE, E, p, t)
     dE[:] = μ .- (λ.+μ.+ψ).*E .+ λ.*E.*E .+ Q * E 
 end
 
+function extinction_fossil_constant_ode(dE, E, p, t)
+    model = p
+    λ = model.λ
+    μ = model.μ
+    ψ = model.ψ
+
+    dE[1] = μ - (λ+μ+ψ)*E[1] + λ*E[1]*E[1]
+end
+
 
 function extinction_prob(model::BDSconstant)
     return(extinction_ode)
@@ -73,6 +82,10 @@ end
 
 function extinction_prob(model::FBDSconstant)
     return(extinction_fossil_ode)
+end
+
+function extinction_prob(model::FBDconstant)
+    return(extinction_fossil_constant_ode)
 end
 
 function column_sum!(acc::Vector{Float64}, m::Matrix{Float64})
