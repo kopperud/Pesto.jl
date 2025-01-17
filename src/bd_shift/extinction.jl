@@ -4,7 +4,7 @@ export extinction_probability
 isnegative(u,p,t) = any(x->x<0,u)
 above_one(u,p,t) = any(x -> x >= 1, u)
 
-function extinction_probability(model::Model, data::SSEdata) where {Model <: SSE}
+function extinction_probability(model::Model, data::SSEdata)
     alg = OrdinaryDiffEq.Tsit5()
     K = number_of_states(model)
     #pE = (model.λ, model.μ, model.η, K)
@@ -65,7 +65,7 @@ function extinction_probability(
         model::M, 
         sampling_probability::Float64, 
         time::Float64,
-    ) where {M <: HomogeneousModel}
+    ) where {M <: UniStateModel}
 
     alg = OrdinaryDiffEq.Tsit5()
     p = (model)

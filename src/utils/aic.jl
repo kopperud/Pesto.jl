@@ -1,7 +1,5 @@
 export AICc, AIC
 
-function num_parameters(model::FBDSconstant) return 5 end
-function num_parameters(model::FBDSconstant) return 5 end
 function num_parameters(model::FBDconstant) return 3 end
 
 function AICc(model::Model, tree::Root)
@@ -22,7 +20,7 @@ function AIC(model::Model, tree::Root)
     lnl = logL_root(model, tree)
 
     aic = 2*k - 2*lnl
-    return(aic)   
+    return(aic) 
 end
 
 

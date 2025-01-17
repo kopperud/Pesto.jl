@@ -14,12 +14,8 @@ import ProgressMeter
 import SparseArrays
 import SciMLBase
 
-
-## the rest
+## 
 include("datatypes.jl")
-include("treechecks.jl")
-include("shiftbins.jl")
-include("display.jl")
 
 ## pointer based tree
 include("tree/types.jl")
@@ -29,6 +25,24 @@ include("tree/print_indices.jl")
 include("tree/height.jl")
 include("tree/length.jl")
 include("tree/utils.jl")
+
+## the models
+include("models/models.jl")
+include("models/unistate/BcDc.jl")
+include("models/unistate/FcBcDc.jl")
+include("models/multistate/BhDh.jl")
+include("models/multistate/FhBhDc.jl")
+
+## the rest
+include("treechecks.jl")
+include("shiftbins.jl")
+include("display.jl")
+
+## fitting models
+include("fit/unistate/BcDc.jl")
+include("fit/unistate/FcBcDc.jl")
+include("fit/multistate/BhDh.jl")
+include("fit/multistate/FhBhDc.jl")
 
 
 ## utils

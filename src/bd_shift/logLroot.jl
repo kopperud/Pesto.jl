@@ -1,44 +1,34 @@
 export logL_root
 
+
+#=
 function number_of_states(model::TimevaryingModel)
     x = model.λ(0.0)
     n = length(x)
     return(n)
 end
+=#
 
-function number_of_states(model::ConstantModel)
+function number_of_states(model::MultiStateModel)
     n = length(model.λ)
     return(n)
 end
-function number_of_states(model::HomogeneousModel)
+
+function number_of_states(model::UniStateModel)
     return(1)
 end
 
-function get_speciation_rates(model::BDSconstant, t::Float64)
-    return(model.λ)
-end
-
+#=
 function get_speciation_rates(model::BDSconstantQ, t::Float64)
     return(model.λ)
 end
+=#
 
+#=
 function get_speciation_rates(model::BDStimevarying, t::Float64)
     return(model.λ(t)) 
 end
-
-function get_speciation_rates(model::FBDSconstant, t::Float64)
-    return(model.λ)
-end
-
-
-function get_fossilization_rate(model::FBDSconstant, time::Float64)
-    return(model.ψ)
-end
-
-function get_fossilization_rate(model::BDSconstant, time::Float64)
-    error("can not get fossilization rate for a birth-death-shift model. either use an FBD model or don't include fossils in the tree.")
-    #return(model.ψ)
-end
+=#
 
 
 function logL_root(model::Model, data::SSEdata; multithread = true)

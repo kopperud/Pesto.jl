@@ -1,12 +1,9 @@
-export optimize_hyperparameters_rst
-export newmodel_separate_shift
+export fit_BhDh
 
-#=
-function newmodel_separate_shift(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
-    α = x[1]
-    β = x[2]
-    μmean = 3*x[1] + x[3] 
-    λmean = 3*x[2] + x[4] + μmean
+function BhDh_newmodel(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
+    η = x[1]
+    μmean = x[2]
+    λmean = maximum([5*x[1], x[2]]) + x[3]
             
     dλ = Distributions.LogNormal(log(λmean), sd)
     dμ = Distributions.LogNormal(log(μmean), sd)
@@ -14,54 +11,39 @@ function newmodel_separate_shift(x::Vector{T}; n = 6, sd = 0.587) where {T <: Re
     λquantiles = Pesto.make_quantiles2(dλ, n)
     µquantiles = Pesto.make_quantiles2(dμ, n)
     λ, μ = allpairwise(λquantiles, µquantiles)
-
-    Q, Qα, Qβ = Qmatrix(α, β, n) 
-
-    model = BDSconstantQ(λ, μ, Q)
+    model = BDSconstant(λ, μ, η)
 
     return(model)
 end
-=#
 
 
-function optimize_hyperparameters_rst(
-    tree::Root; 
+function fit_BhDh(
+    data; 
     n = 6, 
     sd = 0.587, 
     n_attempts = 10,
-    lower = [1e-08, 1e-08, 1e-04, 1e-04],
-    upper = [0.3, 0.3, 1.0, 1.0],
+    lower = [1e-08, 1e-04, 1e-04],
+    upper = [0.3, 1.0, 1.0],
     xinit = missing
-    )
+    ) 
 
-    ntips = length(tip_labels(tree))
-    @assert ntips > 50
+    tl = tip_labels(data)
+    ntips = length(tl)
 
     ## create the logistic transform functions
     g, h = logistic(lower, upper, 0.5)
 
     f(x_tilde::Vector{T}) where {T <: Real} = begin
-        #println([getpar(e) for e in x_tilde])
- 
         x = g(x_tilde) ## backtransform to bounded realm
-        α = x[1]
-        β = x[2]
-        μ = 3*x[1] + x[3] 
-        λ = 3*x[2] + x[4] + μ
-
-        ps = [getpar(λ), getpar(μ), getpar(α), getpar(β)]
-        println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t α: $(ps[3]) \t β: $(ps[4])")
-        #println([getpar(e) for e in x])
 
         if any((x .- lower).^2 .< 1e-30)
             logl = -Inf
         elseif any((x .- upper) .^2 .< 1e-30)
             logl = -Inf
         else
-            model = newmodel_separate_shift(x; n = n, sd = sd)
-            logl = logL_root(model, tree)
+            model = BhDh_newmodel(x; n = n, sd = sd)
+            logl = logL_root(model, data)
         end
-        println("logl: \t", getpar(logl))
 
         return(-logl)
     end
@@ -79,18 +61,15 @@ function optimize_hyperparameters_rst(
     converged = false
     global i = 1
 
-    #rml, μml = estimate_constant_netdiv_mu(tree)
-    rml, μml = (0.09, 0.235)
+    rml, μml = estimate_constant_netdiv_mu(data)
 
-    dα = Distributions.LogNormal(log(0.01), 0.2)
-    dβ = Distributions.LogNormal(log(0.01), 0.2)
+    dη = Distributions.LogNormal(log(0.01), 0.5)
     dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
     dr = Distributions.LogNormal(log(0.5*rml), 0.5)
 
     ## truncate the distribution
     ϵ = 1e-8
-    dα = Distributions.Truncated(dα, lower[1] + ϵ, upper[1] - ϵ)
-    dβ = Distributions.Truncated(dβ, lower[1] + ϵ, upper[1] - ϵ)
+    dη = Distributions.Truncated(dη, lower[1] + ϵ, upper[1] - ϵ)
     dμ = Distributions.Truncated(dμ, lower[2] + ϵ, upper[2] - ϵ)
     dr = Distributions.Truncated(dr, lower[3] + ϵ, upper[3] - ϵ)
     
@@ -105,16 +84,15 @@ function optimize_hyperparameters_rst(
     use_random_inits = ismissing(xinit)
 
     if use_random_inits
-        xinit = zeros(4)
+        xinit = zeros(3)
     end
     
     while !converged && i <= n_attempts
 
         if use_random_inits
-            xinit[1] = rand(dα)
-            xinit[2] = rand(dβ)
-            xinit[3] = rand(dμ)
-            xinit[4] = rand(dr)
+            xinit[1] = rand(dη)
+            xinit[2] = rand(dμ)
+            xinit[3] = rand(dr)
         end
             
         xinit_tilde = h(xinit)
@@ -142,7 +120,8 @@ function optimize_hyperparameters_rst(
     end
     
     x = g(optres.minimizer)
-    model = newmodel_separate_shift(x; n = n, sd = sd)
+    model = newmodel(x; n = n, sd = sd)
     return(optres, model, i-1)
 end
 
+const optimize_hyperparameters = fit_BhDh

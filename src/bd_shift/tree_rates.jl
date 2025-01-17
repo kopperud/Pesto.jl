@@ -26,7 +26,7 @@ function tree_rates(data, model; n = 10)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
+function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
     #rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
 
@@ -35,7 +35,7 @@ function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
          "mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
          "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext", 
         ]
-    if model isa FBDSconstant
+    if hasproperty(model, :ψ)
         push!(keys, "mean_psi")
         push!(keys, "delta_psi")
     end
@@ -69,7 +69,7 @@ function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
         res["delta_relext"][i] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
 
         ## only if the model is an FBD model
-        if model isa FBDSconstant
+        if hasproperty(model, :ψ)
             res["mean_psi"][i] = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
             res["delta_psi"][i] = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
         end
@@ -146,7 +146,7 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantMo
 end
 =#
 
-
+#=
 function tree_rates(data::SSEdata, model::BDStimevarying, Fs, Ss; n = 10)
     rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
@@ -178,6 +178,7 @@ function tree_rates(data::SSEdata, model::BDStimevarying, Fs, Ss; n = 10)
     push!(df, [NaN NaN NaN NaN NaN NaN NaN NaN root_index 0])
     return(df)
 end
+=#
 
 
 

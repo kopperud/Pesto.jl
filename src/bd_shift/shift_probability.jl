@@ -3,18 +3,6 @@ export prior_shift_prob
 export posterior_prior_shift_odds
 
 
-function no_shifts_prob(dlogX, logX, p, t)
-    η, K, D = p
-
-    r = η / (K-1.0)
-    Dt = @view D(t)[:,2]
-    Dsum = sum(Dt)
-
-    # u[j] is the log probability that there were no shifts 
-    # departing from state j from the beginning of the 
-    # branch until time t.
-    dlogX[:] = r .* (Dsum .- Dt) ./ Dt
-end
 
 function no_shifts_prob_tv(dlogX, logX, p, t)
     η, K, D = p
@@ -26,14 +14,11 @@ function no_shifts_prob_tv(dlogX, logX, p, t)
     dlogX[:] = r .* (Dsum .- Dt) ./ Dt
 end
 
-
-function no_shifts_problem(model::ConstantModel)
-    return(no_shifts_prob)
-end
-
+#=
 function no_shifts_problem(model::TimevaryingModel)
     return(no_shifts_prob_tv)
 end
+=#
 
 isneg(u,p,t) = any(x->x>0,u)
 #notneg(u,p,t) = any(x->x<0,u)
@@ -89,7 +74,7 @@ function posterior_shift_prob(model::Model, data::SSEdata)
     prob_atleast_one_shift = 1.0 .- X
 end
 
-function posterior_shift_prob(model::Model, tree::Root)
+function posterior_shift_prob(model::MultiStateModel, tree::Root)
     alg = OrdinaryDiffEq.Tsit5() 
     Ds, Fs = backwards_forwards_pass(model, tree);
 
@@ -115,21 +100,23 @@ function posterior_shift_prob(model::Model, tree::Root)
 end
 
 
+
 ## https://en.wikipedia.org/wiki/Poisson_distribution
-function poisson_pmf(model::BDSconstant, t0::Float64, t1::Float64, n::Int64)
+function poisson_pmf(model::BhDhModel, t0::Float64, t1::Float64, n::Int64)
     η = model.η
     time = t1 - t0
     r = η * time
     res = (r^n) * exp(-r) / factorial(n)
 end
 
-function poisson_zero(model::ConstantModel, t0::Float64, t1::Float64)
+function poisson_zero(model::BhDhModel, t0::Float64, t1::Float64)
     η = model.η
     time = t1 - t0
     r = η * time
     res = exp(-r) 
 end
 
+#=
 # https://gtribello.github.io/mathNET/resources/jim-chap22.pdf
 function poisson_zero(model::TimevaryingModel, t0::Float64, t1::Float64)
     x, w = FastGaussQuadrature.gausslegendre(10)
@@ -137,6 +124,7 @@ function poisson_zero(model::TimevaryingModel, t0::Float64, t1::Float64)
    
     res = exp(-η_int)
 end
+=#
 
 
 function prior_shift_prob(model::Model, data::SSEdata)

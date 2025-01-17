@@ -76,7 +76,7 @@ model, rates = pesto(data)
 ```
 """
 function pesto(data::SSEdata; n = 6, sd = 0.587)
-    optres, model, i = optimize_hyperparameters(data; n = n, sd = sd, n_attempts = 5)
+    optres, model, i = fit_BhDh(data; n = n, sd = sd, n_attempts = 5)
 
     rates = birth_death_shift(model, data);
     return(model, rates)

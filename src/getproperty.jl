@@ -1,3 +1,0 @@
-getλ(model::BDSconstant)
-    
-end

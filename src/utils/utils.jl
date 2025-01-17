@@ -399,22 +399,30 @@ end
 
 notneg(u,p,t) = any(x->x<0,u)
 
-function eltype(model::BDSconstant)
-    return(typeof(model.η))
-end
+#=
 function eltype(model::BDSconstantQ)
     return(typeof(model.Q[1,1]))
 end
+=#
+#=
 function eltype(model::BDStimevarying)
     return(typeof(model.η(0.0)))
 end
-function eltype(model::FBDSconstant)
-    return(typeof(model.α))
-end
+=#
 function eltype(model::BDconstant)
     return(typeof(model.λ))
 end
 function eltype(model::FBDconstant)
     return(typeof(model.λ))
+end
+
+
+function column_sum!(acc::Vector{Float64}, m::Matrix{Float64})
+	cols = eachcol(m)
+	
+	for i in eachindex(acc, cols)
+		acc[i] = sum(cols[i])
+	end
+	nothing
 end
 

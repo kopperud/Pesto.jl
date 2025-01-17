@@ -294,7 +294,7 @@ function postorder_async(
     ## probability that sampled lineages immediately go extinct
     r = 0.0
 
-    ψ = get_fossilization_rate(model, time)
+    ψ = get_fossilization_rates(model, time)
     ## Problem:
     ## How do we know the extinction probability E(t) for this 
     ## fossil tip, if we don't know the extant sampling fraction, 

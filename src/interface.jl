@@ -37,11 +37,5 @@ function interface(;fossil_extinction = 0.0, shifts = :equal, kwargs...)
         println(x, "\t", y)
     end
 
-    ## closure
-    #f = (x::Vector{Float64}) -> BDSmodel
-    #
-    #f = (λhat, μhat, ψ, α, β) -> FBDSconstant(λhat 
-    #return(f)
-
     println("shifts", "\t", shifts)
 end
