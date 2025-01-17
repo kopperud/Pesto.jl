@@ -29,7 +29,7 @@ function state_shifts_simple(model::Model, data::SSEdata, Ds, Fs; alg = Ordinary
         prob = OrdinaryDiffEq.ODEProblem(ode, N0, tspan, p);
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
 
-        nshifts[edge_idx] = sol[end][1]
+        nshifts[edge_idx] = sol.u[end][1]
     end
 
     return(nshifts)
