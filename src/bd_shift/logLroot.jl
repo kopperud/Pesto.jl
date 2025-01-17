@@ -10,6 +10,9 @@ function number_of_states(model::ConstantModel)
     n = length(model.λ)
     return(n)
 end
+function number_of_states(model::HomogeneousModel)
+    return(1)
+end
 
 function get_speciation_rates(model::BDSconstant, t::Float64)
     return(model.λ)
