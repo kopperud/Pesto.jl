@@ -72,6 +72,7 @@ function logL_root(model::Model, tree::Root; condition = [:survival, :mrca])
 
     root_age = treeheight(tree)
     K = number_of_states(model)
+
     freqs = repeat([1.0 / K], K) ## prior on the root state
 
     # we condition the likelihood by

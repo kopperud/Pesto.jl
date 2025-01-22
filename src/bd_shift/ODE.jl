@@ -46,20 +46,6 @@ function extinction_prob(model::FBDconstant)
     return(extinction_fossil_constant_ode)
 end
 
-#=
-function extinction_prob(model::BDSconstantQ)
-    return(extinction_ode_matrix)
-end
-=#
-   
-#=
-function extinction_prob(model::BDStimevarying)
-    return(extinction_ode_tv)
-end
-=#
-
-
-
 
 
 function backward_ode_matrix(du, u, p, t)
