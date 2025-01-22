@@ -120,7 +120,7 @@ function fit_BhDh(
     end
     
     x = g(optres.minimizer)
-    model = newmodel(x; n = n, sd = sd)
+    model = BhDh_newmodel(x; n = n, sd = sd)
     return(optres, model, i-1)
 end
 

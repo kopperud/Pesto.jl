@@ -1,36 +1,18 @@
 function FhBhDc_newmodel(x::Vector{T}; n = 6, sd = 0.587) where {T <: Real}
     #α, β = x[4:5]
     
-    #rhat, ϵ, ψhat, α, β = x
-    
-    
     α = x[4]
     β = x[5]
 
     μhat = x[2] 
     λhat = μhat + maximum([x[1], α*5])
+    #λhat = x[1]
     ψhat = x[3]
    
-
-    ## enforce that fossilization rate is bigger than fossilization shift rate?
-    #ψmean = x[3] + β
-
     ## enforce that 
     # * lambda hat is bigger than mu
     # * speciation rate is bigger than shift rate in speciation
 
-    
-    #=
-    dr = Distributions.LogNormal(log(rhat), sd)
-    dψ = Distributions.LogNormal(log(ψhat), sd)
-    
-    rquantiles = Pesto.make_quantiles2(dr, n)
-    ψ = Pesto.make_quantiles2(dψ, n)
-
-    λ = rquantiles ./ (1 .- ϵ)
-    μ = ϵ .* rquantiles ./ ( 1 .- ϵ )
-    =#
-    
     dλ = Distributions.LogNormal(log(λhat), sd)
     dψ = Distributions.LogNormal(log(ψhat), sd)
 
@@ -100,38 +82,20 @@ function fit_FhBhDc(
     #rml, μml = estimate_constant_netdiv_mu(data)
     
 
-    if false 
-        rml, ϵml = (0.1, 0.6)
+    λml, μml = (0.3, 0.22)
 
-        dr = Distributions.LogNormal(log(0.5*rml), 0.5)
-        dϵ = Distributions.LogNormal(log(0.5*ϵml), 0.5)
-        dψ = Distributions.LogNormal(log(0.05), 0.5)
-        dα = Distributions.LogNormal(log(0.01), 0.2)
-        dβ = Distributions.LogNormal(log(0.01), 0.2)
+    dλ = Distributions.LogNormal(log(0.5*λml), 0.5)
+    dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
+    dψ = Distributions.LogNormal(log(0.05), 0.5)
+    dα = Distributions.LogNormal(log(0.01), 0.2)
+    dβ = Distributions.LogNormal(log(0.01), 0.2)
 
-        ## truncate the distribution
-        tol = 1e-8
-        dr = Distributions.Truncated(dr, lower[1] + tol, upper[1] - tol)
-        dϵ = Distributions.Truncated(dϵ, lower[2] + tol, upper[2] - tol)
-        dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
-        dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
-        dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
-    else
-        λml, μml = (0.3, 0.22)
-
-        dλ = Distributions.LogNormal(log(0.5*λml), 0.5)
-        dμ = Distributions.LogNormal(log(0.5*μml), 0.5)
-        dψ = Distributions.LogNormal(log(0.05), 0.5)
-        dα = Distributions.LogNormal(log(0.01), 0.2)
-        dβ = Distributions.LogNormal(log(0.01), 0.2)
-
-        tol = 1e-8
-        dλ = Distributions.Truncated(dλ, lower[1] + tol, upper[1] - tol)
-        dμ = Distributions.Truncated(dμ, lower[2] + tol, upper[2] - tol)
-        dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
-        dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
-        dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
-    end
+    tol = 1e-8
+    dλ = Distributions.Truncated(dλ, lower[1] + tol, upper[1] - tol)
+    dμ = Distributions.Truncated(dμ, lower[2] + tol, upper[2] - tol)
+    dψ = Distributions.Truncated(dψ, lower[3] + tol, upper[3] - tol)
+    dα = Distributions.Truncated(dα, lower[4] + tol, upper[4] - tol)
+    dβ = Distributions.Truncated(dβ, lower[5] + tol, upper[5] - tol)
 
     inner_optimizer = Optim.Newton()
 
