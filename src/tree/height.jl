@@ -32,6 +32,20 @@ function depths!(
     end
 end
 
+function depths!(
+        nd::Vector{Float64}, 
+        node::SampledAncestor, 
+        time::Float64,
+    ) 
+    push!(nd, time)
+
+    branch = node.child
+    child_node = branch.outbounds      
+    depths!(nd, child_node, time + branch.time)
+end
+
+
+
 function depths!(nd::Vector{Float64}, node::T, time::Float64) where {T <: AbstractTip}
     push!(nd, time)
 end

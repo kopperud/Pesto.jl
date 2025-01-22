@@ -42,6 +42,11 @@ function tip_labels!(node::T, labels::Vector{String}) where {T <: BranchingEvent
     end
 end
 
+function tip_labels!(node::SampledAncestor, labels::Vector{String}) 
+    tip_labels!(node.child.outbounds, labels)
+end
+
+
 function tip_labels!(node::T, labels::Vector{String}) where {T <: AbstractTip}
     push!(labels, node.label)
 end
@@ -75,6 +80,13 @@ function get_branches(root::Root)
 
     get_branches!(root, branches)
     return(branches)
+end
+
+function get_branches!(sa::SampledAncestor, branches)
+    branch = sa.child
+
+    push!(branches, branch)
+    get_branches!(branch.outbounds, branches)
 end
 
 function get_branches!(node::T, branches) where {T <: BranchingEvent}
