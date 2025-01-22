@@ -1,39 +1,6 @@
 export postorder_async
 
 ## async log likelihood calculation
-@doc raw"""
-    postorder_async(data)
-
-performs the postorder iteration asynchronously (left and right subtrees are run on different threads)
-
-Example:
-```julia
-using Pesto
-phy = readtree(Pesto.path("primates.tre"))
-sampling_probability = 0.635
-data = make_SSEdata(phy, sampling_probability)
-
-λ = [0.3, 0.15]
-μ = [0.1, 0.2]
-η = 0.01
-
-model = BDSconstant(λ, μ, η)
-
-E = extinction_probability(model, data);
-D, sf = postorder_async(model, data, E)
-```
-The `D` is the partial likelihood at the root node. `D` is re-scaled by a factor such that it sums to one. The rescaling factor is `sf`, which is given on a log scale
-
-```julia
-julia> D
-2-element Vector{Float64}:
- 0.013941190827498735
- 0.9860588091725013
-
-julia> sf
--705.9668193580866
-```
-"""
 function postorder_async(model::Model, data::SSEdata)
     ## Pre-compute descendants in hashtable
     descendants = make_descendants(data)
@@ -157,14 +124,47 @@ end
 ##
 ######################################################
 
-## the root
+@doc raw"""
+    postorder_async(model, tree)
+
+This function does the postorder pass, and returns a tuple of (u, sf).
+The matrix `u` is of size K x 2, where K are the number of rate 
+categories. 
+
+The first column in `u` represents the extinction probability 
+    P(Ψ goes extinct|Z == j, θ),
+conditional on that the rate category was j at the root, and
+conditional on the parameters of the model θ (i.e. all of the diversification
+rate categories λj, μj, ψj, as well as the sampling probability ρ).
+
+The second column `Dj` represents 
+    Dj = P(Ψ|Z == j,θ),
+i.e. the probability density of observing the reconstructed tree Ψ, conditional
+on the same as above.
+
+The scaling factor `sf` is there because we normalize the probability 
+densities Dj such that they sum to one.
+
+Example:
+
+```julia
+λ = [0.1, 0.2, 0.3]
+μ = [0.05, 0.05, 0.05]
+η = 0.01
+
+model = BhDhModel(λ, μ, η)
+
+phy = readtree(Pesto.path("bears.tre"))
+sampling_probability = 1.0
+tree = construct_tree(phy, sampling_probability)
+
+Ds, sf = postorder_async(model, tree)
+```
+"""
 function postorder_async(
         model::Model,
         root::Root,
     )
-   
-    #E = extinction_probability(model, root);
-
     elt = eltype(model)
     K = number_of_states(model)
     ode = backward_prob(model)

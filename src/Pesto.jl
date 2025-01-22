@@ -62,7 +62,7 @@ include("bd_constant/constantBDP.jl")
 
 ## birth-death-shift process
 include("bd_shift/postorder.jl")
-include("bd_shift/postorder_sync.jl")
+#include("bd_shift/postorder_sync.jl")
 include("bd_shift/postorder_async.jl")
 include("bd_shift/preorder.jl")
 include("bd_shift/ODE.jl")

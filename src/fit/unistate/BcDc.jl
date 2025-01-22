@@ -1,3 +1,5 @@
+export estimate_constant_bdp
+
 @doc raw"""
     lp(λ, μ, data)
 

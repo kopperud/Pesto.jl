@@ -31,13 +31,8 @@ end
 =#
 
 
-function logL_root(model::Model, data::SSEdata; multithread = true)
-
-    if multithread
-        u, sf = postorder_async(model, data)
-    else
-        u, sf = postorder_sync(model, data)
-    end
+function logL_root(model::Model, data::SSEdata)
+    u, sf = postorder_async(model, data)
 
     E = u[:,1]
     D = u[:,2]

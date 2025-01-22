@@ -56,7 +56,7 @@ sum(primates.branch_lengths) * η
 
 This allows us to set up the SSE model object:
 ```@example twostep
-model = SSEconstant(λ, μ, η)
+model = BhDhModel(λ, μ, η)
 nothing # hide
 ```
 

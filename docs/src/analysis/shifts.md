@@ -32,7 +32,7 @@ tree_length = sum(primates.branch_lengths)
 λ = [0.1, 0.2, 0.3, 0.4, 0.20]
 μ = [0.05, 0.15, 0.05, 0.15, 0.25]
 η = 1 / tree_length
-model = SSEconstant(λ, μ, η)
+model = BhDhModel(λ, μ, η)
 nothing # hide
 ```
 

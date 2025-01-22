@@ -11,18 +11,6 @@ birth_death_shift(model::Model, tree::Root)
 ```
 
 ```@docs
-Econstant(t, λ, µ, ρ)
-```
-
-```@docs
-psi(t, λ, µ, ρ)
-```
-
-```@docs
-lp(λ::Vector{Float64}, μ::Vector{Float64}, data::SSEdata)
-```
-
-```@docs
 estimate_constant_bdp(data::SSEdata)
 ```
 
@@ -63,15 +51,23 @@ readtree(path::String)
 ```
 
 ```@docs
-postorder_async(model::SSEconstant, data::SSEdata, E)
+Pesto.lp(λ::Float64, μ::Float64, data::SSEdata)
 ```
 
 ```@docs
-postorder_sync(model::SSEconstant, data::SSEdata, E)
+Pesto.psi(t::Float64, λ::Float64, μ::Float64, sampling_probability::Float64)
 ```
 
 ```@docs
-magnitude(model::SSEconstant, data::SSEdata)
+Pesto.Econstant(t::Float64, λ::Float64, μ::Float64, sampling_probability::Float64)
+```
+
+```@docs
+magnitude(model::BhDhModel, data::SSEdata)
+```
+
+```@docs
+postorder_async(model::BhDhModel, tree::Root)
 ```
 
 ```@docs

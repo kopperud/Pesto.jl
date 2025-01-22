@@ -46,6 +46,8 @@ We can for example plot the Bayes factor directly on the tree. Since the Bayes f
 ```@example bayes
 using Makie, CairoMakie
 
+rates[!,"shift_bf_log"] = rates[!,:shift_bf]
+
 min, max = extrema(rates[1:end-1,"shift_bf_log"])
 cmap = Makie.cgrad([:gray, :black, :purple])
 treeplot(primates, rates, "shift_bf_log"; cmap = cmap)

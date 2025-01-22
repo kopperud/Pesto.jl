@@ -1,4 +1,5 @@
-export postorder_sync
+#=
+#export postorder_sync
 
 ## synchronous log likelihood calculation
 @doc raw"""
@@ -138,3 +139,4 @@ function subtree_sync(edge_index, prob, model, data, descendants, Ntip, K, elt)
     return(D, sf)
 end
 
+=#
