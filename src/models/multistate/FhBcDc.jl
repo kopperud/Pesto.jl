@@ -67,7 +67,7 @@ function FhBcDc_forward_ode(du, u, p, t)
     du[:,2] .= 0.0
 
     LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] += - μ[i] +(λ[i]+μ[i]+ψ[i]+β)*u[i,1] - λ[i]*u[i,1]*u[i,1] - r * (sumE - u[i,1])
+        du[i,1] += μ[i] -(λ[i]+μ[i]+ψ[i]+β)*u[i,1] + λ[i]*u[i,1]*u[i,1] + r * (sumE - u[i,1])
         du[i,2] += +(λ[i]+μ[i]+ψ[i]+β)*u[i,2] - 2*λ[i]*u[i,2]*u[i,1] - r * (sumD - u[i,2])
     end
 

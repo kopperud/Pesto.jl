@@ -33,7 +33,7 @@ function FcBcDc_forward_ode(du, u, p, t)
     μ = model.μ
     ψ = model.ψ
 
-    du[1,1] = - μ +(λ+μ+ψ)*u[1,1] - λ*u[1,1]*u[1,1] ## dE/dt
+    du[1,1] = μ -(λ+μ+ψ)*u[1,1] + λ*u[1,1]*u[1,1] ## dE/dt
     du[1,2] = +(λ+μ+ψ)*u[1,2] - 2*λ*u[1,2]*u[1,1] ## dD/dt
 end
 

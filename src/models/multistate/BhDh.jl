@@ -91,7 +91,7 @@ function BhDh_forward_ode(
 
     #for i in axes(du, 1)
     LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
-        du[i,1] = - μ[i] + (λ[i] + μ[i] + η) * u[i,1] - λ[i] * u[i,1] * u[i,1] - r * (sumE - u[i,1]) 
+        du[i,1] = μ[i] - (λ[i] + μ[i] + η) * u[i,1] + λ[i] * u[i,1] * u[i,1] + r * (sumE - u[i,1]) 
         ## F
         du[i,2] = +(λ[i]+μ[i]+η)*u[i,2] - 2*λ[i]*u[i,2]*u[i,1] - r *(sumF - u[i,2])
     end

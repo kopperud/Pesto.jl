@@ -48,7 +48,7 @@ data = SSEdata(phy, sampling_probability)
 model, rates = pesto_twostep(data)
 ```
 """
-function pesto_twostep(data::SSEdata; n = 6, sd = 0.587)
+function pesto_twostep(data::SSEdata; n = 6, sd = 0.587, condition = [:survival, :mrca])
     model = empirical_bayes(data; n = n)
 
     rates = birth_death_shift(model, data);

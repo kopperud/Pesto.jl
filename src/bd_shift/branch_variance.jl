@@ -163,13 +163,22 @@ function Pmatrix_precise(model, D, t1, t2)
         ode = BhDh_forward_ode
 
         prob = OrdinaryDiffEq.ODEProblem{true}(ode, u0, tspan, p)
-        sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, save_everystep = false, reltol = 1e-6)
+        sol = OrdinaryDiffEq.solve(prob, OrdinaryDiffEq.Tsit5(), isoutofdomain = notneg, save_everystep = false, reltol = 1e-12)
         F2 = sol.u[end][:,2] 
+        
         P[:,j] = F2 .* D2
+        #P[:,j] = F2 
     end
 
     csum = ones(K) * sum(P, dims = 1)
     P = P ./ csum
+    
+
+    #rsum = sum(P, dims = 2) * ones(K)'
+    #P = P ./ rsum
+
+
+
 
 
     return(P)
