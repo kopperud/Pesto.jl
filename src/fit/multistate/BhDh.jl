@@ -24,7 +24,8 @@ function fit_BhDh(
     n_attempts = 10,
     lower = [1e-08, 1e-04, 1e-04],
     upper = [0.3, 1.0, 1.0],
-    xinit = missing
+    xinit = missing,
+    condition = [:mrca, :survival],
     ) 
 
     tl = tip_labels(data)
@@ -42,7 +43,7 @@ function fit_BhDh(
             logl = -Inf
         else
             model = BhDh_newmodel(x; n = n, sd = sd)
-            logl = logL_root(model, data)
+            logl = logL_root(model, data; condition = condition)
         end
 
         return(-logl)

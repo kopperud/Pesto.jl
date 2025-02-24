@@ -5,13 +5,14 @@ function fit_FcBcDc(
         xinit = [0.1, 0.05, 0.01], 
         lower = [0.000001, 0.000001, 0.000001], 
         upper = [20.0, 20.0, 10.0],
+        condition = condition,
     )
 
     f(x_tilde) = begin
         x = exp.(x_tilde)
         model = FcBcDcModel(x[1], x[2], x[3])
         print("λ: ", getpar(x[1]), "\t μ: ", getpar(x[2]), "\t ψ: ", getpar(x[3]))
-        lnl = logL_root(model, tree)
+        lnl = logL_root(model, tree; condition = condition)
         println("\t logl: ", getpar(lnl))
         return(-lnl)
     end

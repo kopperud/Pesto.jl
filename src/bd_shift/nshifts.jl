@@ -3,14 +3,24 @@ export compute_nshifts
 export state_shifts
 export state_shifts_simple
 
-function state_shifts(model::Model, data::SSEdata)
-    Ds, Fs = backwards_forwards_pass(model, data);
+function state_shifts(
+        model::Model, 
+        data::SSEdata; 
+        condition = [:mrca, :survival],
+    )
+    Ds, Fs = backwards_forwards_pass(model, data; condition = condition);
     #Ss = ancestral_state_probabilities(data, Ds, Fs);
 
     state_shifts(model, data, Ds, Fs)
 end
 
-function state_shifts_simple(model::Model, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
+function state_shifts_simple(
+        model::Model, 
+        data::SSEdata,
+        Ds,
+        Fs;
+        alg = OrdinaryDiffEq.Tsit5(),
+    )
     nbranches = size(data.edges)[1]
     K = number_of_states(model)    
     nshifts = zeros(nbranches)
@@ -35,7 +45,13 @@ function state_shifts_simple(model::Model, data::SSEdata, Ds, Fs; alg = Ordinary
     return(nshifts)
 end
 
-function state_shifts_simple(model::Model, tree::Root, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
+function state_shifts_simple(
+        model::Model, 
+        tree::Root, 
+        Ds, 
+        Fs; 
+        alg = OrdinaryDiffEq.Tsit5(),
+    )
     branches = get_branches(tree)
     n_branches = length(branches) 
 
@@ -104,7 +120,13 @@ function reorder_ape(nshifts::Array{Float64, 3}, data::SSEdata, K::Int64)
     return(node_nshifts)
 end
 
-function state_shifts(model::Model, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.Tsit5())
+function state_shifts(
+        model::Model, 
+        data::SSEdata, 
+        Ds, 
+        Fs; 
+        alg = OrdinaryDiffEq.Tsit5(),
+    )
     nbranches = size(data.edges)[1]
     K = number_of_states(model)    
     nshifts = zeros(Float64, nbranches, K, K)
@@ -127,7 +149,12 @@ function state_shifts(model::Model, data::SSEdata, Ds, Fs; alg = OrdinaryDiffEq.
     return(nshifts)
 end
 
-function compute_nshifts(model::Model, data::SSEdata, Ds, Fs)
+function compute_nshifts(
+        model::Model, 
+        data::SSEdata, 
+        Ds, 
+        Fs
+    )
     nshifts = state_shifts_simple(model, data, Ds, Fs)
     return(nshifts)
 end
@@ -138,7 +165,8 @@ function nshifts_simple_whole_branch(
         data::SSEdata, 
         Ds, 
         Fs; 
-        alg = OrdinaryDiffEq.Tsit5())
+        alg = OrdinaryDiffEq.Tsit5()
+    )
 
     nbranches = size(data.edges)[1]
     K = number_of_states(model)    

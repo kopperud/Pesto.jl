@@ -35,7 +35,8 @@ function fit_FhBhDc(
     ## parameters    [    r,    μ,     ψ,    α,    β]
     lower          = [ 1e-05, 1e-5, 1e-04, 1e-8, 1e-8],
     upper          = [ 0.2, 0.35, 0.5, 0.3, 0.3],
-    xinit = missing
+    xinit = missing,
+    condition = [:mrca, :survival],
     )
 
     ## create the logistic transform functions
@@ -59,7 +60,7 @@ function fit_FhBhDc(
             logl = -Inf
         else
             model = FhBhDc_newmodel(x; n = n, sd = sd)
-            logl = logL_root(model, data)
+            logl = logL_root(model, data; condition = condition)
         end
         println("logl: \t", getpar(logl))
 

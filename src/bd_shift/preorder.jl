@@ -4,7 +4,8 @@ function preorder(
         model::Model, 
         data::SSEdata, 
         post::Dict{Int64, OrdinaryDiffEq.ODESolution}; 
-        alg = OrdinaryDiffEq.Tsit5()
+        alg = OrdinaryDiffEq.Tsit5(),
+        condition = [:survival, :mrca],
     )
     ## Precompute ancestor edges
     ancestors = make_ancestors(data)
@@ -39,6 +40,19 @@ function preorder(
             left_edge, right_edge = descendants[root_node]
             root_age = maximum(data.node_depth)
             λroot = get_speciation_rates(model, root_age)
+
+            ## potentially impose conditions
+            if :survival in condition
+                E = post[left_edge].u[end][:,1]
+                nonextinct = (1.0 .- E).^2
+                F_parent = F_parent ./ nonextinct
+            end
+
+            if :mrca in condition
+                λroot = get_speciation_rates(model, root_age)
+                F_parent = F_parent ./ λroot
+            end
+
             D_parent = post[left_edge].u[end][:,2] .* post[right_edge].u[end][:,2] .* λroot
             E_parent = post[left_edge].u[end][:,1]
         else
@@ -83,7 +97,8 @@ end
 function preorder(
         model::Model,
         root::Root,
-        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution};
+        condition = [:mrca, :survival],
        )
    
     #E = extinction_probability(model, root);
@@ -110,6 +125,21 @@ function preorder(
     λroot = get_speciation_rates(model, height)
     D_root = D_left .* D_right .* λroot
     S_root = F_root .* D_root
+
+    ## potentially impose conditions
+    if :survival in condition
+        E = post[left_index].u[end][:,1]
+        nonextinct = (1.0 .- E).^2
+        S = S ./ nonextinct
+    end
+
+    if :mrca in condition
+        root_age = treeheight(tree)
+        λroot = get_speciation_rates(model, root_age)
+        S = S ./ λroot
+    end
+
+    #normalize
     S_root = S_root ./ sum(S_root)
 
     preorder!(model, root, prob, height, post, pre, S_root)

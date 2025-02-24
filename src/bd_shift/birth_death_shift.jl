@@ -24,8 +24,14 @@ model = BDSconstant(λ, μ, η)
 rates = birth_death_shift(model, bears)
 ```
 """
-function birth_death_shift(model::Model, data::SSEdata; nshifts = true, shift_bayes_factor = true) 
-    Ds, Fs = backwards_forwards_pass(model, data)
+function birth_death_shift(
+        model::Model, 
+        data::SSEdata;
+        nshifts = true, 
+        shift_bayes_factor = true,
+        condition = [:mrca, :surival],
+    ) 
+    Ds, Fs = backwards_forwards_pass(model, data; condition = condition)
 
     Ss = ancestral_state_probabilities(data, Ds, Fs)
     rates = tree_rates(data, model, Fs, Ss)
@@ -69,7 +75,13 @@ model = BDSconstant(λ, μ, η)
 rates = birth_death_shift(model, bears)
 ```
 """
-function birth_death_shift(model::Model, tree::Root; nshifts = true, shift_bayes_factor = true) 
+function birth_death_shift(
+        model::Model, 
+        tree::Root;
+        nshifts = true, 
+        shift_bayes_factor = true, 
+        condition = [:mrca, :survival],
+    ) 
     Ds, Fs = backwards_forwards_pass(model, tree)
     Ss = ancestral_state_probabilities(tree, Ds, Fs)
     rates = tree_rates(tree, model, Fs, Ss)

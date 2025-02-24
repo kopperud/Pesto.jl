@@ -51,7 +51,7 @@ model, rates = pesto_twostep(data)
 function pesto_twostep(data::SSEdata; n = 6, sd = 0.587, condition = [:survival, :mrca])
     model = empirical_bayes(data; n = n)
 
-    rates = birth_death_shift(model, data);
+    rates = birth_death_shift(model, data; condition = condition);
     return(model, rates)
 end
 
@@ -75,10 +75,10 @@ data = SSEdata(phy, sampling_probability)
 model, rates = pesto(data)
 ```
 """
-function pesto(data::SSEdata; n = 6, sd = 0.587)
-    optres, model, i = fit_BhDh(data; n = n, sd = sd, n_attempts = 5)
+function pesto(data::SSEdata; n = 6, sd = 0.587, condition = [:mrca, :survival])
+    optres, model, i = fit_BhDh(data; n = n, sd = sd, n_attempts = 5, condition = condition)
 
-    rates = birth_death_shift(model, data);
+    rates = birth_death_shift(model, data; condition = condition);
     return(model, rates)
 end
 
