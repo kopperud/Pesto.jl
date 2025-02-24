@@ -100,6 +100,9 @@ include("errors.jl")
 ## try some new interface
 include("interface.jl")
 
+## try calculate the equilibrium frequencies
+include("equilibrium_frequency.jl")
+
 # Path into package
 export path
 path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
