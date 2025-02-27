@@ -78,7 +78,7 @@ model, rates = pesto(data)
 function pesto(data::SSEdata; n = 6, sd = 0.587, condition = [:mrca, :survival])
     optres, model, i = fit_BhDh(data; n = n, sd = sd, n_attempts = 5, condition = condition)
 
-    rates = birth_death_shift(model, data; condition = condition);
+    rates = birth_death_shift(model, data; condition = condition)
     return(model, rates)
 end
 
