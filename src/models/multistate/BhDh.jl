@@ -1,4 +1,4 @@
-export BhDhModel, BDSconstant
+export BhDhModel, BDSconstant, SSEconstant
 
 struct BhDhModel{T1 <: Real, T2 <: Real} <: MultiStateModel
     λ::Vector{T1}
