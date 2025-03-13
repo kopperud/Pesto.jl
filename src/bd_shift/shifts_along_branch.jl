@@ -37,8 +37,8 @@ function shift_rate_through_time(
 
         ΔN_dts = Float64[]
         for edge_idx in active_branch_indices
-            Dt = Ds[edge_idx](t)
-            Ft = Fs[edge_idx](t)
+            Dt = Ds[edge_idx](t)[:,2]
+            Ft = Fs[edge_idx](t)[:,2]
             St = ancestral_state_probability(Dt, Ft, t)
             dN_dt = - r * (sum(Dt .* sum(St ./ Dt)) -1)
 
