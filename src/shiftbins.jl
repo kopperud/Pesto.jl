@@ -22,6 +22,9 @@ function makebins(N0, model, lower, upper; filter = "", nbins = 18)
         N[i,i] = 0.0
     end
 
+    # if filter is "speciation", then we remove
+    # entries where there was a change 
+    # in speciation rate
     if filter == "speciation"
         is_zero = Δλ .!= 0
         N[is_zero] .= 0
