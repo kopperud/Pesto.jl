@@ -15,6 +15,7 @@ export shift_rate_through_time
 function shift_rate_through_time(
         model::BhDhModel, 
         data::SSEdata;
+        summarize = :geometric,
         height = maximum(data.node_depth),
         tspan = range(height, 0.0; length = 500),
     )
@@ -42,12 +43,23 @@ function shift_rate_through_time(
             St = ancestral_state_probability(Dt, Ft, t)
             dN_dt = - r * (sum(Dt .* sum(St ./ Dt)) -1)
 
-            append!(ΔN_dts, dN_dt)
+            if dN_dt > 0.0
+                push!(ΔN_dts, dN_dt)
+            else
+                push!(ΔN_dts, 1e-8) 
+            end
         end
         
         if !isempty(ΔN_dts)
-            mean_ΔN_dt = sum(ΔN_dts) / length(ΔN_dts)
-            append!(y, mean_ΔN_dt)    
+            if summarize == :arithmetic
+                # arithmetic mean
+                mean_ΔN_dt = sum(ΔN_dts) / length(ΔN_dts)
+            elseif summarize == :geometric
+                # geometric mean
+                mean_ΔN_dt = exp(sum(log.(ΔN_dts) / length(ΔN_dts)))
+            end
+
+            append!(y, mean_ΔN_dt)
             append!(times, t) 
         end
     end
