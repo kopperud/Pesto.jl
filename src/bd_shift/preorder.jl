@@ -130,13 +130,13 @@ function preorder(
     if :survival in condition
         E = post[left_index].u[end][:,1]
         nonextinct = (1.0 .- E).^2
-        S = S ./ nonextinct
+        S_root = S_root ./ nonextinct
     end
 
     if :mrca in condition
-        root_age = treeheight(tree)
+        root_age = treeheight(root)
         λroot = get_speciation_rates(model, root_age)
-        S = S ./ λroot
+        S_root = S_root ./ λroot
     end
 
     #normalize
@@ -167,6 +167,25 @@ function preorder!(
     preorder!(model, branch_left, prob, time, post, pre, S_node)
     preorder!(model, branch_right, prob, time, post, pre, S_node)
 end
+
+## sampled ancestor
+function preorder!(
+        model::Model, 
+        node::SampledAncestor, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        time::Float64, 
+        post::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        pre::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        S_node::Vector{Float64}
+        )
+
+    child = node.child
+    S_node = S_node ./ model.ψ
+    S_node = S_node ./ sum(S_node)
+
+    preorder!(model, child, prob, time, post, pre, S_node)
+end
+
 
 ## along a branch
 function preorder!(
