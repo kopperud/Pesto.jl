@@ -121,6 +121,11 @@ function number_of_branches!(node::T, n::Vector{Int64}) where {T <: BranchingEve
     end
 end
 
+function number_of_branches!(node::SampledAncestor, n::Vector{Int64})
+    n[1] += 1
+    number_of_branches!(node.child.outbounds, n)
+end
+
 function number_of_branches!(tip::T, n::Vector{Int64}) where {T <: AbstractTip}
     nothing
 end
