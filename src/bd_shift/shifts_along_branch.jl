@@ -32,7 +32,8 @@ function shift_rate_through_time(
     K = length(model.λ)
     r = -(model.η/(K-1.0))
 
-    for t in range(height,0.0; length = 500)
+    #for t in range(height,0.0; length = 500)
+    for t in tspan
         active_branch_indices = which_active_branches(t, youngest_times, oldest_times)
         n_active = length(active_branch_indices)
 
