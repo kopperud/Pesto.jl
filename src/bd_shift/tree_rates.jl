@@ -26,7 +26,7 @@ function tree_rates(data, model; n = 10)
     tree_rates(data, model, Fs, Ss; n = n)
 end
 
-function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
+function tree_rates(data::SSEdata, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
     #rates = zeros(size(data.edges)[1], 8)
     x, w = FastGaussQuadrature.gausslegendre(n)
 
@@ -83,6 +83,82 @@ function tree_rates(data, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
     df[!, "edge"] = edge
 
     tiplabs = tip_labels(data)
+    root_index = length(tiplabs)+1
+
+    root_row = Dict(key => NaN for key in keys)
+    root_row["node"] = root_index
+    root_row["edge"] = 0
+
+    df = push!(df, root_row)
+    #push!(df, vcat(repeat([NaN], length(names)), root_index, 0))
+    return(df)
+end
+
+function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
+    #rates = zeros(size(data.edges)[1], 8)
+    x, w = FastGaussQuadrature.gausslegendre(n)
+
+    n_branches = number_of_branches(tree)
+    keys = [
+         "mean_lambda", "mean_mu", "mean_netdiv", "mean_relext",
+         "delta_lambda", "delta_mu", "delta_netdiv", "delta_relext", 
+        ]
+    if hasproperty(model, :ψ)
+        push!(keys, "mean_psi")
+        push!(keys, "delta_psi")
+    end
+
+    branches = get_branches(tree)
+    maxindex = maximum(branch.index for branch in branches)
+
+    res = Dict{String,Vector{Float64}}()
+    for key in keys
+        res[key] = zeros(maxindex)
+    end
+    
+    #Threads.@threads for i = 1:n_branches
+
+    #for (i, _) in branches
+    for branch in branches
+        i = branch.index
+
+        t0, t1 = extrema(Fs[i].t)
+        ## t0 is youngest, t1 is oldest
+        
+        ## posterior mean rate, and
+        ## difference from oldest to youngest point on branch
+        
+        ## speciation rate
+        res["mean_lambda"][i] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+        res["delta_lambda"][i] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+
+        ## extinction rate
+        res["mean_mu"][i] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
+        res["delta_mu"][i] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+
+        ## net-diversification rate
+        res["mean_netdiv"][i] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
+        res["delta_netdiv"][i] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+
+        ## relative extinction rate (μ/λ)
+        res["mean_relext"][i] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+        res["delta_relext"][i] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+
+        ## only if the model is an FBD model
+        if hasproperty(model, :ψ)
+            res["mean_psi"][i] = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
+            res["delta_psi"][i] = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
+        end
+    end
+
+    #edge = 1:n_branches
+    edge = [branch.index for branch in branches]
+
+    df = DataFrames.DataFrame(res)
+    df[!, "node"] = get_node_indices(tree)
+    df[!, "edge"] = edge
+
+    tiplabs = tip_labels(tree)
     root_index = length(tiplabs)+1
 
     root_row = Dict(key => NaN for key in keys)
