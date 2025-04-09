@@ -279,6 +279,24 @@ function postorder_async(
     return(u, sf)
 end
 
+## for a sampled ancestor
+function postorder_async(
+        model::Model,
+        node::SampledAncestor,
+        prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
+        time::Float64,
+    )
+    
+    child = node.child
+
+    u, sf = postorder_async(model, child, prob, sampling_probability, time)
+
+    u[:,2] = u[:,2] .* model.ψ
+
+    return(u, sf)
+end
+
 ## for a tip
 function postorder_async(
         model::Model, 

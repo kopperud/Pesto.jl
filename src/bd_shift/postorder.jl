@@ -147,7 +147,7 @@ function postorder!(
         sampling_probability::Float64,
         time::Float64, 
         Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
-        )  where {T <: BranchingEvent}
+        ) where {T <: BranchingEvent}
 
     branch_left, branch_right = node.children
 
@@ -169,6 +169,28 @@ function postorder!(
 
     return(u)
 end
+
+
+## sampled ancestor
+function postorder!(
+        model::Model, 
+        node::SampledAncestor, 
+        prob::OrdinaryDiffEq.ODEProblem,
+        sampling_probability::Float64,
+        time::Float64, 
+        Ds::Dict{Int64, OrdinaryDiffEq.ODESolution},
+        )
+    child = node.child 
+
+    u = postorder!(model, child, prob, sampling_probability, time, Ds)
+   
+    u[:,2] = u[:,2] .* model.ψ
+
+    return(u)
+end
+
+
+
 
 ## along a branch
 function postorder!(
@@ -200,7 +222,7 @@ function postorder!(
 end
 
 
-## for a tip
+## for an extant tip
 function postorder!(
         model::Model, 
         tip::ExtantTip, 
@@ -222,7 +244,7 @@ function postorder!(
 end
 
 
-## for a tip
+## for a fossil tip
 function postorder!(
         model::Model, 
         tip::FossilTip, 
