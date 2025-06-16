@@ -13,7 +13,9 @@ function extinction_probability(model::Model, data::SSEdata)
 
     tree_height = maximum(data.node_depth)
     tspan = (0.0, tree_height)
-    E0 = repeat([1.0 - data.sampling_probability], K)
+    #E0 = repeat([1.0 - data.sampling_probability], K)
+    elt = eltype(model)
+    E0 = ones(elt, K) .- data.sampling_probability
     
     ode = extinction_prob(model)
     pr = OrdinaryDiffEq.ODEProblem{true}(ode, E0, tspan, pE);

@@ -16,11 +16,12 @@ function shift_rate_through_time(
         model::BhDhModel, 
         data::SSEdata;
         summarize = :geometric,
+        condition = [:mrca, :survival],
         height = maximum(data.node_depth),
         tspan = range(height, 0.0; length = 500),
     )
 
-    Ds, Fs = backwards_forwards_pass(model, data);
+    Ds, Fs = backwards_forwards_pass(model, data; condition = condition);
 
     y = Float64[]
     times = Float64[]
@@ -40,7 +41,7 @@ function shift_rate_through_time(
         ΔN_dts = Float64[]
         for edge_idx in active_branch_indices
             Dt = Ds[edge_idx](t)[:,2]
-            Ft = Fs[edge_idx](t)[:,2]
+            Ft = Fs[edge_idx](t)
             St = ancestral_state_probability(Dt, Ft, t)
             dN_dt = - r * (sum(Dt .* sum(St ./ Dt)) -1)
 

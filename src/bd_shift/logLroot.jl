@@ -14,6 +14,11 @@ function number_of_states(model::MultiStateModel)
     return(n)
 end
 
+function number_of_states(model::BhtvDhtvModel)
+    n = length(model.λ(0.0))
+    return(n)
+end
+
 function number_of_states(model::UniStateModel)
     return(1)
 end

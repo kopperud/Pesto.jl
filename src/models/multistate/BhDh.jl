@@ -17,6 +17,10 @@ function get_speciation_rates(model::BhDhModel, t::Float64)
     return(model.λ)
 end
 
+function get_extinction_rates(model::BhDhModel, t::Float64)
+    return(model.μ)
+end
+
 function get_fossilization_rates(model::BhDhModel, time::Float64)
     error("can not get fossilization rate for a birth-death-shift model. either use an FBD model or don't include fossils in the tree.")
     #return(model.ψ)
@@ -76,24 +80,27 @@ end
 ## This ODE is the previous one times minus one
 ## * We solve this equation in the preorder traversal, albeit with different starting values for each branch
 function BhDh_forward_ode(
-        du::Matrix{T}, 
-        u::Matrix{T}, 
+        dF::Vector{T}, 
+        F::Vector{T}, 
         p, 
         t::Float64) where {T <: Real}
 
-    model, K = p
+    model, E, K = p
     λ = model.λ
     μ = model.μ
     η = model.η
 
-    sumE, sumF = sum(u, dims = 1)
+    Et = E(t)
+
+    #sumE, sumF = sum(u, dims = 1)
+    sumF = sum(F)
+
     r = η / (K-1)
 
-    #for i in axes(du, 1)
-    LoopVectorization.@turbo warn_check_args=false for i in axes(du, 1)
-        du[i,1] = μ[i] - (λ[i] + μ[i] + η) * u[i,1] + λ[i] * u[i,1] * u[i,1] + r * (sumE - u[i,1]) 
+    LoopVectorization.@turbo warn_check_args=false for i in eachindex(dF)
+        #du[i,1] = μ[i] - (λ[i] + μ[i] + η) * u[i,1] + λ[i] * u[i,1] * u[i,1] + r * (sumE - u[i,1]) 
         ## F
-        du[i,2] = +(λ[i]+μ[i]+η)*u[i,2] - 2*λ[i]*u[i,2]*u[i,1] - r *(sumF - u[i,2])
+        dF[i] = +(λ[i]+μ[i]+η)*F[i] - 2*λ[i]*F[i]*Et[i] - r *(sumF - F[i])
     end
     nothing
 end

@@ -53,20 +53,27 @@ function tree_rates(data::SSEdata, model::T, Fs, Ss; n = 10) where {T <: MultiSt
         ## difference from oldest to youngest point on branch
         
         ## speciation rate
-        res["mean_lambda"][i] = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
-        res["delta_lambda"][i] = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
-
+        res["mean_lambda"][i] = meanbranch(t -> LinearAlgebra.dot(get_speciation_rates(model, t), Ss[i](t)), t0, t1, x, w)
+        lambda_young = LinearAlgebra.dot(get_speciation_rates(model, t0), Ss[i](t0))
+        lambda_old   = LinearAlgebra.dot(get_speciation_rates(model, t1), Ss[i](t1))
+        res["delta_lambda"][i] = lambda_young - lambda_old
         ## extinction rate
-        res["mean_mu"][i] = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
-        res["delta_mu"][i] = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+        res["mean_mu"][i] = meanbranch(t -> LinearAlgebra.dot(get_extinction_rates(model, t), Ss[i](t)), t0, t1, x, w)
+        mu_young = LinearAlgebra.dot(get_extinction_rates(model, t0), Ss[i](t0))
+        mu_old   = LinearAlgebra.dot(get_extinction_rates(model, t1), Ss[i](t1))
+        res["delta_mu"][i] = mu_young - mu_old
 
         ## net-diversification rate
-        res["mean_netdiv"][i] = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
-        res["delta_netdiv"][i] = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+        res["mean_netdiv"][i] = meanbranch(t -> LinearAlgebra.dot(get_speciation_rates(model, t) .- get_extinction_rates(model, t), Ss[i](t)), t0, t1, x, w)
+        netdiv_young = LinearAlgebra.dot(get_speciation_rates(model, t0) .- get_extinction_rates(model, t0), Ss[i](t0))
+        netdiv_old   = LinearAlgebra.dot(get_speciation_rates(model, t1) .- get_extinction_rates(model, t1), Ss[i](t1))
+        res["delta_netdiv"][i] = netdiv_young - netdiv_old 
 
         ## relative extinction rate (μ/λ)
-        res["mean_relext"][i] = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
-        res["delta_relext"][i] = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+        res["mean_relext"][i] = meanbranch(t -> LinearAlgebra.dot(get_extinction_rates(model, t) ./ get_speciation_rates(model, t), Ss[i](t)), t0, t1, x, w)
+        relext_young = LinearAlgebra.dot(get_extinction_rates(model, t0) ./ get_speciation_rates(model, t0), Ss[i](t0)) 
+        relext_old   = LinearAlgebra.dot(get_extinction_rates(model, t1) ./ get_speciation_rates(model, t1), Ss[i](t1)) 
+        res["delta_relext"][i] = relext_young - relext_old
 
         ## only if the model is an FBD model
         if hasproperty(model, :ψ)
@@ -265,7 +272,7 @@ function ancestral_state_probabilities(
     )
     Ss = Dict{Int64, Function}()
     for edge_idx in 1:(maximum(data.edges)-1)
-        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t) .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
        #Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
     end
 
@@ -285,7 +292,7 @@ function ancestral_state_probabilities(
         edge_idx = branch.index
 
         #Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
-        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t) .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)
@@ -300,7 +307,7 @@ function ancestral_state_probabilities(
     )
     Ss = Dict{Int64,Function}()
     for edge_idx in collect(keys(post))
-        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t) .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)

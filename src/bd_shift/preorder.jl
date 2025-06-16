@@ -21,10 +21,13 @@ function preorder(
     ## Store the whole `F(t)` per branch
     pre = Dict{Int64, OrdinaryDiffEq.ODESolution}()
 
-    p = (model, K)
+    ## Calculate extinction probabilities
+    E = extinction_probability(model, data)
+
+    p = (model, E, K)
     ode = forward_prob(model)
     tspan = [0.0, 1.0]
-    u0 = zeros(Float64, K, 2) 
+    u0 = zeros(Float64, K) 
     prob = OrdinaryDiffEq.ODEProblem(ode, u0, tspan, p)
 
     for m in reverse(data.po)
@@ -54,12 +57,12 @@ function preorder(
             end
 
             D_parent = post[left_edge].u[end][:,2] .* post[right_edge].u[end][:,2] .* λroot
-            E_parent = post[left_edge].u[end][:,1]
+            #E_parent = post[left_edge].u[end][:,1]
         else
             parent_edge = ancestors[anc]
-            F_parent = pre[parent_edge].u[end][:,2]
+            F_parent = pre[parent_edge].u[end]
             D_parent = post[parent_edge].u[1][:,2]
-            E_parent = post[parent_edge].u[1][:,1]
+            #E_parent = post[parent_edge].u[1][:,1]
         end
         ## D(t) on this branch
         Dm = post[m].u[end][:,2]
@@ -77,7 +80,7 @@ function preorder(
         parent_node_age = data.node_depth[parent_node] 
         tspan = (parent_node_age, node_age)
 
-        u0 = hcat(E_parent, F_start)
+        u0 = F_start
         prob = OrdinaryDiffEq.remake(prob, u0 = u0, tspan = tspan)
         sol = OrdinaryDiffEq.solve(prob, alg, isoutofdomain = notneg)
         pre[m] = sol
