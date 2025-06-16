@@ -58,7 +58,8 @@ function posterior_shift_prob(model::Model, data::SSEdata)
     X = zeros(n_edges)
     ode = no_shifts_problem(model)
     
-    Threads.@threads for edge_index in 1:n_edges
+    #Threads.@threads for edge_index in 1:n_edges
+    for edge_index in 1:n_edges
         D = Ds[edge_index];
         F = Fs[edge_index];
         t1 = D.t[end]
@@ -66,7 +67,7 @@ function posterior_shift_prob(model::Model, data::SSEdata)
         Xt0 = posterior_shift_prob_categories(model, D, K, alg)
 
         Dt = D(t1)[:,2]
-        Ft = F(t1)[:,2]
+        Ft = F(t1)#[:,2]
         St = ancestral_state_probability(Dt, Ft, t1)
 
         X[edge_index] = sum(Xt0 .* St)

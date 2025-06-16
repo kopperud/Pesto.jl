@@ -90,7 +90,7 @@ function branch_variance(
         t = times[a]
         
         Dt = D(t)[:,2]
-        Ft = F(t)[:,2]
+        Ft = F(t)#[:,2]
         St = Dt .* Ft
         St = St / sum(St)
 
