@@ -34,6 +34,7 @@ include("models/multistate/BhDh.jl")
 include("models/multistate/FhBhDc.jl")
 include("models/multistate/FhBcDc.jl")
 include("models/multistate/FcBhDc.jl")
+include("models/multistate/BhtvDhtv.jl")
 
 ## the rest
 include("treechecks.jl")
