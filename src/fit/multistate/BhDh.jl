@@ -42,7 +42,7 @@ function fit_BhDh(
         elseif any((x .- upper) .^2 .< 1e-30)
             logl = -Inf
         else
-            model = BhDh_newmodel(x; n = n, sd = sd)
+            model = Pesto.BhDh_newmodel(x; n = n, sd = sd)
             logl = logL_root(model, data; condition = condition)
         end
 
@@ -100,7 +100,7 @@ function fit_BhDh(
 
         try
             global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer, opts)
-            converged = optres.x_converged || optres.f_converged || optres.g_converged
+            converged = check_if_converged(optres)
 
         catch e
             if isa(e, AssertionError)

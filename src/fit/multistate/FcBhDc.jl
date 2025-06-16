@@ -129,7 +129,7 @@ function fit_FcBhDc(
 
         try
             global optres = Optim.optimize(f, g!, h!, xinit_tilde, inner_optimizer, opts)
-            converged = optres.x_converged || optres.f_converged || optres.g_converged
+            converged = check_if_converged(optres)
 
         catch e
             if isa(e, AssertionError)

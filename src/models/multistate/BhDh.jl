@@ -137,7 +137,7 @@ function number_of_shifts_simple!(dN, N, p, t)
     η, K, D, F = p
 
     Dt = D(t)[:,2]
-    Ft = F(t)[:,2]
+    Ft = F(t)#[:,2]
 
     St = ancestral_state_probability(Dt, Ft, t)
     r = -(η/(K-1.0))

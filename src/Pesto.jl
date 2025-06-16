@@ -27,6 +27,7 @@ include("tree/length.jl")
 include("tree/utils.jl")
 
 ## the models
+include("fit/convergence.jl")
 include("models/models.jl")
 include("models/unistate/BcDc.jl")
 include("models/unistate/FcBcDc.jl")
