@@ -51,9 +51,8 @@ function optimize_eta(λ::Vector{Float64}, μ::Vector{Float64}, data; lower = -I
 
 #    inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
     inner_optimizer = Optim.GradientDescent()
-#    inner_optimizer = Optim.Newton()    
 
-    opts = Optim.Options(x_tol = 0.1, f_tol = 0.1, g_tol = 0.1, show_trace = false)
+    opts = Optim.Options(x_abstol = 0.1, f_abstol = 0.1, g_abstol = 0.1, show_trace = false)
     result = Optim.optimize(f, g!, [lower], [upper], [xinit], Optim.Fminbox(inner_optimizer), opts)
     
     ηml = result.minimizer[1]
@@ -90,7 +89,7 @@ function optimize_eta(λ::Function, μ::Function, data; lower = -Inf, upper = In
     inner_optimizer = Optim.GradientDescent()
 #    inner_optimizer = Optim.Newton()    
 
-    opts = Optim.Options(x_tol = 0.1, f_tol = 0.1, g_tol = 0.1, show_trace = false)
+    opts = Optim.Options(x_abstol = 0.1, f_abstol = 0.1, g_abstol = 0.1, show_trace = false)
     result = Optim.optimize(f, g!, [lower], [upper], [xinit], Optim.Fminbox(inner_optimizer), opts)
     
     ηml = result.minimizer[1]
