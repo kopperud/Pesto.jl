@@ -1,7 +1,7 @@
 name = "Pesto"
 uuid = "f3a6be2d-a68d-4ec3-9269-e9777039d639"
-authors = ["Bjorn Tore Kopperud <kopperud@protonmail.com> and contributors"]
 version = "0.1.7"
+authors = ["Bjorn Tore Kopperud <kopperud@protonmail.com> and contributors"]
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -11,6 +11,7 @@ FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
@@ -21,7 +22,6 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
-Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 
 [extensions]
 PestoMakieExt = ["Makie", "ColorSchemes"]
@@ -35,13 +35,13 @@ FastGaussQuadrature = "1.0"
 ForwardDiff = "0.10"
 LinearAlgebra = "1"
 LoopVectorization = "0.12"
-Makie = "0.20"
+Makie = "0"
 Optim = "1"
 OrdinaryDiffEq = "6.69"
+ProgressMeter = "1.10"
 RCall = "0.14.8"
 SciMLBase = "2.57.2"
 StatsBase = "0.34"
-ProgressMeter = "1.10"
 julia = "1"
 
 [extras]
