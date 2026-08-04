@@ -33,6 +33,8 @@ function writenewick(filename::String, data::SSEdata, rates::DataFrames.DataFram
         write(io, newick_string)
         write(io, "\n")
     end
+
+    nothing
 end
 
 function node_data(rates::DataFrames.DataFrame)
@@ -150,4 +152,62 @@ function getRoot(edges)
     end
     throw("root not found")
 end
+
+######################################################
+#
+#    The same thing but for the other tree format
+#
+######################################################
+
+function writenewick(filename::String, tree::Root)
+    newick_string = newick(tree)
+
+    open(filename, "w") do io
+        write(io, newick_string)
+        write(io, "\n")
+    end
+
+    nothing
+end
+
+function newick(tree::Root)
+    
+    s = String[]
+
+    newick!(tree, s)
+    push!(s, ":0.0;")
+
+    str = join(s)
+    return(str)
+end
+
+function newick!(node::T, s::Vector{String}) where {T <: BranchingEvent}
+  
+    push!(s, "(")
+    for (i, child) in enumerate(node.children)
+        newick!(child, s)
+
+        if i != length(node.children)
+            push!(s, ",")
+        end
+    end
+    push!(s, ")")
+end
+
+function newick!(branch::Branch, s::Vector{String})
+    newick!(branch.outbounds, s)
+    push!(s, ":$(branch.time)")
+end
+
+function newick!(tip::T, s::Vector{String}) where {T <: AbstractTip}
+    push!(s, "$(tip.label)")
+end
+
+function newick!(node::SampledAncestor, s::Vector{String})
+    push!(s, "(")
+    newick!(node.child, s)
+    push!(s, ",$(node.label):0.0")
+    push!(s, ")")
+end
+
 

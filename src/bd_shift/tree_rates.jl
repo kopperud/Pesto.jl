@@ -178,6 +178,48 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiState
     return(df)
 end
 
+#function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
+function calculate_branch_rates!(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
+    x, w = FastGaussQuadrature.gausslegendre(n)
+
+    branches = get_branches(tree)
+
+    for branch in branches
+        i = branch.index
+        br = branch.branch_rates
+
+        t0, t1 = extrema(Fs[i].t)
+        ## t0 is youngest, t1 is oldest
+        
+        ## posterior mean rate, and
+        ## difference from oldest to youngest point on branch
+        
+        ## speciation rate
+        br.mean_lambda = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+        br.delta_lambda = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+
+        ## extinction rate
+        br.mean_mu = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
+        br.delta_mu = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+
+        ## net-diversification rate
+        br.mean_netdiv = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
+        br.delta_netdiv = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+
+        ## relative extinction rate (μ/λ)
+        br.mean_relext = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+        br.delta_relext = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+
+        ## only if the model is an FBD model
+        if hasproperty(model, :ψ)
+            br.mean_psi = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
+            br.delta_psi = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
+        end
+    end
+
+end
+
+
 #=
 function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: ConstantModel}
     branches = get_branches(tree);
@@ -298,7 +340,6 @@ function ancestral_state_probabilities(
 
     return (Ss)
 end
-
 
 
 ## problem: this function is not type stable, or atleast S(t) is not 
