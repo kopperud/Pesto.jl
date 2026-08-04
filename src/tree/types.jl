@@ -4,9 +4,31 @@ export Tip
 export Branch
 export Root
 export InternalNode
+export BranchRates
 
 abstract type AbstractNode end
 abstract type AbstractBranch end
+
+########################################################
+##
+##              rate predictions
+##
+########################################################
+
+mutable struct BranchRates
+    mean_lambda::Float64
+    mean_mu::Float64
+    mean_psi::Float64
+    mean_netdiv::Float64
+    mean_relext::Float64
+    delta_lambda::Float64
+    delta_mu::Float64
+    delta_netdiv::Float64
+    delta_relext::Float64
+    delta_psi::Float64
+
+    BranchRates() = new( NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN )
+end
 
 ########################################################
 ##
@@ -17,6 +39,7 @@ mutable struct Branch <: AbstractBranch
     index::Int64
     inbounds::AbstractNode
     outbounds::AbstractNode
+    branch_rates::BranchRates
 
     time::Float64
     Branch() = new()

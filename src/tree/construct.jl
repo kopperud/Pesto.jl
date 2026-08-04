@@ -46,6 +46,7 @@ function construct_tree_po(
 
 
     branch = Branch()
+    branch.branch_rates = BranchRates()
     branch.time = phy.edge_length[branch_index]
     branch.inbounds = parent_node
     branch.index = branch_index 
@@ -86,6 +87,7 @@ end
 
 function construct_tree_tip(phy, parent_node, branch_index, sampling_probability)
     branch = Branch()
+    branch.branch_rates = BranchRates()
     branch.time = phy.edge_length[branch_index]
     branch.inbounds = parent_node
     branch.index = branch_index
