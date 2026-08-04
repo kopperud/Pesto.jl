@@ -45,7 +45,8 @@ function tree_rates(data::SSEdata, model::T, Fs, Ss; n = 10) where {T <: MultiSt
         res[key] = zeros(n_branches)
     end
     
-    Threads.@threads for i = 1:n_branches
+    #Threads.@threads for i = 1:n_branches
+    for i = 1:n_branches
         t0, t1 = extrema(Fs[i].t)
         ## t0 is youngest, t1 is oldest
         
@@ -292,7 +293,7 @@ function ancestral_state_probabilities(
         edge_idx = branch.index
 
         #Ss[edge_idx] = t::Float64 -> Fs[edge_idx](t) .* Ds[edge_idx](t) ./ (sum(Fs[edge_idx](t) .* Ds[edge_idx](t)))
-        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t) .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)
@@ -307,7 +308,7 @@ function ancestral_state_probabilities(
     )
     Ss = Dict{Int64,Function}()
     for edge_idx in collect(keys(post))
-        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t) .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
+        Ss[edge_idx] = t::Float64 -> pre[edge_idx](t)[:,2] .* post[edge_idx](t)[:,2] ./ (sum(pre[edge_idx](t) .* post[edge_idx](t)[:,2]))
     end
 
     return (Ss)

@@ -78,6 +78,7 @@ end
 mutable struct SampledAncestor <: InternalNode
     index::Int64
     inbounds::Branch
+    label::String
     child::Branch
 
     SampledAncestor() = new()

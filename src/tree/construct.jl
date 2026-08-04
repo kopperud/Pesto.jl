@@ -176,7 +176,7 @@ end
 function assign_sampled_ancestors!(root::Root)
     n = 0
     for branch in root.children
-        n = assign_sampled_ancestors!(branch)
+        n += assign_sampled_ancestors!(branch)
     end
 
     if n > 0
@@ -193,6 +193,7 @@ function assign_sampled_ancestors!(branch::Branch)
     n = 0
     if is_zero
         sister_branch = get_sister_branch(branch)
+        label = branch.outbounds.label ## this might break if its not actually a tip here
 
         parent_node = branch.inbounds
         if parent_node isa Root
@@ -203,6 +204,7 @@ function assign_sampled_ancestors!(branch::Branch)
             sampled_ancestor = SampledAncestor()
             sampled_ancestor.index = 9999
             sampled_ancestor.inbounds = parent_branch
+            sampled_ancestor.label = label
             parent_branch.outbounds = sampled_ancestor
 
             sampled_ancestor.child = sister_branch
@@ -222,7 +224,7 @@ end
 function assign_sampled_ancestors!(node::BranchingEvent)
     n = 0
     for branch in node.children
-        n = assign_sampled_ancestors!(branch)
+        n += assign_sampled_ancestors!(branch)
     end
     return(n)
 end

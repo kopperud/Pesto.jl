@@ -5,7 +5,7 @@ function fit_FcBcDc(
         xinit = [0.1, 0.05, 0.01], 
         lower = [0.000001, 0.000001, 0.000001], 
         upper = [20.0, 20.0, 10.0],
-        condition = condition,
+        condition = [:mrca, :survival],
     )
 
     f(x_tilde) = begin
