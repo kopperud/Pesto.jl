@@ -5,39 +5,41 @@ export FhBhDcModel
 # * Constant extinction rate
 
 
-struct FhBhDcModel{T1 <: Real, T2 <: Real, T3 <: Real} <: MultiStateModel
+struct FhBhDcModel{T1<:Real,T2<:Real,T3<:Real} <: MultiStateModel
     λ::Vector{T1}
     μ::Vector{T1}
     ψ::Vector{T1}
     α::T2
-    β::T2
+    γ::T2
     Q::Matrix{T3}
 end
 
 const FBDSconstant = FhBhDcModel
 
 function eltype(model::FhBhDcModel)
-    return(typeof(model.α))
+    return (typeof(model.α))
 end
 
 function get_speciation_rates(model::FhBhDcModel, t::Float64)
-    return(model.λ)
+    return (model.λ)
 end
 
 function get_fossilization_rates(model::FhBhDcModel, time::Float64)
-    return(model.ψ)
+    return (model.ψ)
 end
 
-function num_parameters(model::FhBhDcModel) return 5 end
+function num_parameters(model::FhBhDcModel)
+    return 5
+end
 
 function FhBhDcModel(
-        λ::Vector{T1}, ## these are of length n, not n*n or n^3
-        μ::Vector{T1},
-        ψ::Vector{T1},
-        α::T2,
-        β::T2,
-    ) where {T1 <: Real, T2 <: Real}
-    
+    λ::Vector{T1}, ## these are of length n, not n*n or n^3
+    μ::Vector{T1},
+    ψ::Vector{T1},
+    α::T2,
+    γ::T2,
+) where {T1<:Real,T2<:Real}
+
     #λ = r ./ (1 - ϵ)
     #μ = λ .- r
 
@@ -46,16 +48,16 @@ function FhBhDcModel(
     #μv, _ = allpairwise(μ, ψ)
 
     n = length(λ)
-    Q = Qmatrix(α, β, n)
+    Q = Qmatrix(α, γ, n)
 
-    model = FhBhDcModel(λv, μv, ψv, α, β, Q)
+    model = FhBhDcModel(λv, μv, ψv, α, γ, Q)
 
-    return(model)
+    return (model)
 end
 
 
 function backward_prob(model::FhBhDcModel)
-    return(FhBhDc_ode)
+    return (FhBhDc_ode)
 end
 
 function forward_fossil_ode(du, u, p, t)
@@ -72,8 +74,8 @@ function forward_fossil_ode(du, u, p, t)
     fastmv!(dF, Q, .- F)
 
     LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] += - μ[i] +(λ[i]+μ[i]+ψ[i])*u[i,1] - λ[i]*u[i,1]*u[i,1] 
-        du[i,2] += +(λ[i]+μ[i]+ψ[i])*u[i,2] - 2*λ[i]*u[i,2]*u[i,1]
+        du[i, 1] += - μ[i] + (λ[i]+μ[i]+ψ[i])*u[i, 1] - λ[i]*u[i, 1]*u[i, 1]
+        du[i, 2] += +(λ[i]+μ[i]+ψ[i])*u[i, 2] - 2*λ[i]*u[i, 2]*u[i, 1]
     end
 
     nothing
@@ -81,14 +83,14 @@ end
 
 
 function forward_prob(model::FhBhDcModel)
-    return(forward_fossil_ode)
+    return (forward_fossil_ode)
 end
 
 function extinction_prob(model::FhBhDcModel)
-    return(extinction_fossil_ode)
+    return (extinction_fossil_ode)
 end
 
-function FhBhDc_ode(du::Matrix{T}, u::Matrix{T}, p, t) where {T <: Real}
+function FhBhDc_ode(du::Matrix{T}, u::Matrix{T}, p, t) where {T<:Real}
     model, K = p
     λ = model.λ
     μ = model.μ
@@ -109,10 +111,10 @@ function FhBhDc_ode(du::Matrix{T}, u::Matrix{T}, p, t) where {T <: Real}
     fastmv!(dD, Q, D)
 
     LoopVectorization.@turbo warn_check_args=false for i in axes(u, 1)
-        du[i,1] += μ[i] -(λ[i]+μ[i]+ψ[i])*u[i,1] + λ[i]*u[i,1]*u[i,1] 
-        du[i,2] += -(λ[i]+μ[i]+ψ[i])*u[i,2] + 2*λ[i]*u[i,2]*u[i,1]
+        du[i, 1] += μ[i] - (λ[i]+μ[i]+ψ[i])*u[i, 1] + λ[i]*u[i, 1]*u[i, 1]
+        du[i, 2] += -(λ[i]+μ[i]+ψ[i])*u[i, 2] + 2*λ[i]*u[i, 2]*u[i, 1]
     end
-    
+
     nothing
 end
 
@@ -138,6 +140,6 @@ function extinction_fossil_ode(dE, E, p, t)
     Q = model.Q
     K = number_of_states(model)
 
-    dE[:] = μ .- (λ.+μ.+ψ).*E .+ λ.*E.*E .+ Q * E 
+    dE[:] = μ .- (λ .+ μ .+ ψ) .* E .+ λ .* E .* E .+ Q * E
 end
 
