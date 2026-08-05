@@ -204,6 +204,7 @@ function assign_sampled_ancestors!(branch::Branch)
             parent_branch = parent_node.inbounds
 
             sampled_ancestor = SampledAncestor()
+            sampled_ancestor.node_rates = NodeRates()
             sampled_ancestor.index = 9999
             sampled_ancestor.inbounds = parent_branch
             sampled_ancestor.label = label

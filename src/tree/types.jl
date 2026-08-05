@@ -30,6 +30,16 @@ mutable struct BranchRates
     BranchRates() = new( NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN )
 end
 
+mutable struct NodeRates
+    mean_lambda::Float64
+    mean_mu::Float64
+    mean_psi::Float64
+    mean_netdiv::Float64
+    mean_relext::Float64
+
+    NodeRates() = new( NaN, NaN, NaN, NaN, NaN )
+end
+
 ########################################################
 ##
 ##              branch
@@ -103,6 +113,7 @@ mutable struct SampledAncestor <: InternalNode
     inbounds::Branch
     label::String
     child::Branch
+    node_rates::NodeRates
 
     SampledAncestor() = new()
 end

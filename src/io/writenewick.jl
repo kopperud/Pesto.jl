@@ -171,7 +171,6 @@ function writenewick(filename::String, tree::Root)
 end
 
 function newick(tree::Root)
-    
     s = String[]
 
     newick!(tree, s)
@@ -196,6 +195,7 @@ end
 
 function newick!(branch::Branch, s::Vector{String})
     newick!(branch.outbounds, s)
+    push!(s, node_data2(branch))
     push!(s, ":$(branch.time)")
 end
 
@@ -206,8 +206,77 @@ end
 function newick!(node::SampledAncestor, s::Vector{String})
     push!(s, "(")
     newick!(node.child, s)
-    push!(s, ",$(node.label):0.0")
+    node_data = node_data2(node)
+    println("asd3")
+    println(node_data)
+    #push!(s, ",$(node.label):0.0")
+    push!(s, ",$(node.label)$(node_data):0.0")
     push!(s, ")")
+end
+
+function node_data2(branch::Branch)
+    branch_rates = branch.branch_rates
+
+    keys = [
+        "mean_lambda",
+        "mean_mu",
+        "mean_psi",
+        "mean_netdiv",
+        "mean_relext",
+        "delta_lambda",
+        "delta_mu",
+        "delta_netdiv",
+        "delta_relext",
+        "delta_psi",
+            ]
+    
+    items = String[]
+
+    for key in keys
+        val = getfield(branch_rates, Symbol(key))
+        item = key * "=" * string(val)
+        if !isnan(val)
+            push!(items, item)
+        end
+    end
+    
+    if length(items) == 0
+        s = ""
+    else
+        s = "[&" * join(items, ",") * "]"
+    end
+
+    return s
+end
+
+function node_data2(node::T) where {T <: AbstractNode}
+    node_rates = node.node_rates
+
+    keys = [
+        "mean_lambda",
+        "mean_mu",
+        "mean_psi",
+        "mean_netdiv",
+        "mean_relext",
+            ]
+    
+    items = String[]
+
+    for key in keys
+        val = getfield(node_rates, Symbol(key))
+        item = key * "=" * string(val)
+        if !isnan(val)
+            push!(items, item)
+        end
+    end
+    
+    if length(items) == 0
+        s = ""
+    else
+        s = "[&" * join(items, ",") * "]"
+    end
+
+    return s
 end
 
 

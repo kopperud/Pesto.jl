@@ -179,45 +179,82 @@ function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiState
 end
 
 #function tree_rates(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
-function calculate_branch_rates!(tree::Root, model::T, Fs, Ss; n = 10) where {T <: MultiStateModel}
+function calculate_branch_rates!(node::T, model::M, Fs, Ss, n::Int64) where {T <: BranchingEvent, M <: MultiStateModel}
     x, w = FastGaussQuadrature.gausslegendre(n)
 
-    branches = get_branches(tree)
+    #branches = get_branches(tree)
 
-    for branch in branches
-        i = branch.index
-        br = branch.branch_rates
+    #for branch in branches
+  
+    for branch in node.children
+        calculate_branch_rates!(branch, model, Fs, Ss, n)
+    end
+end
 
-        t0, t1 = extrema(Fs[i].t)
-        ## t0 is youngest, t1 is oldest
-        
-        ## posterior mean rate, and
-        ## difference from oldest to youngest point on branch
-        
-        ## speciation rate
-        br.mean_lambda = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
-        br.delta_lambda = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
+function calculate_branch_rates!(branch::Branch, model::M, Fs, Ss, n::Int64) where {M <: MultiStateModel}
 
-        ## extinction rate
-        br.mean_mu = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
-        br.delta_mu = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+    x, w = FastGaussQuadrature.gausslegendre(n)
 
-        ## net-diversification rate
-        br.mean_netdiv = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
-        br.delta_netdiv = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+    i = branch.index
+    br = branch.branch_rates
 
-        ## relative extinction rate (μ/λ)
-        br.mean_relext = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
-        br.delta_relext = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+    t0, t1 = extrema(Fs[i].t)
+    ## t0 is youngest, t1 is oldest
+    
+    ## posterior mean rate, and
+    ## difference from oldest to youngest point on branch
+    
+    ## speciation rate
+    br.mean_lambda = meanbranch(t -> LinearAlgebra.dot(model.λ, Ss[i](t)), t0, t1, x, w)
+    br.delta_lambda = LinearAlgebra.dot(model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.λ, Ss[i](t1))
 
-        ## only if the model is an FBD model
-        if hasproperty(model, :ψ)
-            br.mean_psi = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
-            br.delta_psi = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
-        end
+    ## extinction rate
+    br.mean_mu = meanbranch(t -> LinearAlgebra.dot(model.μ, Ss[i](t)), t0, t1, x, w)
+    br.delta_mu = LinearAlgebra.dot(model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.μ, Ss[i](t1))
+
+    ## net-diversification rate
+    br.mean_netdiv = meanbranch(t -> LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t)), t0, t1, x, w)
+    br.delta_netdiv = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t0)) - LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t1))
+
+    ## relative extinction rate (μ/λ)
+    br.mean_relext = meanbranch(t -> LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t)), t0, t1, x, w)
+    br.delta_relext = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t0)) - LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t1))
+
+    ## only if the model is an FBD model
+    if hasproperty(model, :ψ)
+        br.mean_psi = meanbranch(t -> LinearAlgebra.dot(model.ψ, Ss[i](t)), t0, t1, x, w)
+        br.delta_psi = LinearAlgebra.dot(model.ψ, Ss[i](t0)) - LinearAlgebra.dot(model.ψ, Ss[i](t1))
     end
 
+    calculate_branch_rates!(branch.outbounds, model, Fs, Ss, n)
 end
+
+
+function calculate_branch_rates!(node::SampledAncestor, model::M, Fs, Ss, n::Int64) where {M <: MultiStateModel}
+
+    parent_branch = node.inbounds
+    i = parent_branch.index
+    nr = node.node_rates
+
+    t, _ = extrema(Fs[i].t) ## (t is the youngest on parent branch)
+
+    nr.mean_lambda = LinearAlgebra.dot(model.λ, Ss[i](t))
+    nr.mean_mu = LinearAlgebra.dot(model.μ, Ss[i](t))
+    nr.mean_netdiv = LinearAlgebra.dot(model.λ .- model.μ, Ss[i](t))
+
+    nr.mean_relext = LinearAlgebra.dot(model.μ ./ model.λ, Ss[i](t))
+
+    if hasproperty(model, :ψ)
+        nr.mean_psi = LinearAlgebra.dot(model.ψ, Ss[i](t))
+    end
+
+    calculate_branch_rates!(node.child, model, Fs, Ss, n)
+end
+
+function calculate_branch_rates!(tip::T, model::M, Fs, Ss, n::Int64) where {T <: AbstractTip, M <: MultiStateModel}
+    #calculate_branch_rates!(node.child, model, Fs, Ss, n)
+end
+
 
 
 #=
