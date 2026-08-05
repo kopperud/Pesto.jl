@@ -166,6 +166,16 @@ function preorder!(
 
     branch_left, branch_right = node.children
 
+    #D_left = Ds[left_branch_index](time)
+    #S_left = S_node ./ D_left
+    #S_left = S_left ./ model.λ
+    #S_left = S_left ./ sum(S_left)
+
+    #D_right = Ds[right_branch_index](time)
+    #S_right = S_node ./ D_right
+    #S_right = S_right ./ model.λ
+    #S_right = S_right ./ sum(S_right)
+
     # not thread safe because Dict is not thread safe
     preorder!(model, branch_left, prob, time, post, pre, S_node)
     preorder!(model, branch_right, prob, time, post, pre, S_node)
@@ -183,7 +193,7 @@ function preorder!(
         )
 
     child = node.child
-    S_node = S_node ./ model.ψ
+    #S_node = S_node ./ model.ψ ?? I dont think this should be done
     S_node = S_node ./ sum(S_node)
 
     preorder!(model, child, prob, time, post, pre, S_node)
