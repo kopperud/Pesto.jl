@@ -35,6 +35,7 @@ include("models/multistate/BhDh.jl")
 include("models/multistate/FhBhDc.jl")
 include("models/multistate/FhBcDc.jl")
 include("models/multistate/FcBhDc.jl")
+include("models/multistate/FcBhDh.jl")
 include("models/multistate/BhtvDhtv.jl")
 
 ## the rest
@@ -49,6 +50,7 @@ include("fit/multistate/BhDh.jl")
 include("fit/multistate/FhBhDc.jl")
 include("fit/multistate/FhBcDc.jl")
 include("fit/multistate/FcBhDc.jl")
+include("fit/multistate/FcBhDh.jl")
 
 
 ## utils
@@ -107,7 +109,7 @@ include("equilibrium_frequency.jl")
 
 # Path into package
 export path
-path(x...; dir::String = "data") = joinpath(@__DIR__, "..", dir, x...)
+path(x...; dir::String="data") = joinpath(@__DIR__, "..", dir, x...)
 
 ## precompile
 #PrecompileTools.@setup_workload begin
