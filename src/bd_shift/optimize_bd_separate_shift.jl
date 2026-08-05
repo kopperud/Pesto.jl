@@ -7,10 +7,10 @@ function newmodel_separate_shift(x::Vector{T}; n = 6, sd = 0.587) where {T <: Re
     β = x[2]
     μmean = 3*x[1] + x[3] 
     λmean = 3*x[2] + x[4] + μmean
-            
+
     dλ = Distributions.LogNormal(log(λmean), sd)
     dμ = Distributions.LogNormal(log(μmean), sd)
-    
+
     λquantiles = Pesto.make_quantiles2(dλ, n)
     µquantiles = Pesto.make_quantiles2(dμ, n)
     λ, μ = allpairwise(λquantiles, µquantiles)
@@ -25,14 +25,14 @@ end
 
 
 function optimize_hyperparameters_rst(
-    tree::Root; 
-    n = 6, 
-    sd = 0.587, 
-    n_attempts = 10,
-    lower = [1e-08, 1e-08, 1e-04, 1e-04],
-    upper = [0.3, 0.3, 1.0, 1.0],
-    xinit = missing
-    )
+    tree::Root;
+    n=6,
+    sd=0.587,
+    n_attempts=10,
+    lower=[1e-08, 1e-08, 1e-04, 1e-04],
+    upper=[0.3, 0.3, 1.0, 1.0],
+    xinit=missing
+)
 
     ntips = length(tip_labels(tree))
     @assert ntips > 50
@@ -40,30 +40,30 @@ function optimize_hyperparameters_rst(
     ## create the logistic transform functions
     g, h = logistic(lower, upper, 0.5)
 
-    f(x_tilde::Vector{T}) where {T <: Real} = begin
+    f(x_tilde::Vector{T}) where {T<:Real} = begin
         #println([getpar(e) for e in x_tilde])
- 
+
         x = g(x_tilde) ## backtransform to bounded realm
         α = x[1]
         β = x[2]
-        μ = 3*x[1] + x[3] 
+        μ = 3*x[1] + x[3]
         λ = 3*x[2] + x[4] + μ
 
         ps = [getpar(λ), getpar(μ), getpar(α), getpar(β)]
         println("λ: $(ps[1]) \t\t μ: $(ps[2]) \t α: $(ps[3]) \t β: $(ps[4])")
         #println([getpar(e) for e in x])
 
-        if any((x .- lower).^2 .< 1e-30)
+        if any((x .- lower) .^ 2 .< 1e-30)
             logl = -Inf
-        elseif any((x .- upper) .^2 .< 1e-30)
+        elseif any((x .- upper) .^ 2 .< 1e-30)
             logl = -Inf
         else
-            model = newmodel_separate_shift(x; n = n, sd = sd)
+            model = newmodel_separate_shift(x; n=n, sd=sd)
             logl = logL_root(model, tree)
         end
         println("logl: \t", getpar(logl))
 
-        return(-logl)
+        return (-logl)
     end
 
     ## updating the gradient vector
@@ -73,7 +73,7 @@ function optimize_hyperparameters_rst(
 
     ## updating the Hessian matrix
     h!(H, x_tilde) = begin
-        H[:,:] = ForwardDiff.hessian(f, x_tilde)
+        H[:, :] = ForwardDiff.hessian(f, x_tilde)
     end
 
     converged = false
@@ -93,21 +93,21 @@ function optimize_hyperparameters_rst(
     dβ = Distributions.Truncated(dβ, lower[1] + ϵ, upper[1] - ϵ)
     dμ = Distributions.Truncated(dμ, lower[2] + ϵ, upper[2] - ϵ)
     dr = Distributions.Truncated(dr, lower[3] + ϵ, upper[3] - ϵ)
-    
+
     inner_optimizer = Optim.Newton()
 
     opts = Optim.Options(
-            #x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
-            #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
-            show_trace = false,
-            iterations = 100, outer_iterations = 100)
+        #x_abstol = 0.05, f_abstol = 0.05, g_abstol = 0.05, 
+        #x_tol = 0.05, f_tol = 0.05, g_tol = 0.05, 
+        show_trace=false,
+        iterations=100, outer_iterations=100)
 
     use_random_inits = ismissing(xinit)
 
     if use_random_inits
         xinit = zeros(4)
     end
-    
+
     while !converged && i <= n_attempts
 
         if use_random_inits
@@ -116,7 +116,7 @@ function optimize_hyperparameters_rst(
             xinit[3] = rand(dμ)
             xinit[4] = rand(dr)
         end
-            
+
         xinit_tilde = h(xinit)
 
         try
@@ -140,9 +140,9 @@ function optimize_hyperparameters_rst(
         throw(ConvergenceException())
         #println("did not converge $(n_converged) times after $(i-1) iterations")
     end
-    
+
     x = g(optres.minimizer)
-    model = newmodel_separate_shift(x; n = n, sd = sd)
-    return(optres, model, i-1)
+    model = newmodel_separate_shift(x; n=n, sd=sd)
+    return (optres, model, i-1)
 end
 
